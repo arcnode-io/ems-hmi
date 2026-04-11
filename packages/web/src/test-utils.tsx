@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react";
 import type { ReactElement } from "react";
-import { TamaguiThemeProvider } from "./theme/TamaguiThemeProvider";
+import { TamaguiThemeProvider } from "./theme";
 
 /**
  * Custom render function that wraps components with TamaguiThemeProvider for testing.

@@ -3,7 +3,7 @@ import "./index.css";
 import "./theme/fonts.css";
 import App from "./App.tsx";
 import { ErrorBoundary } from "./components/features";
-import { TamaguiThemeProvider } from "./theme/TamaguiThemeProvider";
+import { TamaguiThemeProvider } from "./theme";
 import { loadConfig } from "./config";
 
 // Silence harmless React Native Web warnings (these don't affect functionality)
