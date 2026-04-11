@@ -1,0 +1,43 @@
+
+stages:
+  - check
+  - publish
+  - mirror
+
+check:
+  stage: check
+  script:
+    - npm ci
+    - npx playwright install --with-deps chromium
+    - npm run checks
+    - npm run cover
+    - npm run build
+  coverage: '/All files\s*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*(\d+(?:\.\d+)?)/'
+  artifacts:
+    when: always
+    paths:
+      - dist/
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+
+publish:
+  stage: publish
+  script:
+    - docker login -u admin -p $HARBOR_PASSWORD 173.211.12.43:8083
+    - docker build -t 173.211.12.43:8083/library/typescript-react-web .
+    - docker push 173.211.12.43:8083/library/typescript-react-web
+  dependencies:
+    - check
+
+mirror:
+  stage: mirror
+  variables:
+    GIT_STRATEGY: clone
+    GIT_DEPTH: 0
+  script:
+    - git checkout -B main
+    - git push --mirror git@github.com:engineering-with-ai/typescript-react-web.git
+  only:
+    - main

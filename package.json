@@ -1,0 +1,8 @@
+{
+  "name": "ems-hmi",
+  "version": "1.0.0-beta",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ]
+}

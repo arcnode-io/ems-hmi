@@ -1,0 +1,11 @@
+/.idea
+/node_modules
+secrets.env
+coverage
+playwright-report
+dist
+test-results
+.jest-cache
+*.tsbuildinfo
+
+

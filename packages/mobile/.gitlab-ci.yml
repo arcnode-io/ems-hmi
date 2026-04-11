@@ -1,0 +1,42 @@
+
+stages:
+  - check
+  - deploy
+  - mirror
+
+check:
+  stage: check
+  script:
+    - npm ci --legacy-peer-deps
+    - npm run checks
+    - cd android && ./gradlew assembleDebug assembleAndroidTest -DtestBuildType=debug && cd ..
+    - npm run cover
+    - cd android && ./gradlew assembleRelease && cd ..
+  coverage: '/All files\s*\|\s*\d+\.\d+\s*\|\s*\d+\.\d+\s*\|\s*\d+\.\d+\s*\|\s*(\d+\.\d+)/'
+  artifacts:
+    when: always
+    paths:
+      - android/app/build/outputs/apk/release/app-release.apk
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+
+deploy:
+  stage: deploy
+  script:
+    - cp android/app/build/outputs/apk/release/app-release.apk /home/admin/fdroid/repo/
+    - cd /home/admin/fdroid && fdroid update --create-metadata
+  dependencies:
+    - check
+
+mirror:
+  stage: mirror
+  variables:
+    GIT_STRATEGY: clone
+    GIT_DEPTH: 0
+  script:
+    - git checkout -B main
+    - git push --mirror git@github.com:engineering-with-ai/typescript-react-mobile.git
+  only:
+    - main

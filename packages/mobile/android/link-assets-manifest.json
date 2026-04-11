@@ -1,0 +1,53 @@
+{
+  "migIndex": 1,
+  "data": [
+    {
+      "path": "assets/fonts/SpaceGrotesk-Bold.ttf",
+      "sha1": "f0de6a0f5e0fba816351e324ea74d226d2e4c6c3"
+    },
+    {
+      "path": "assets/fonts/Inter-Medium.ttf",
+      "sha1": "126d31d9fbb0d742763c266a1c2ace71b106e34a"
+    },
+    {
+      "path": "assets/fonts/JetBrainsMono-Bold.ttf",
+      "sha1": "8a0806a42bb8c44290735c17fbb439b8d8c08ec5"
+    },
+    {
+      "path": "assets/fonts/JetBrainsMono-Medium.ttf",
+      "sha1": "5bf8fa15598c049508345993d774fae5e0722d42"
+    },
+    {
+      "path": "assets/fonts/Inter-Bold.ttf",
+      "sha1": "0325b9b3992fa2fdc9c715730a33135696c68a39"
+    },
+    {
+      "path": "assets/fonts/Exo2-Regular.ttf",
+      "sha1": "bf01aedd4a3b98a725eb92c0569e69cd30f36c66"
+    },
+    {
+      "path": "assets/fonts/Exo2-Medium.ttf",
+      "sha1": "c6e300f62b8820d6b2cdfbd83a06b9d1f006b519"
+    },
+    {
+      "path": "assets/fonts/SpaceGrotesk-Medium.ttf",
+      "sha1": "0052d46f4aa6007b113bc333a0d9fd9da265d620"
+    },
+    {
+      "path": "assets/fonts/JetBrainsMono-Regular.ttf",
+      "sha1": "50fc729787e6133b511444b185c7397bd3ccd3da"
+    },
+    {
+      "path": "assets/fonts/Exo2-Bold.ttf",
+      "sha1": "99f67af959480bdb452d5aca8c7d13a1d4506fa9"
+    },
+    {
+      "path": "assets/fonts/SpaceGrotesk-Regular.ttf",
+      "sha1": "e45547c2ded32a6752bbf117d2ad8abae2094800"
+    },
+    {
+      "path": "assets/fonts/Inter-Regular.ttf",
+      "sha1": "5c95e5d66572aeca303512ba41a8dde0cea92c80"
+    }
+  ]
+}

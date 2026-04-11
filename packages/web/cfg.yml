@@ -1,0 +1,13 @@
+local:
+  logLevel: DEBUG
+  e2e: false
+  mqttUri: "mqtt://localhost:1883"
+  fooApiUri: "http://localhost:3000/api"
+  chatApiUri: "http://localhost:3000"
+
+beta:
+  logLevel: INFO
+  e2e: true
+  mqttUri: "mqtt://beta.example.com:1883"
+  fooApiUri: "https://beta-api.example.com/api"
+  chatApiUri: "https://analyst-api.example.com"

@@ -1,5 +1,36 @@
 stages:
+  - check
+  - publish
   - mirror
+
+check-web:
+  stage: check
+  script:
+    - cd packages/web
+    - npm ci
+    - npm run checks
+    - npm run cover
+  coverage: '/All files\s*\|\s*[\d.]+/'
+  artifacts:
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: packages/web/coverage/cobertura-coverage.xml
+
+check-mobile:
+  stage: check
+  script:
+    - cd packages/mobile
+    - npm ci --legacy-peer-deps
+    - npm run checks
+
+build-web:
+  stage: publish
+  script:
+    - docker login -u admin -p $HARBOR_PASSWORD 173.211.12.43:8083
+    - docker build -t 173.211.12.43:8083/library/ems-hmi-web packages/web
+    - docker push 173.211.12.43:8083/library/ems-hmi-web
 
 mirror:
   stage: mirror
