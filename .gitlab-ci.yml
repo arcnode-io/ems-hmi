@@ -6,10 +6,9 @@ stages:
 check-web:
   stage: check
   script:
-    - cd packages/web
-    - npm ci
-    - npm run checks
-    - npm run cover
+    - npm ci --legacy-peer-deps
+    - npm run checks -w packages/web
+    - npm run cover -w packages/web
   coverage: '/All files\s*\|\s*[\d.]+/'
   artifacts:
     when: always
@@ -21,9 +20,8 @@ check-web:
 check-mobile:
   stage: check
   script:
-    - cd packages/mobile
     - npm ci --legacy-peer-deps
-    - npm run checks
+    - npm run checks -w packages/mobile
 
 build-web:
   stage: publish
