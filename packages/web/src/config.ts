@@ -43,5 +43,3 @@ export function loadConfig(): ConfigType {
     .with("beta", () => config.beta)
     .otherwise(() => config.local);
 }
-
-// Proof: shared workspace package import
