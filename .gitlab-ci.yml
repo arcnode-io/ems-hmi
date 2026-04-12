@@ -7,6 +7,7 @@ check-web:
   stage: check
   script:
     - npm ci --legacy-peer-deps
+    - npx playwright install --with-deps chromium
     - npm run checks -w packages/web
     - npm run cover -w packages/web
   coverage: '/All files\s*\|\s*[\d.]+/'
