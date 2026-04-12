@@ -10,9 +10,12 @@ check-web:
     - npx playwright install --with-deps chromium
     - npm run checks -w packages/web
     - npm run cover -w packages/web
-  coverage: '/All files\s*\|\s*[\d.]+/'
+    - npm run build -w packages/web
+  coverage: '/All files\s*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*(\d+(?:\.\d+)?)/'
   artifacts:
     when: always
+    paths:
+      - packages/web/dist/
     reports:
       coverage_report:
         coverage_format: cobertura
@@ -30,6 +33,8 @@ build-web:
     - docker login -u admin -p $HARBOR_PASSWORD 173.211.12.43:8083
     - docker build -t 173.211.12.43:8083/library/ems-hmi-web packages/web
     - docker push 173.211.12.43:8083/library/ems-hmi-web
+  dependencies:
+    - check-web
 
 mirror:
   stage: mirror
