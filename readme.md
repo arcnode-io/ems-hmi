@@ -27,13 +27,13 @@ rectangle ems_device_api
 rectangle ems_analyst_api
 
 
-ems_device_api -r- generated_types: AsyncAPI spec
-generated_types -r- mqtt_provider: topic constants\n + message types
-mqtt_provider -- mqtt_broker: WebSocket
-hmi_components -- mqtt_provider
-analyst_components -- analyst_hooks
+ems_device_api <-r- generated_types: GET /asyncapi\n(build time)
+generated_types -r-> mqtt_provider: topic constants\n+ message types
+mqtt_provider --> mqtt_broker: MQTT\n over WebSocket
+hmi_components --> mqtt_provider
+analyst_components --> analyst_hooks
 
-analyst_hooks -- ems_analyst_api: REST
+analyst_hooks --> ems_analyst_api: HTTP REST
 
 ```
 
@@ -52,7 +52,7 @@ ems_device_api -> generated_types: POST /topology → AsyncAPI spec
 generated_types -> mqtt_provider: import topics + message types
 
 mqtt_broker -> mqtt_provider: publish measurement
-mqtt_provider -> hmi_component: useSubscription<T>(topic)\n→ { value, timestamp, status }
+mqtt_provider -> hmi_component: useSubscription<T>(topic)\n→ { value, timestamp (UTC), status }
 hmi_component -> hmi_component: render
 ```
 
