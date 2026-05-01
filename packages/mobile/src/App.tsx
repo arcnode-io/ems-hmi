@@ -27,6 +27,9 @@ import {
   ChatContainer,
 } from "./components/features";
 import { Navigator } from "./navigation";
+import { loadConfig } from "./config";
+
+const { chatApiUri } = loadConfig();
 
 const CHART_DATA = [
   { value: 50 },
@@ -190,10 +193,10 @@ function ChatScreen(): ReactElement {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={{ flex: 1 }}
         >
-          <ChatContainer />
+          <ChatContainer apiUrl={chatApiUri} />
         </KeyboardAvoidingView>
       ) : (
-        <ChatContainer />
+        <ChatContainer apiUrl={chatApiUri} />
       )}
     </View>
   );

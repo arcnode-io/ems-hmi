@@ -8,7 +8,7 @@
     "build-debug": "cd android && ./gradlew assembleDebug assembleAndroidTest && cd ..",
     "start": "react-native start",
     "start:mock": "RN_MOCKED=true react-native start",
-    "depcheck": "depcheck --ignores=@types/*,@babel/*,@react-native/*,@react-native-community/*,@testing-library/*,jest,prettier,typescript,eslint,babel-jest,ts-pattern,winston,yaml,zod,ts-node,tsconfig-paths,react-native-dotenv,metro-config,@tamagui/portal,baseline-browser-mapping,burnt,@tamagui/helpers-icon,react-native-screens,react-native-safe-area-context,react-native-svg",
+    "depcheck": "depcheck --ignores=@types/*,@babel/*,@react-native/*,@react-native-community/*,@testing-library/*,jest,prettier,typescript,eslint,babel-jest,ts-pattern,winston,yaml,zod,ts-node,tsconfig-paths,react-native-dotenv,metro-config,@tamagui/portal,baseline-browser-mapping,burnt,@tamagui/helpers-icon,react-native-screens,react-native-safe-area-context,react-native-svg,@react-navigation/native,@react-navigation/native-stack,@tamagui/dialog,@tamagui/popover,@tamagui/switch,@tamagui/toast,@tamagui/tooltip,ip-address,react-native-gifted-charts,@tamagui/animations-css",
     "format": "prettier --write src",
     "typecheck": "tsc ; eslint -c eslint-typecheck.config.mjs",
     "audit-src": "eslint -c eslint-security.config.mjs",
@@ -48,7 +48,8 @@
     "react-native-svg": "^15.11.1",
     "ts-pattern": "^5.0.0",
     "yaml": "^2.4.0",
-    "zod": "^4.0.0"
+    "zod": "^4.0.0",
+    "@ems-hmi/shared": "*"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

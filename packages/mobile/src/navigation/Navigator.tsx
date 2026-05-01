@@ -1,41 +1,39 @@
-import type { ReactElement, ReactNode } from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import type { RootStackParamList } from "./routes";
-import { LINKING_CONFIG } from "./routes";
-
-const Stack = createNativeStackNavigator<RootStackParamList>();
+import type { ReactElement } from "react";
+import { Navigator as SharedNavigator } from "@ems-hmi/shared";
 
 interface NavigatorProps {
   HomeScreen: () => ReactElement;
   ChatScreen: () => ReactElement;
   SettingsScreen: () => ReactElement;
-  children?: ReactNode;
 }
 
+/** Deep-link config for mobile (myapp:// scheme). */
+const LINKING_CONFIG = {
+  prefixes: ["myapp://"],
+  config: {
+    screens: {
+      Home: "",
+      Chat: "chat",
+      Settings: "settings",
+    },
+  },
+};
+
 /**
- * Main app navigator with deep link support.
- * @param props - Screen components to render for each route.
- * @param props.HomeScreen - Component for the home/dashboard screen.
- * @param props.ChatScreen - Component for the AI chat screen.
- * @param props.SettingsScreen - Component for the settings screen.
- * @returns NavigationContainer with stack navigator.
+ * Mobile Navigator that wires the shared navigation with deep link support.
+ * @param props Screen components for each route.
+ * @param props.HomeScreen - Home screen component.
+ * @param props.ChatScreen - Chat screen component.
+ * @param props.SettingsScreen - Settings screen component.
+ * @returns Navigator configured for mobile deep linking.
  */
-export function Navigator({
-  HomeScreen,
-  ChatScreen,
-  SettingsScreen,
-}: NavigatorProps): ReactElement {
+export function Navigator(props: NavigatorProps): ReactElement {
   return (
-    <NavigationContainer linking={LINKING_CONFIG}>
-      <Stack.Navigator
-        initialRouteName="Home"
-        screenOptions={{ headerShown: false }}
-      >
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="Chat" component={ChatScreen} />
-        <Stack.Screen name="Settings" component={SettingsScreen} />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <SharedNavigator
+      {...props}
+      linking={
+        LINKING_CONFIG as Parameters<typeof SharedNavigator>[0]["linking"]
+      }
+    />
   );
 }

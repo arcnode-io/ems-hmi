@@ -1,5 +1,5 @@
 import { renderHook, act } from "@testing-library/react-native";
-import { useChat } from "./useChat";
+import { useChat } from "@ems-hmi/shared";
 
 const API_URL = "http://localhost:3000";
 

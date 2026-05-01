@@ -2,6 +2,7 @@
   "name": "@ems-hmi/shared",
   "version": "1.0.0-beta",
   "private": true,
+  "main": "./src/main.ts",
   "exports": {
     ".": "./src/main.ts"
   },

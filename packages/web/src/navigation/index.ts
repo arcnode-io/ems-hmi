@@ -1,3 +1,3 @@
 export { Navigator } from "./Navigator";
-export { ROUTES, LINKING_CONFIG } from "./routes";
-export type { RootStackParamList, RouteConfig } from "./routes";
+export { ROUTES } from "@ems-hmi/shared";
+export type { RootStackParamList, RouteConfig } from "@ems-hmi/shared";

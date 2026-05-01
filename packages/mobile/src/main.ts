@@ -5,7 +5,7 @@
 import { AppRegistry } from "react-native";
 import React from "react";
 import App from "./App";
-import { TamaguiThemeProvider } from "./theme/TamaguiThemeProvider";
+import { TamaguiThemeProvider } from "./theme";
 import { name as appName } from "../app.json";
 import { loadConfig } from "./config";
 

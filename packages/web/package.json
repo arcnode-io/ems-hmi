@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "depcheck": "depcheck --ignores=@types/*,@typescript-eslint/*,c8,eslint-plugin-react-hooks,eslint-plugin-react-refresh,identity-obj-proxy,jest-environment-jsdom,jest-transform-stub,jest-transformer-svg,react-native,react-native-web,react-native-svg,ts-jest,ts-node,tsconfig-paths,@tamagui/portal,@tamagui/polyfill-dev,gifted-charts-core,react-native-web-linear-gradient,buffer,react-native-screens,react-native-safe-area-context,react-router-dom",
+    "depcheck": "depcheck --ignores=@types/*,@typescript-eslint/*,c8,eslint-plugin-react-hooks,eslint-plugin-react-refresh,identity-obj-proxy,jest-environment-jsdom,jest-transform-stub,jest-transformer-svg,react-native,react-native-web,react-native-svg,ts-jest,ts-node,tsconfig-paths,@tamagui/portal,@tamagui/polyfill-dev,gifted-charts-core,react-native-web-linear-gradient,buffer,react-native-screens,react-native-safe-area-context,react-router-dom,@react-navigation/native,@react-navigation/native-stack,@tamagui/dialog,@tamagui/helpers-icon,@tamagui/popover,@tamagui/switch,@tamagui/toast,@tamagui/tooltip,ip-address,react-native-gifted-charts",
     "format": "prettier --write src",
     "typecheck": "tsc ; eslint -c eslint-typecheck.config.mjs",
     "audit-src": "eslint -c eslint-security.config.mjs",

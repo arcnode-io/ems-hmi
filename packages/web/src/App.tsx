@@ -26,6 +26,9 @@ import {
   ChatContainer,
 } from "./components/features";
 import { Navigator } from "./navigation";
+import { loadConfig } from "./config";
+
+const { chatApiUri } = loadConfig();
 
 const CHART_DATA = [
   { value: 50 },
@@ -184,7 +187,7 @@ function ChatScreen(): ReactElement {
     <View flex={1} backgroundColor="$background">
       <AppBar title="AI Chat" onMenuPress={() => setDrawerOpen(true)} />
       <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
-      <ChatContainer />
+      <ChatContainer apiUrl={chatApiUri} />
     </View>
   );
 }
