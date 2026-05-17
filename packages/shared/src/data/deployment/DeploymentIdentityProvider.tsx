@@ -21,6 +21,10 @@ export interface DeploymentIdentity {
   host: string;
   /** Build-target mode — `demo` swaps in MockMqttProvider; others use real broker. */
   mode: DeploymentMode;
+  /** Analyst-agent chat API base URL. Used by Settings' connection test. */
+  chatApiUri: string;
+  /** Device-API base URL. Used by Settings' connection test. */
+  deviceApiUri: string;
 }
 
 export const DeploymentIdentityContext =

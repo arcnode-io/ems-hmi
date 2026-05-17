@@ -35,7 +35,8 @@ export type SidebarRoute =
   | "/modules/sld"
   | "/energy"
   | "/compute"
-  | "/analyst";
+  | "/analyst"
+  | "/settings";
 
 export interface SidebarProps {
   /** Current route path — drives the active nav item highlight. */
@@ -370,13 +371,18 @@ function UserFooter({
   t,
   user,
   collapsed,
+  onPress,
 }: {
   t: Theme;
   user: { initials: string; name: string; role: string };
   collapsed: boolean;
+  onPress?: () => void;
 }): React.ReactElement {
   return (
-    <View
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel="Open settings"
+      onPress={onPress}
       dataSet={{ region: "user-footer" }}
       style={{
         borderTopWidth: 1,
@@ -437,7 +443,7 @@ function UserFooter({
           </Text>
         </View>
       )}
-    </View>
+    </Pressable>
   );
 }
 
@@ -493,7 +499,12 @@ export function Sidebar({
           />
         ))}
       </ScrollView>
-      <UserFooter t={t} user={user} collapsed={collapsed} />
+      <UserFooter
+        t={t}
+        user={user}
+        collapsed={collapsed}
+        onPress={(): void => onNavigate("/settings")}
+      />
     </View>
   );
 }

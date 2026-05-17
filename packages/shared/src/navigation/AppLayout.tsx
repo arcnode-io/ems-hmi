@@ -140,6 +140,7 @@ export function AppLayout({
             alarmCount={alarmCount}
             userInitials="RM"
             breadcrumbs={breadcrumbs}
+            onUserPress={(): void => onNavigate("Settings")}
           />
           <StatusStrip items={statusItems} />
           <View style={{ flex: 1 }}>{children}</View>
@@ -156,6 +157,7 @@ export function AppLayout({
         mode={emsMode}
         alarmCount={alarmCount}
         userInitials="RM"
+        onUserPress={(): void => onNavigate("Settings")}
       />
       <StatusStrip items={statusItems} />
       <View style={{ flex: 1 }}>{children}</View>

@@ -30,6 +30,8 @@ export interface TopBarProps {
   userInitials: string;
   /** Optional breadcrumb segments for desktop (e.g. ["Brookside DC-1", "Modules", "SLD"]). */
   breadcrumbs?: string[];
+  /** Tap-handler for the avatar (phone settings entry point). */
+  onUserPress?: () => void;
 }
 
 const HEADING_FONT_SIZE_PHONE = 20;
@@ -215,6 +217,7 @@ function PhoneTopBar(props: TopBarProps): React.ReactElement {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`User menu, ${props.userInitials}`}
+        onPress={props.onUserPress}
       >
         <View
           dataSet={{ region: "avatar" }}

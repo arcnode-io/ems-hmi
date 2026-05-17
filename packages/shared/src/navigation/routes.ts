@@ -18,6 +18,7 @@ export type RootStackParamList = {
   Energy: undefined;
   Compute: undefined;
   Analyst: undefined;
+  Settings: undefined;
 };
 
 export type RouteName = keyof RootStackParamList;
@@ -44,6 +45,7 @@ export const ROUTES: readonly RouteSpec[] = [
   { name: "Energy", path: "energy", sidebar: "/energy", bottomTab: "energy" },
   { name: "Compute", path: "compute", sidebar: "/compute", bottomTab: "compute" },
   { name: "Analyst", path: "analyst", sidebar: "/analyst", bottomTab: "analyst" },
+  { name: "Settings", path: "settings", sidebar: "/settings", bottomTab: null },
 ] as const;
 
 /** Look up a route spec by name. */

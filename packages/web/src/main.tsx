@@ -94,6 +94,8 @@ createRoot(document.getElementById("root")!).render(
           name: cfg.deploymentName,
           host: cfg.deploymentHost,
           mode: cfg.mode,
+          chatApiUri: cfg.chatApiUri,
+          deviceApiUri: cfg.deviceApiUri,
         }}
       >
         <TopologyProvider viewUrl={topologyViewUrl}>
