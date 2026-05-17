@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-import { View, Text, Pressable, useColorScheme } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { Svg, Circle, Path } from "react-native-svg";
 import { useTheme } from "../../../../theme/ThemeProvider";
 import { useThemeControl } from "../../../../theme/ThemeProvider";
@@ -186,17 +186,7 @@ interface DisplaySectionProps {
 
 export function DisplaySection({ withUnits = false }: DisplaySectionProps): React.ReactElement {
   const t = useTheme();
-  const { themeName, setTheme } = useThemeControl();
-  const osScheme = useColorScheme();
-  // Reason: "System" choice = no user override. Today our ThemeProvider
-  // doesn't expose "system" as a distinct state separate from the OS-
-  // matched themeName, so a System-selected state is inferred only when
-  // themeName === osScheme. Future: extend ThemeProvider with a clear()
-  // method that resets the user override.
-  // OS scheme is "light" | "dark" | null; map to our theme names then
-  // compare to detect "System" alignment.
-  const osThemeName = osScheme === "dark" ? "sovereign" : "solarpunk";
-  const isSystem = themeName === osThemeName;
+  const { themeMode, setThemeMode } = useThemeControl();
   const [powerUnit, setPowerUnit] = React.useState("kW");
   const [tempUnit, setTempUnit] = React.useState("°C");
 
@@ -223,22 +213,22 @@ export function DisplaySection({ withUnits = false }: DisplaySectionProps): Reac
             <Choice
               name="System"
               sub="Auto"
-              selected={isSystem}
-              onPress={(): void => setTheme(osThemeName)}
+              selected={themeMode === "system"}
+              onPress={(): void => setThemeMode("system")}
               Icon={IconSystem}
             />
             <Choice
               name="Solarpunk"
               sub="Light"
-              selected={!isSystem && themeName === "solarpunk"}
-              onPress={(): void => setTheme("solarpunk")}
+              selected={themeMode === "solarpunk"}
+              onPress={(): void => setThemeMode("solarpunk")}
               Icon={IconSun}
             />
             <Choice
               name="Sovereign"
               sub="Dark"
-              selected={!isSystem && themeName === "sovereign"}
-              onPress={(): void => setTheme("sovereign")}
+              selected={themeMode === "sovereign"}
+              onPress={(): void => setThemeMode("sovereign")}
               Icon={IconMoon}
             />
           </View>

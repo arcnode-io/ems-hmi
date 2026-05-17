@@ -4,13 +4,19 @@
 
 import React from "react";
 import { render, act } from "@testing-library/react";
-import { ThemeProvider, useTheme, useThemeControl } from "./ThemeProvider";
+import {
+  ThemeProvider,
+  useTheme,
+  useThemeControl,
+  type ThemeMode,
+} from "./ThemeProvider";
 import type { Theme, ThemeName } from "./tokens";
 
 interface ProbeValue {
   theme: Theme;
   themeName: ThemeName;
-  setTheme: (name: ThemeName) => void;
+  themeMode: ThemeMode;
+  setThemeMode: (mode: ThemeMode) => void;
 }
 
 function Probe({ onMount }: { onMount: (v: ProbeValue) => void }): null {
@@ -19,7 +25,8 @@ function Probe({ onMount }: { onMount: (v: ProbeValue) => void }): null {
   const value: ProbeValue = {
     theme,
     themeName: ctl.themeName,
-    setTheme: ctl.setTheme,
+    themeMode: ctl.themeMode,
+    setThemeMode: ctl.setThemeMode,
   };
   React.useEffect(() => {
     onMount(value);
@@ -43,10 +50,11 @@ describe("ThemeProvider + useTheme", () => {
       </ThemeProvider>,
     );
 
-    // Assert — without a persisted choice the theme follows the OS color
-    // scheme (sovereign for dark, solarpunk for light), falling back to
-    // DEFAULT_THEME if the platform reports nothing.
+    // Assert — without a persisted choice the mode defaults to "system",
+    // and the resolved themeName follows the OS color scheme (falling
+    // back to DEFAULT_THEME when the platform reports nothing).
     expect(captured).not.toBeNull();
+    expect(captured!.themeMode).toBe("system");
     expect(["sovereign", "solarpunk"]).toContain(captured!.themeName);
     expect(captured!.theme.name).toBe(captured!.themeName);
   });
@@ -67,7 +75,7 @@ describe("ThemeProvider + useTheme", () => {
     expect(captured!.theme.name).toBe("solarpunk");
   });
 
-  it("setTheme switches theme + persists to localStorage", () => {
+  it("setThemeMode switches theme + persists to localStorage", () => {
     // Arrange
     let captured: ProbeValue | null = null;
 
@@ -78,12 +86,56 @@ describe("ThemeProvider + useTheme", () => {
       </ThemeProvider>,
     );
     act(() => {
-      captured!.setTheme("solarpunk");
+      captured!.setThemeMode("solarpunk");
     });
 
     // Assert
     expect(captured!.themeName).toBe("solarpunk");
+    expect(captured!.themeMode).toBe("solarpunk");
     expect(window.localStorage.getItem("@arcnode/theme")).toBe("solarpunk");
+  });
+
+  it("explicit mode is preserved even when it matches OS scheme", () => {
+    // Arrange — jsdom reports no color-scheme; useColorScheme returns null
+    // which we treat as solarpunk via DEFAULT_THEME. Pinning "solarpunk"
+    // explicitly must NOT collapse back to "system".
+    let captured: ProbeValue | null = null;
+
+    // Act
+    render(
+      <ThemeProvider>
+        <Probe onMount={(v) => (captured = v)} />
+      </ThemeProvider>,
+    );
+    act(() => {
+      captured!.setThemeMode("solarpunk");
+    });
+
+    // Assert
+    expect(captured!.themeMode).toBe("solarpunk");
+    expect(captured!.themeName).toBe("solarpunk");
+    expect(window.localStorage.getItem("@arcnode/theme")).toBe("solarpunk");
+  });
+
+  it("setThemeMode('system') clears the user override", () => {
+    // Arrange
+    let captured: ProbeValue | null = null;
+    window.localStorage.setItem("@arcnode/theme", "sovereign");
+
+    // Act
+    render(
+      <ThemeProvider>
+        <Probe onMount={(v) => (captured = v)} />
+      </ThemeProvider>,
+    );
+    expect(captured!.themeMode).toBe("sovereign");
+    act(() => {
+      captured!.setThemeMode("system");
+    });
+
+    // Assert
+    expect(captured!.themeMode).toBe("system");
+    expect(window.localStorage.getItem("@arcnode/theme")).toBe("system");
   });
 
   it("reflects active theme on <html data-theme> attribute", () => {

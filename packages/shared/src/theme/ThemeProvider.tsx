@@ -13,10 +13,19 @@ import {
   type ThemeName,
 } from "./tokens";
 
+/**
+ * User-facing theme choice. "system" follows the OS color scheme; the two
+ * named values pin an explicit override. Persisted as-is in localStorage —
+ * a previously stored bare ThemeName is still valid (its meaning matches
+ * the explicit-override case).
+ */
+export type ThemeMode = "system" | ThemeName;
+
 interface ThemeContextValue {
   theme: Theme;
   themeName: ThemeName;
-  setTheme: (name: ThemeName) => void;
+  themeMode: ThemeMode;
+  setThemeMode: (mode: ThemeMode) => void;
 }
 
 const ThemeContext = React.createContext<ThemeContextValue | null>(null);
@@ -45,13 +54,14 @@ function webGlobals(): WebGlobals {
 }
 
 /**
- * Read the user's persisted theme choice. Returns null if they've never picked
- * one — caller falls back to OS scheme or DEFAULT_THEME.
- * @returns Persisted theme name or null
+ * Read the user's persisted theme mode. Returns null when nothing is stored
+ * (caller treats as "system").
+ * @returns Persisted mode or null
  */
-function readPersistedTheme(): ThemeName | null {
+function readPersistedMode(): ThemeMode | null {
   const v = webGlobals().localStorage?.getItem(PERSIST_KEY);
-  return v === "sovereign" || v === "solarpunk" ? v : null;
+  if (v === "sovereign" || v === "solarpunk" || v === "system") return v;
+  return null;
 }
 
 /**
@@ -66,6 +76,17 @@ function themeFromScheme(
   if (scheme === "dark") return "sovereign";
   if (scheme === "light") return "solarpunk";
   return null;
+}
+
+/**
+ * Resolve mode + OS scheme into a concrete ThemeName.
+ */
+function resolveThemeName(
+  mode: ThemeMode,
+  scheme: "light" | "dark" | null | undefined,
+): ThemeName {
+  if (mode === "system") return themeFromScheme(scheme) ?? DEFAULT_THEME;
+  return mode;
 }
 
 interface ThemeProviderProps {
@@ -88,32 +109,17 @@ export function ThemeProvider({
   initialTheme,
 }: ThemeProviderProps): React.ReactElement {
   const osScheme = useColorScheme();
-  // Track whether the user has explicitly chosen a theme. If they have, their
-  // pick wins over OS scheme changes; if they haven't, follow the OS.
-  const [hasUserChoice, setHasUserChoice] = React.useState<boolean>(() =>
-    readPersistedTheme() !== null,
-  );
-  const [themeName, setThemeName] = React.useState<ThemeName>(
-    () =>
-      initialTheme ??
-      readPersistedTheme() ??
-      themeFromScheme(osScheme) ??
-      DEFAULT_THEME,
-  );
+  const [themeMode, setThemeModeState] = React.useState<ThemeMode>(() => {
+    if (initialTheme) return initialTheme;
+    return readPersistedMode() ?? "system";
+  });
 
-  // Follow OS scheme changes only when user hasn't pinned a choice.
-  React.useEffect(() => {
-    if (hasUserChoice) return;
-    const fromOs = themeFromScheme(osScheme);
-    if (fromOs && fromOs !== themeName) setThemeName(fromOs);
-  }, [osScheme, hasUserChoice, themeName]);
+  const themeName = resolveThemeName(themeMode, osScheme);
 
-  const setTheme = React.useCallback((name: ThemeName): void => {
-    setThemeName(name);
-    setHasUserChoice(true);
-    const { localStorage, document } = webGlobals();
-    localStorage?.setItem(PERSIST_KEY, name);
-    document?.documentElement.setAttribute("data-theme", name);
+  const setThemeMode = React.useCallback((mode: ThemeMode): void => {
+    setThemeModeState(mode);
+    const { localStorage } = webGlobals();
+    localStorage?.setItem(PERSIST_KEY, mode);
   }, []);
 
   React.useEffect(() => {
@@ -127,9 +133,10 @@ export function ThemeProvider({
     () => ({
       theme: themeName === "sovereign" ? SOVEREIGN : SOLARPUNK,
       themeName,
-      setTheme,
+      themeMode,
+      setThemeMode,
     }),
-    [themeName, setTheme],
+    [themeName, themeMode, setThemeMode],
   );
 
   return (
@@ -149,13 +156,18 @@ export function useTheme(): Theme {
 }
 
 /**
- * Returns the active theme name + setter. Use for theme switchers.
- * @returns themeName + setTheme
+ * Returns the resolved theme name, the user-facing mode, and the mode
+ * setter. Use for theme switchers.
+ * @returns themeName + themeMode + setThemeMode
  * @throws Error if invoked outside a ThemeProvider
  */
 export function useThemeControl(): Omit<ThemeContextValue, "theme"> {
   const ctx = React.useContext(ThemeContext);
   if (!ctx)
     throw new Error("useThemeControl must be used inside <ThemeProvider>");
-  return { themeName: ctx.themeName, setTheme: ctx.setTheme };
+  return {
+    themeName: ctx.themeName,
+    themeMode: ctx.themeMode,
+    setThemeMode: ctx.setThemeMode,
+  };
 }
