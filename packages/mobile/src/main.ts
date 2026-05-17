@@ -11,7 +11,6 @@ import { name as appName } from "../app.json";
 import { loadConfig } from "./config";
 
 const cfg = loadConfig();
-// eslint-disable-next-line no-console
 console.info(`Running with config: ${JSON.stringify(cfg)}`);
 
 const AppWithTheme = (): React.ReactElement =>
