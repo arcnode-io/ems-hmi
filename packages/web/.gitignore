@@ -7,5 +7,6 @@ dist
 test-results
 .jest-cache
 *.tsbuildinfo
+sweep-output
 
 

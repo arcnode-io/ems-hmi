@@ -4,9 +4,16 @@
   "private": true,
   "main": "./src/main.ts",
   "exports": {
-    ".": "./src/main.ts"
+    ".": "./src/main.ts",
+    "./*": "./src/*"
+  },
+  "scripts": {
+    "tokens:generate": "tsx scripts/generate-tokens.ts"
   },
   "peerDependencies": {
     "react": ">=18"
+  },
+  "devDependencies": {
+    "tsx": "^4.7.0"
   }
 }

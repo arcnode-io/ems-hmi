@@ -1,220 +1,45 @@
-import { useState } from "react";
+import { View, Text } from "react-native";
 import type { ReactElement } from "react";
-import { View } from "@tamagui/core";
-import { Send } from "@tamagui/lucide-icons";
-import { KeyboardAvoidingView, Platform } from "react-native";
-import {
-  Button,
-  Card,
-  ThemedText,
-  ContentContainer,
-  LineChart,
-  SimpleDialog,
-  Input,
-  Switch,
-  ToastProvider,
-  useToast,
-  Tooltip,
-  Skeleton,
-  ScreenLayout,
-  AppBar,
-  Drawer,
-} from "./components/ui";
-import { z } from "zod";
-import {
-  ThemePicker,
-  IpAddressContainer,
-  ChatContainer,
-} from "./components/features";
-import { Navigator } from "./navigation";
-import { loadConfig } from "./config";
-
-const { chatApiUri } = loadConfig();
-
-const CHART_DATA = [
-  { value: 50 },
-  { value: 80 },
-  { value: 65 },
-  { value: 90 },
-  { value: 70 },
-];
+import { useTheme } from "@ems-hmi/shared/theme/ThemeProvider";
 
 /**
- * Home screen with dashboard demos.
- * @returns Home screen element.
- */
-function HomeScreen(): ReactElement {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [switchOn, setSwitchOn] = useState(false);
-  const toast = useToast();
-
-  return (
-    <ScreenLayout>
-      <ContentContainer>
-        <Button onPress={() => setModalOpen(true)} label="Open Dialog" />
-
-        <SimpleDialog
-          open={modalOpen}
-          onClose={() => setModalOpen(false)}
-          title="Dialog Demo"
-        >
-          <ThemedText color="$color" marginBottom="$md">
-            This is a themed dialog that adapts to the current theme.
-          </ThemedText>
-          <Button onPress={() => setModalOpen(false)} label="Close" />
-        </SimpleDialog>
-
-        <IpAddressContainer />
-
-        <Card>
-          <ThemedText color="$color" fontWeight="500" marginBottom="$sm">
-            Input Demo
-          </ThemedText>
-          <View flexDirection="row" alignItems="flex-end" gap="$xs">
-            <View flex={1}>
-              <Input
-                label="Email"
-                placeholder="you@example.com"
-                schema={z.string().email("Please enter a valid email")}
-              />
-            </View>
-            <View marginBottom={8}>
-              <Button icon={Send} color="primary" label="" />
-            </View>
-          </View>
-        </Card>
-
-        <Card>
-          <View
-            flexDirection="row"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <ThemedText color="$color" fontWeight="500">
-              Switch Demo
-            </ThemedText>
-            <Switch checked={switchOn} onCheckedChange={setSwitchOn} />
-          </View>
-        </Card>
-
-        <Card>
-          <View
-            flexDirection="row"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <ThemedText color="$color" fontWeight="500">
-              Toast Demo
-            </ThemedText>
-            <Button
-              label="Show Toast"
-              color="secondary"
-              onPress={() =>
-                toast.show("Hello!", { message: "This is a toast." })
-              }
-            />
-          </View>
-        </Card>
-
-        <Card>
-          <View
-            flexDirection="row"
-            alignItems="center"
-            justifyContent="space-between"
-          >
-            <ThemedText color="$color" fontWeight="500">
-              Tooltip Demo
-            </ThemedText>
-            <Tooltip content="This is helpful info!">
-              <Button label="Hover me" color="accent" />
-            </Tooltip>
-          </View>
-        </Card>
-
-        <Card>
-          <ThemedText color="$color" fontWeight="500" marginBottom="$sm">
-            LineChart POC
-          </ThemedText>
-          <LineChart data={CHART_DATA} />
-        </Card>
-
-        <Card>
-          <ThemedText color="$color" fontWeight="500" marginBottom="$sm">
-            Skeleton Demo
-          </ThemedText>
-          <View gap="$xs">
-            <Skeleton variant="text" />
-            <Skeleton variant="text" width="80%" />
-            <Skeleton variant="rect" width="100%" height={60} />
-          </View>
-        </Card>
-      </ContentContainer>
-    </ScreenLayout>
-  );
-}
-
-/**
- * Settings screen with theme picker.
- * @returns Settings screen element.
- */
-function SettingsScreen(): ReactElement {
-  return (
-    <ScreenLayout>
-      <ContentContainer>
-        <Card>
-          <ThemedText
-            color="$color"
-            fontWeight="600"
-            fontSize={18}
-            marginBottom="$md"
-          >
-            Appearance
-          </ThemedText>
-          <ThemePicker />
-        </Card>
-      </ContentContainer>
-    </ScreenLayout>
-  );
-}
-
-/**
- * Chat screen with custom layout — no ScreenWrapper to avoid nested ScrollView with FlatList.
- * @returns Chat screen element.
- */
-function ChatScreen(): ReactElement {
-  const [drawerOpen, setDrawerOpen] = useState(false);
-
-  return (
-    <View flex={1} backgroundColor="$background">
-      <AppBar title="AI Chat" onMenuPress={() => setDrawerOpen(true)} />
-      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
-      {Platform.OS !== "web" ? (
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={{ flex: 1 }}
-        >
-          <ChatContainer apiUrl={chatApiUri} />
-        </KeyboardAvoidingView>
-      ) : (
-        <ChatContainer apiUrl={chatApiUri} />
-      )}
-    </View>
-  );
-}
-
-/**
- * Main app component with navigation.
- * @returns App root element with Navigator.
+ * App root — placeholder until routes + screens land on mobile.
  */
 function App(): ReactElement {
+  const t = useTheme();
   return (
-    <ToastProvider>
-      <Navigator
-        HomeScreen={HomeScreen}
-        ChatScreen={ChatScreen}
-        SettingsScreen={SettingsScreen}
-      />
-    </ToastProvider>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: t.bg,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Text
+        style={{
+          color: t.text,
+          fontFamily: t.fontHeading,
+          fontSize: 32,
+          letterSpacing: 0.5,
+          textTransform: "uppercase",
+        }}
+      >
+        ARCNODE EMS
+      </Text>
+      <Text
+        style={{
+          color: t.textSoft,
+          fontFamily: t.fontLabel,
+          fontSize: 10,
+          letterSpacing: 0.18,
+          marginTop: 8,
+          textTransform: "uppercase",
+        }}
+      >
+        Pixel-port in progress
+      </Text>
+    </View>
   );
 }
 

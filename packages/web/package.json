@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "depcheck": "depcheck --ignores=@types/*,@typescript-eslint/*,c8,eslint-plugin-react-hooks,eslint-plugin-react-refresh,identity-obj-proxy,jest-environment-jsdom,jest-transform-stub,jest-transformer-svg,react-native,react-native-web,react-native-svg,ts-jest,ts-node,tsconfig-paths,@tamagui/portal,@tamagui/polyfill-dev,gifted-charts-core,react-native-web-linear-gradient,buffer,react-native-screens,react-native-safe-area-context,react-router-dom,@react-navigation/native,@react-navigation/native-stack,@tamagui/dialog,@tamagui/helpers-icon,@tamagui/popover,@tamagui/switch,@tamagui/toast,@tamagui/tooltip,ip-address,react-native-gifted-charts",
+    "depcheck": "depcheck --ignores=@types/*,@typescript-eslint/*,@testing-library/*,c8,eslint-plugin-react-hooks,eslint-plugin-react-refresh,identity-obj-proxy,jest-environment-jsdom,jest-transform-stub,jest-transformer-svg,react-native,react-native-web,react-native-svg,ts-jest,ts-node,tsconfig-paths,gifted-charts-core,react-native-web-linear-gradient,buffer,react-native-screens,react-native-safe-area-context,react-router-dom,@react-navigation/native,@react-navigation/native-stack,ip-address,react-native-gifted-charts",
     "format": "prettier --write src",
     "typecheck": "tsc ; eslint -c eslint-typecheck.config.mjs",
     "audit-src": "eslint -c eslint-security.config.mjs",
@@ -29,16 +29,6 @@
   "dependencies": {
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/native-stack": "^6.11.0",
-    "@tamagui/core": "^1.142.0",
-    "@tamagui/dialog": "^1.142.0",
-    "@tamagui/helpers-icon": "^1.142.0",
-    "@tamagui/lucide-icons": "^1.142.0",
-    "@tamagui/polyfill-dev": "^1.142.0",
-    "@tamagui/popover": "^1.142.0",
-    "@tamagui/portal": "^1.142.0",
-    "@tamagui/switch": "^1.142.0",
-    "@tamagui/toast": "^1.142.0",
-    "@tamagui/tooltip": "^1.142.0",
     "@types/react-native-web": "^0.19.2",
     "buffer": "^6.0.3",
     "gifted-charts-core": "^0.1.72",
@@ -101,8 +91,13 @@
     "cache": true,
     "cacheDirectory": ".jest-cache",
     "maxWorkers": "50%",
+    "roots": [
+      "<rootDir>/src",
+      "<rootDir>/../shared/src"
+    ],
     "testMatch": [
-      "<rootDir>/src/**/*.test.{js,ts,tsx}"
+      "<rootDir>/src/**/*.test.{js,ts,tsx}",
+      "<rootDir>/../shared/src/**/*.test.{js,ts,tsx}"
     ],
     "setupFilesAfterEnv": [
       "<rootDir>/src/jest-setup.ts"

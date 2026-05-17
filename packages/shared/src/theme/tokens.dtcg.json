@@ -1,0 +1,629 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "sovereign": {
+    "name": {
+      "$value": "sovereign",
+      "$type": "color"
+    },
+    "bg": {
+      "$value": "#080808",
+      "$type": "color"
+    },
+    "surface": {
+      "$value": "#0e0e0e",
+      "$type": "color"
+    },
+    "panel": {
+      "$value": "#131313",
+      "$type": "color"
+    },
+    "raised": {
+      "$value": "#1a1a1a",
+      "$type": "color"
+    },
+    "sunken": {
+      "$value": "#050505",
+      "$type": "color"
+    },
+    "border": {
+      "$value": "#1f1f1f",
+      "$type": "color"
+    },
+    "borderSoft": {
+      "$value": "#2a2a2a",
+      "$type": "color"
+    },
+    "borderFocus": {
+      "$value": "#4a7aaa",
+      "$type": "color"
+    },
+    "text": {
+      "$value": "#d4d0c8",
+      "$type": "color"
+    },
+    "textMid": {
+      "$value": "#8a8680",
+      "$type": "color"
+    },
+    "textSoft": {
+      "$value": "#6b6860",
+      "$type": "color"
+    },
+    "textFaint": {
+      "$value": "#3a3835",
+      "$type": "color"
+    },
+    "textInverse": {
+      "$value": "#0a0a0a",
+      "$type": "color"
+    },
+    "accent": {
+      "$value": "#4a7aaa",
+      "$type": "color"
+    },
+    "accentDim": {
+      "$value": "#3a6090",
+      "$type": "color"
+    },
+    "accentFaint": {
+      "$value": "#0a1520",
+      "$type": "color"
+    },
+    "accentBorder": {
+      "$value": "#2a4866",
+      "$type": "color"
+    },
+    "statusOk": {
+      "$value": "#4a7c5f",
+      "$type": "color"
+    },
+    "statusWarn": {
+      "$value": "#f5a623",
+      "$type": "color"
+    },
+    "statusAlarm": {
+      "$value": "#e84040",
+      "$type": "color"
+    },
+    "statusFire": {
+      "$value": "#ff2020",
+      "$type": "color"
+    },
+    "statusMaintenance": {
+      "$value": "#7a6aaa",
+      "$type": "color"
+    },
+    "statusOffline": {
+      "$value": "#3a3835",
+      "$type": "color"
+    },
+    "statusSim": {
+      "$value": "#4a7aaa",
+      "$type": "color"
+    },
+    "colorBess": {
+      "$value": "#4a7c5f",
+      "$type": "color"
+    },
+    "colorCompute": {
+      "$value": "#4a7aaa",
+      "$type": "color"
+    },
+    "colorThermal": {
+      "$value": "#4a9a9a",
+      "$type": "color"
+    },
+    "colorGrid": {
+      "$value": "#7a9e87",
+      "$type": "color"
+    },
+    "colorPv": {
+      "$value": "#d4a849",
+      "$type": "color"
+    },
+    "colorRevenue": {
+      "$value": "#b89a5e",
+      "$type": "color"
+    },
+    "chartGrid": {
+      "$value": "rgba(255, 255, 255, 0.06)",
+      "$type": "color"
+    },
+    "chartAxis": {
+      "$value": "rgba(255, 255, 255, 0.12)",
+      "$type": "color"
+    },
+    "chartForecastAlpha": {
+      "$value": 0.7,
+      "$type": "number"
+    },
+    "hoverOverlay": {
+      "$value": "rgba(255, 255, 255, 0.04)",
+      "$type": "color"
+    },
+    "pressedOverlay": {
+      "$value": "rgba(255, 255, 255, 0.08)",
+      "$type": "color"
+    },
+    "disabledOpacity": {
+      "$value": 0.4,
+      "$type": "number"
+    },
+    "focusRing": {
+      "$value": "#4a7aaa",
+      "$type": "color"
+    },
+    "fontHeading": {
+      "$value": "\"Bebas Neue\", \"Arial Narrow\", sans-serif",
+      "$type": "fontFamily"
+    },
+    "fontLabel": {
+      "$value": "\"DM Mono\", ui-monospace, monospace",
+      "$type": "fontFamily"
+    },
+    "fontBody": {
+      "$value": "\"DM Mono\", ui-monospace, monospace",
+      "$type": "fontFamily"
+    },
+    "fontMono": {
+      "$value": "\"DM Mono\", ui-monospace, monospace",
+      "$type": "fontFamily"
+    },
+    "deviceFrame": {
+      "$value": "#000000",
+      "$type": "color"
+    },
+    "statusBarFg": {
+      "$value": "#d4d0c8",
+      "$type": "color"
+    }
+  },
+  "solarpunk": {
+    "name": {
+      "$value": "solarpunk",
+      "$type": "color"
+    },
+    "bg": {
+      "$value": "#f5f0e8",
+      "$type": "color"
+    },
+    "surface": {
+      "$value": "#ede7d9",
+      "$type": "color"
+    },
+    "panel": {
+      "$value": "#e8e2d4",
+      "$type": "color"
+    },
+    "raised": {
+      "$value": "#f9f5ec",
+      "$type": "color"
+    },
+    "sunken": {
+      "$value": "#e0d8c8",
+      "$type": "color"
+    },
+    "border": {
+      "$value": "#d0c8b8",
+      "$type": "color"
+    },
+    "borderSoft": {
+      "$value": "#e0d8c8",
+      "$type": "color"
+    },
+    "borderFocus": {
+      "$value": "#1e3a2f",
+      "$type": "color"
+    },
+    "text": {
+      "$value": "#2a2218",
+      "$type": "color"
+    },
+    "textMid": {
+      "$value": "#5a5248",
+      "$type": "color"
+    },
+    "textSoft": {
+      "$value": "#8a8278",
+      "$type": "color"
+    },
+    "textFaint": {
+      "$value": "#b0a898",
+      "$type": "color"
+    },
+    "textInverse": {
+      "$value": "#f5f0e8",
+      "$type": "color"
+    },
+    "accent": {
+      "$value": "#1e3a2f",
+      "$type": "color"
+    },
+    "accentDim": {
+      "$value": "#2d5a44",
+      "$type": "color"
+    },
+    "accentFaint": {
+      "$value": "#e0f0e8",
+      "$type": "color"
+    },
+    "accentBorder": {
+      "$value": "#88a89a",
+      "$type": "color"
+    },
+    "statusOk": {
+      "$value": "#2d5a44",
+      "$type": "color"
+    },
+    "statusWarn": {
+      "$value": "#c8820a",
+      "$type": "color"
+    },
+    "statusAlarm": {
+      "$value": "#cc2929",
+      "$type": "color"
+    },
+    "statusFire": {
+      "$value": "#cc0000",
+      "$type": "color"
+    },
+    "statusMaintenance": {
+      "$value": "#5a4a8a",
+      "$type": "color"
+    },
+    "statusOffline": {
+      "$value": "#b0a898",
+      "$type": "color"
+    },
+    "statusSim": {
+      "$value": "#3a5a8a",
+      "$type": "color"
+    },
+    "colorBess": {
+      "$value": "#2d5a44",
+      "$type": "color"
+    },
+    "colorCompute": {
+      "$value": "#3a5a8a",
+      "$type": "color"
+    },
+    "colorThermal": {
+      "$value": "#2d7a7a",
+      "$type": "color"
+    },
+    "colorGrid": {
+      "$value": "#4a7c5f",
+      "$type": "color"
+    },
+    "colorPv": {
+      "$value": "#a87818",
+      "$type": "color"
+    },
+    "colorRevenue": {
+      "$value": "#7a5e2a",
+      "$type": "color"
+    },
+    "chartGrid": {
+      "$value": "rgba(0, 0, 0, 0.08)",
+      "$type": "color"
+    },
+    "chartAxis": {
+      "$value": "rgba(0, 0, 0, 0.18)",
+      "$type": "color"
+    },
+    "chartForecastAlpha": {
+      "$value": 0.65,
+      "$type": "number"
+    },
+    "hoverOverlay": {
+      "$value": "rgba(0, 0, 0, 0.03)",
+      "$type": "color"
+    },
+    "pressedOverlay": {
+      "$value": "rgba(0, 0, 0, 0.06)",
+      "$type": "color"
+    },
+    "disabledOpacity": {
+      "$value": 0.45,
+      "$type": "number"
+    },
+    "focusRing": {
+      "$value": "#1e3a2f",
+      "$type": "color"
+    },
+    "fontHeading": {
+      "$value": "\"Cormorant Garamond\", \"Georgia\", serif",
+      "$type": "fontFamily"
+    },
+    "fontLabel": {
+      "$value": "\"Space Mono\", ui-monospace, monospace",
+      "$type": "fontFamily"
+    },
+    "fontBody": {
+      "$value": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "$type": "fontFamily"
+    },
+    "fontMono": {
+      "$value": "\"Space Mono\", ui-monospace, monospace",
+      "$type": "fontFamily"
+    },
+    "deviceFrame": {
+      "$value": "#3a3835",
+      "$type": "color"
+    },
+    "statusBarFg": {
+      "$value": "#2a2218",
+      "$type": "color"
+    }
+  },
+  "primitive": {
+    "space": {
+      "0": {
+        "$value": "0px",
+        "$type": "dimension"
+      },
+      "1": {
+        "$value": "4px",
+        "$type": "dimension"
+      },
+      "2": {
+        "$value": "8px",
+        "$type": "dimension"
+      },
+      "3": {
+        "$value": "12px",
+        "$type": "dimension"
+      },
+      "4": {
+        "$value": "16px",
+        "$type": "dimension"
+      },
+      "5": {
+        "$value": "24px",
+        "$type": "dimension"
+      },
+      "6": {
+        "$value": "32px",
+        "$type": "dimension"
+      },
+      "7": {
+        "$value": "40px",
+        "$type": "dimension"
+      },
+      "8": {
+        "$value": "48px",
+        "$type": "dimension"
+      },
+      "10": {
+        "$value": "64px",
+        "$type": "dimension"
+      }
+    },
+    "radius": {
+      "0": {
+        "$value": "0px",
+        "$type": "dimension"
+      },
+      "1": {
+        "$value": "2px",
+        "$type": "dimension"
+      },
+      "2": {
+        "$value": "4px",
+        "$type": "dimension"
+      },
+      "3": {
+        "$value": "6px",
+        "$type": "dimension"
+      },
+      "4": {
+        "$value": "8px",
+        "$type": "dimension"
+      },
+      "5": {
+        "$value": "12px",
+        "$type": "dimension"
+      },
+      "full": {
+        "$value": "9999px",
+        "$type": "dimension"
+      }
+    },
+    "motion": {
+      "duration": {
+        "instant": {
+          "$value": "0ms",
+          "$type": "duration"
+        },
+        "fast": {
+          "$value": "100ms",
+          "$type": "duration"
+        },
+        "base": {
+          "$value": "200ms",
+          "$type": "duration"
+        },
+        "slow": {
+          "$value": "350ms",
+          "$type": "duration"
+        },
+        "pulse": {
+          "$value": "800ms",
+          "$type": "duration"
+        }
+      },
+      "easing": {
+        "standard": {
+          "$value": "cubic-bezier(0.2, 0.0, 0.0, 1.0)",
+          "$type": "cubicBezier"
+        },
+        "decelerate": {
+          "$value": "cubic-bezier(0.0, 0.0, 0.2, 1.0)",
+          "$type": "cubicBezier"
+        },
+        "accelerate": {
+          "$value": "cubic-bezier(0.4, 0.0, 1.0, 1.0)",
+          "$type": "cubicBezier"
+        },
+        "pulse": {
+          "$value": "ease-in-out",
+          "$type": "cubicBezier"
+        }
+      }
+    },
+    "zIndex": {
+      "base": {
+        "$value": 0,
+        "$type": "number"
+      },
+      "raised": {
+        "$value": 1,
+        "$type": "number"
+      },
+      "overlay": {
+        "$value": 10,
+        "$type": "number"
+      },
+      "sidebar": {
+        "$value": 20,
+        "$type": "number"
+      },
+      "topbar": {
+        "$value": 30,
+        "$type": "number"
+      },
+      "modal": {
+        "$value": 40,
+        "$type": "number"
+      },
+      "alarm": {
+        "$value": 50,
+        "$type": "number"
+      },
+      "sim": {
+        "$value": 60,
+        "$type": "number"
+      },
+      "toast": {
+        "$value": 70,
+        "$type": "number"
+      }
+    },
+    "typeRamp": {
+      "display": {
+        "$value": {
+          "family": "label",
+          "size": 56,
+          "weight": 300,
+          "lineHeight": 1,
+          "letterSpacing": -0.02,
+          "tabular": true
+        },
+        "$type": "typography"
+      },
+      "screenTitle": {
+        "$value": {
+          "family": "heading",
+          "size": 32,
+          "weight": 400,
+          "lineHeight": 1.1,
+          "letterSpacing": 0
+        },
+        "$type": "typography"
+      },
+      "cardHeading": {
+        "$value": {
+          "family": "heading",
+          "size": 18,
+          "weight": 500,
+          "lineHeight": 1.2,
+          "letterSpacing": 0
+        },
+        "$type": "typography"
+      },
+      "kpiValue": {
+        "$value": {
+          "family": "label",
+          "size": 32,
+          "weight": 400,
+          "lineHeight": 1,
+          "letterSpacing": -0.02,
+          "tabular": true
+        },
+        "$type": "typography"
+      },
+      "kpiLabel": {
+        "$value": {
+          "family": "label",
+          "size": 10,
+          "weight": 600,
+          "lineHeight": 1.2,
+          "letterSpacing": 0.15,
+          "uppercase": true
+        },
+        "$type": "typography"
+      },
+      "body": {
+        "$value": {
+          "family": "body",
+          "size": 13,
+          "weight": 400,
+          "lineHeight": 1.5,
+          "letterSpacing": 0
+        },
+        "$type": "typography"
+      },
+      "bodyDense": {
+        "$value": {
+          "family": "body",
+          "size": 12,
+          "weight": 400,
+          "lineHeight": 1.35,
+          "letterSpacing": 0
+        },
+        "$type": "typography"
+      },
+      "label": {
+        "$value": {
+          "family": "label",
+          "size": 11,
+          "weight": 500,
+          "lineHeight": 1.3,
+          "letterSpacing": 0.05
+        },
+        "$type": "typography"
+      },
+      "caption": {
+        "$value": {
+          "family": "label",
+          "size": 10,
+          "weight": 500,
+          "lineHeight": 1.3,
+          "letterSpacing": 0.1
+        },
+        "$type": "typography"
+      },
+      "monoData": {
+        "$value": {
+          "family": "mono",
+          "size": 13,
+          "weight": 400,
+          "lineHeight": 1.4,
+          "letterSpacing": 0,
+          "tabular": true
+        },
+        "$type": "typography"
+      },
+      "monoCode": {
+        "$value": {
+          "family": "mono",
+          "size": 12,
+          "weight": 400,
+          "lineHeight": 1.5,
+          "letterSpacing": 0
+        },
+        "$type": "typography"
+      }
+    }
+  }
+}

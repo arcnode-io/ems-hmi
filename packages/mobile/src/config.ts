@@ -21,28 +21,42 @@ const Config = z.object({
     LogLevel.DEBUG,
   ]),
   e2e: z.boolean(),
-  mqttUri: z.string().url(),
-  fooApiUri: z.string().url(),
-  chatApiUri: z.string().url(),
+  deploymentName: z.string(),
+  deploymentHost: z.string(),
+  mqttUri: z.string(),
+  deviceApiUri: z.string(),
+  chatApiUri: z.string(),
 });
 
-export type ConfigType = z.infer<typeof Config>;
+export type Mode = "local" | "beta" | "demo";
+export type ConfigType = z.infer<typeof Config> & { mode: Mode };
+
 export const ConfigMap = z.object({
   local: Config,
   beta: Config,
+  demo: Config,
 });
 
 /**
- * Loads configuration from cfg.yml file based on environment.
- * @returns Config object for current environment (ENV var or 'local' default)
- * @throws Error if cfg.yml cannot be parsed or validated
- * @example loadConfig() // { logLevel: 'INFO', mqttUri: 'mqtt://localhost:1883', fooApiUri: 'http://localhost:3000/api' }
+ * Loads configuration from cfg.yml based on the active environment.
+ * Reads `ENV` from react-native-dotenv; defaults to `local`.
+ * Attaches the env name as `mode` so downstream code can branch on
+ * deployment identity without reading the env var again.
+ * @returns Active environment's config object with `mode` attached
+ * @throws Error if cfg.yml cannot be parsed or schema-validated
  */
 export function loadConfig(): ConfigType {
   const configYaml: unknown = parse(configYamlRaw as string);
   const config = ConfigMap.parse(configYaml);
-  const environment = (ENV as string | undefined) ?? "local";
-  return match(environment)
+  const environment: Mode = match<string | undefined, Mode>(
+    ENV as string | undefined,
+  )
+    .with("beta", () => "beta")
+    .with("demo", () => "demo")
+    .otherwise(() => "local");
+  const block = match(environment)
     .with("beta", () => config.beta)
+    .with("demo", () => config.demo)
     .otherwise(() => config.local);
+  return { ...block, mode: environment };
 }

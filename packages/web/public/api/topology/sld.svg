@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 554.18 56.00">
+  <g id="bess_01" data-comp="device-node" data-template="bess_rack" transform="translate(40.60 18.00)">
+    <rect data-region="body" x="-40.60" y="-18.00" width="81.21" height="36.00" fill="currentColor" />
+    <circle data-region="status-indicator" cx="40.60" cy="-18.00" r="3.0" />
+    <text data-region="label-name" x="0" y="0" text-anchor="middle" fill="currentColor">BESS-01</text>
+    <text data-region="label-template" x="0" y="12" text-anchor="middle" fill="currentColor">bess_rack</text>
+    <rect data-region="hit-area" x="-40.60" y="-22.00" width="81.21" height="44.00" fill="transparent" />
+  </g>
+  <g id="bess_02" data-comp="device-node" data-template="bess_rack" transform="translate(139.60 18.00)">
+    <rect data-region="body" x="-40.60" y="-18.00" width="81.21" height="36.00" fill="currentColor" />
+    <circle data-region="status-indicator" cx="40.60" cy="-18.00" r="3.0" />
+    <text data-region="label-name" x="0" y="0" text-anchor="middle" fill="currentColor">BESS-02</text>
+    <text data-region="label-template" x="0" y="12" text-anchor="middle" fill="currentColor">bess_rack</text>
+    <rect data-region="hit-area" x="-40.60" y="-22.00" width="81.21" height="44.00" fill="transparent" />
+  </g>
+  <g id="compute_01" data-comp="device-node" data-template="compute_pod" transform="translate(255.60 18.00)">
+    <rect data-region="body" x="-56.98" y="-18.00" width="113.96" height="36.00" fill="currentColor" />
+    <circle data-region="status-indicator" cx="56.98" cy="-18.00" r="3.0" />
+    <text data-region="label-name" x="0" y="0" text-anchor="middle" fill="currentColor">ARC-COMPUTE-01</text>
+    <text data-region="label-template" x="0" y="12" text-anchor="middle" fill="currentColor">compute_pod</text>
+    <rect data-region="hit-area" x="-56.98" y="-22.00" width="113.96" height="44.00" fill="transparent" />
+  </g>
+  <g id="thermal_01" data-comp="device-node" data-template="cdu" transform="translate(383.60 18.00)">
+    <rect data-region="body" x="-53.40" y="-18.00" width="106.80" height="36.00" fill="currentColor" />
+    <circle data-region="status-indicator" cx="53.40" cy="-18.00" r="3.0" />
+    <text data-region="label-name" x="0" y="0" text-anchor="middle" fill="currentColor">CDU-01</text>
+    <text data-region="label-template" x="0" y="12" text-anchor="middle" fill="currentColor">cdu</text>
+    <rect data-region="hit-area" x="-53.40" y="-22.00" width="106.80" height="44.00" fill="transparent" />
+  </g>
+  <g id="grid_01" data-comp="device-node" data-template="grid_tap" transform="translate(494.60 18.00)">
+    <rect data-region="body" x="-39.58" y="-18.00" width="79.16" height="36.00" fill="currentColor" />
+    <circle data-region="status-indicator" cx="39.58" cy="-18.00" r="3.0" />
+    <text data-region="label-name" x="0" y="0" text-anchor="middle" fill="currentColor">Grid Tap</text>
+    <text data-region="label-template" x="0" y="12" text-anchor="middle" fill="currentColor">grid_tap</text>
+    <rect data-region="hit-area" x="-39.58" y="-22.00" width="79.16" height="44.00" fill="transparent" />
+  </g>
+  <path id="bus_dc_bus_1" data-comp="bus" data-bus-type="dc" d="M 40.60 18.00 L 139.60 18.00" fill="none" stroke="currentColor" />
+  <path id="bus_ac_bus_1" data-comp="bus" data-bus-type="ac" d="M 494.60 18.00 L 255.60 18.00" fill="none" stroke="currentColor" />
+</svg>

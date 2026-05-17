@@ -19,6 +19,6 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['@tamagui/portal', '@tamagui/select', '@tamagui/popover', 'buffer'],
+    include: ['buffer'],
   },
 })

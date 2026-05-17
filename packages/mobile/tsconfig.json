@@ -3,7 +3,9 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@ems-hmi/shared": ["../shared/src/main.ts"],
+      "@ems-hmi/shared/*": ["../shared/src/*"]
     },
     "noUncheckedIndexedAccess": true
   },

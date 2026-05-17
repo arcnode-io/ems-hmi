@@ -7,7 +7,6 @@ import reactHooks from "eslint-plugin-react-hooks";
 import eslintConfigPrettier from "eslint-config-prettier";
 import eslintTypecheckConfig from "../../eslint-typecheck.config.mjs";
 import eslintSecurityConfig from "../../eslint-security.config.mjs";
-import tamaguiPlugin from "../../eslint-plugin-tamagui/index.mjs";
 
 export default tseslint.config(
   ...eslintTypecheckConfig,
@@ -24,7 +23,6 @@ export default tseslint.config(
   {
     plugins: {
       'react-hooks': reactHooks,
-      'tamagui': tamaguiPlugin,
     },
     languageOptions: {
       globals: {
@@ -74,7 +72,6 @@ export default tseslint.config(
       "react-hooks/exhaustive-deps": "error",
       "react/jsx-key": "error",
       "react/jsx-no-leaked-render": "error",
-      "tamagui/require-font-weight": "error",
     },
   }
 );

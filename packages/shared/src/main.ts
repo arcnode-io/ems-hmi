@@ -1,20 +1,7 @@
-export {
-  TamaguiThemeProvider,
-  useThemeSwitcher,
-  useCurrentTheme,
-  type ThemeValues,
-  config,
-  tokens,
-  themes,
-  fonts,
-  bodyFont,
-  monoFont,
-  jetbrainsMonoFont,
-  THEME_NAME,
-  type ThemeName,
-} from "./theme";
+/**
+ * @ems-hmi/shared — public barrel. Theme, primitives, hooks, data plumbing.
+ * Deep imports also work via the `./*` exports pattern in package.json.
+ */
 
-export * from "./components/ui";
-export * from "./components/features";
+export * from "./theme";
 export * from "./hooks";
-export * from "./navigation";

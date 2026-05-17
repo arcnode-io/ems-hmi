@@ -1,13 +1,26 @@
 local:
   logLevel: DEBUG
   e2e: false
-  mqttUri: "mqtt://localhost:1883"
-  fooApiUri: "http://localhost:3000/api"
+  deploymentName: "Localhost Dev"
+  deploymentHost: "localhost"
+  mqttUri: "ws://localhost:8083/mqtt"
+  deviceApiUri: "/api"
   chatApiUri: "http://localhost:3000"
 
 beta:
   logLevel: INFO
   e2e: true
-  mqttUri: "mqtt://beta.example.com:1883"
-  fooApiUri: "https://beta-api.example.com/api"
+  deploymentName: "Beta Sandbox"
+  deploymentHost: "beta.arcnode.io"
+  mqttUri: "wss://beta-broker.example.com:8083/mqtt"
+  deviceApiUri: "https://beta-device-api.example.com"
   chatApiUri: "https://analyst-api.example.com"
+
+demo:
+  logLevel: INFO
+  e2e: false
+  deploymentName: "Brookside DC-1"
+  deploymentHost: "arcnode.customer-site.internal"
+  mqttUri: ""
+  deviceApiUri: "/api"
+  chatApiUri: "https://sandbox-analyst.arcnode.io"

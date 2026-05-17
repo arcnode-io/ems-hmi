@@ -13,11 +13,11 @@
 ```plantuml
 rectangle ems_hmi {
 
-  collections hmi_components 
-
-  collections analyst_components 
+  collections hmi_components
+  collections analyst_components
 
   rectangle mqtt_provider
+  collections contexts
   collections analyst_hooks
   rectangle generated_types
 }
@@ -27,8 +27,10 @@ rectangle ems_device_api
 rectangle ems_analyst_api
 
 
-ems_device_api <-r- generated_types: GET /asyncapi\n(build time)
-generated_types -r-> mqtt_provider: topic constants\n+ message types
+ems_device_api <-r- generated_types: GET /asyncapi\n(build time — message-schema codegen)
+ems_device_api <-r- contexts: GET /topology/sld.svg /asyncapi /topology/view
+generated_types -r-> mqtt_provider: typed message decoders
+contexts -r-> hmi_components: devices + buses + per-measurement,\n SVG string for SLDDiagram
 mqtt_provider --> mqtt_broker: MQTT\n over WebSocket
 hmi_components --> mqtt_provider
 analyst_components --> analyst_hooks
@@ -48,13 +50,50 @@ box "hmi" #white
   participant hmi_component
 end box
 
-ems_device_api -> generated_types: POST /topology → AsyncAPI spec
-generated_types -> mqtt_provider: import topics + message types
+ems_device_api -> generated_types: build-time codegen from AsyncAPI message schemas
+generated_types -> mqtt_provider: typed message decoders
 
 mqtt_broker -> mqtt_provider: publish measurement
 mqtt_provider -> hmi_component: useSubscription<T>(topic)\n→ { value, timestamp (UTC), status }
 hmi_component -> hmi_component: render
 ```
+
+### Boot — topology view + SLD SVG
+```plantuml
+participant browser
+participant ems_device_api
+
+box "hmi" #white
+  participant topology_context
+  participant sld_context
+end box
+
+browser -> topology_context: app boot
+topology_context -> ems_device_api: GET /topology/view
+ems_device_api --> topology_context: sanitized DTM:\ndevices + buses + per-measurement metadata
+sld_context -> ems_device_api: GET /topology/sld.svg
+ems_device_api --> sld_context: svg string
+```
+
+On `system/topology_changed`, both contexts re-fetch and swap. Components re-render against the new device list / buses / SVG.
+
+### Demo deployment (S3)
+```plantuml
+rectangle s3_bucket {
+  rectangle dist {
+    rectangle js_bundle
+    rectangle index_html
+  }
+  rectangle api_fixtures {
+    rectangle topology_view_json
+    rectangle sld_svg
+  }
+}
+
+rectangle ec2_sandbox_analyst_api 
+ec2_sandbox_analyst_api - js_bundle 
+```
+
 
 <!-- TODO: add project structure tree (npm workspaces layout, component inventory, routing) -->
 
