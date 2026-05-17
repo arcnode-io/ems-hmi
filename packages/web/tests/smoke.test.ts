@@ -11,9 +11,9 @@ import { test, expect, type Page, type ConsoleMessage } from "@playwright/test";
 const TABS: Array<{ tab: string; marker: RegExp }> = [
   { tab: "Overview", marker: /All systems nominal|active alarm|active warning/i },
   { tab: "Modules", marker: /Single line diagram/i },
-  { tab: "Energy", marker: /Screen pending/i },
+  { tab: "Energy", marker: /Dispatch · Markets|Revenue today/i },
   { tab: "Compute", marker: /Screen pending/i },
-  { tab: "Analyst", marker: /Screen pending/i },
+  { tab: "Analyst", marker: /Ask about devices|Try one of these/i },
 ];
 
 interface ErrorCollector {

@@ -5,11 +5,9 @@
  *  - `./config` — `import.meta.env` doesn't exist in Jest.
  *  - `react-native-svg` — jsdom can't render the real native bundle; we return
  *    plain DOM primitives so structural assertions still work.
- *  - `react-native-gifted-charts` — actual chart rendering is integration-only.
  */
 
 import React from "react";
-import * as mockGiftedCharts from "../tests/fixtures/react-native-gifted-charts";
 
 jest.mock("./config", () => ({
   loadConfig: (): Record<string, unknown> => ({
@@ -38,6 +36,7 @@ jest.mock("react-native-svg", () => ({
   Path: svgMock("path"),
   Rect: svgMock("rect"),
   Polygon: svgMock("polygon"),
+  Polyline: svgMock("polyline"),
   G: svgMock("g"), // eslint-disable-line id-length -- SVG element name
   Line: svgMock("line"),
   Text: svgMock("text"),
@@ -46,5 +45,3 @@ jest.mock("react-native-svg", () => ({
   Stop: svgMock("stop"),
   ClipPath: svgMock("clipPath"),
 }));
-
-jest.mock("react-native-gifted-charts", () => mockGiftedCharts);

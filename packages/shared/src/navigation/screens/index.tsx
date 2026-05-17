@@ -11,6 +11,8 @@ import { PlaceholderScreen } from "./PlaceholderScreen";
 import { OverviewScreen as RealOverviewScreen } from "./Overview/OverviewScreen";
 import { ModulesScreen as RealModulesScreen } from "./Modules/ModulesScreen";
 import { SldScreen as RealSldScreen } from "./Sld/SldScreen";
+import { EnergyScreen as RealEnergyScreen } from "./Energy/EnergyScreen";
+import { AnalystScreen as RealAnalystScreen } from "./Analyst/AnalystScreen";
 
 export function OverviewScreen(): ReactElement {
   return <RealOverviewScreen />;
@@ -25,7 +27,7 @@ export function SldScreen(): ReactElement {
 }
 
 export function EnergyScreen(): ReactElement {
-  return <PlaceholderScreen label="Energy" />;
+  return <RealEnergyScreen />;
 }
 
 export function ComputeScreen(): ReactElement {
@@ -33,7 +35,7 @@ export function ComputeScreen(): ReactElement {
 }
 
 export function AnalystScreen(): ReactElement {
-  return <PlaceholderScreen label="Analyst" />;
+  return <RealAnalystScreen />;
 }
 
 export function DeviceDetailScreen({
