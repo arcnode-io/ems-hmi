@@ -49,14 +49,19 @@
 
   <!-- ── AC bus ───────────────────────────────────────────────────────── -->
   <path id="bus_ac_bus_1" data-comp="bus" data-bus-type="ac" d="M 50 280 L 330 280" fill="none" stroke="currentColor" />
+  <!-- Particles flow OUTWARD from POI tap (x=190) to Grid Module (left)
+       and ARC-COMPUTE-01 (right). Two staggered dots per segment. -->
   <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
-    <animateMotion dur="5s" repeatCount="indefinite" begin="0s" path="M 50 280 L 330 280" />
+    <animateMotion dur="3.5s" repeatCount="indefinite" begin="0s" path="M 190 280 L 50 280" />
   </circle>
   <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
-    <animateMotion dur="5s" repeatCount="indefinite" begin="-1.66s" path="M 50 280 L 330 280" />
+    <animateMotion dur="3.5s" repeatCount="indefinite" begin="-1.75s" path="M 190 280 L 50 280" />
   </circle>
   <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
-    <animateMotion dur="5s" repeatCount="indefinite" begin="-3.33s" path="M 50 280 L 330 280" />
+    <animateMotion dur="3.5s" repeatCount="indefinite" begin="0s" path="M 190 280 L 330 280" />
+  </circle>
+  <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
+    <animateMotion dur="3.5s" repeatCount="indefinite" begin="-1.75s" path="M 190 280 L 330 280" />
   </circle>
 
   <!-- AC drops -->

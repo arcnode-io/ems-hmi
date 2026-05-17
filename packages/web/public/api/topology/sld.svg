@@ -51,15 +51,20 @@
 
   <!-- ── AC bus (horizontal) ──────────────────────────────────────────── -->
   <path id="bus_ac_bus_1" data-comp="bus" data-bus-type="ac" d="M 110 240 L 610 240" fill="none" stroke="currentColor" />
-  <!-- particles: three offset dots streaming left→right at 5s cycle -->
+  <!-- particles flow OUTWARD from POI tap at x=360 — POI injects, splits to
+       Grid Module (left) and ARC-COMPUTE-01 (right). Two segments, each
+       with two staggered dots so the visual cadence reads as flow-from-center. -->
   <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
-    <animateMotion dur="5s" repeatCount="indefinite" begin="0s" path="M 110 240 L 610 240" />
+    <animateMotion dur="3.5s" repeatCount="indefinite" begin="0s" path="M 360 240 L 110 240" />
   </circle>
   <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
-    <animateMotion dur="5s" repeatCount="indefinite" begin="-1.66s" path="M 110 240 L 610 240" />
+    <animateMotion dur="3.5s" repeatCount="indefinite" begin="-1.75s" path="M 360 240 L 110 240" />
   </circle>
   <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
-    <animateMotion dur="5s" repeatCount="indefinite" begin="-3.33s" path="M 110 240 L 610 240" />
+    <animateMotion dur="3.5s" repeatCount="indefinite" begin="0s" path="M 360 240 L 610 240" />
+  </circle>
+  <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
+    <animateMotion dur="3.5s" repeatCount="indefinite" begin="-1.75s" path="M 360 240 L 610 240" />
   </circle>
 
   <!-- AC drops -->
