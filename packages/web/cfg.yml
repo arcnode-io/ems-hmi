@@ -3,6 +3,7 @@ local:
   e2e: false
   deploymentName: "Localhost Dev"
   deploymentHost: "localhost"
+  siteId: "demo_site"
   mqttUri: "ws://localhost:8083/mqtt"
   deviceApiUri: "/api"
   chatApiUri: "http://localhost:3000"
@@ -12,6 +13,7 @@ beta:
   e2e: true
   deploymentName: "Beta Sandbox"
   deploymentHost: "beta.arcnode.io"
+  siteId: "beta_site"
   mqttUri: "wss://beta-broker.example.com:8083/mqtt"
   deviceApiUri: "https://beta-device-api.example.com"
   chatApiUri: "https://analyst-api.example.com"
@@ -21,6 +23,7 @@ demo:
   e2e: false
   deploymentName: "Brookside DC-1"
   deploymentHost: "arcnode.customer-site.internal"
+  siteId: "demo_site"
   mqttUri: ""
   deviceApiUri: "/api"
   chatApiUri: "https://sandbox-analyst.arcnode.io"

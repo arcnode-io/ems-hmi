@@ -78,7 +78,7 @@ function MqttRoot({
   children: React.ReactNode;
 }): React.ReactElement {
   if (cfg.mode === "demo") {
-    return <MockMqttProvider siteId="demo_site">{children}</MockMqttProvider>;
+    return <MockMqttProvider siteId={cfg.siteId}>{children}</MockMqttProvider>;
   }
   // Reason: RealMqttProvider not yet implemented. Until it lands, treat
   // non-demo modes as demo too so the app boots — replace this branch when
@@ -93,6 +93,7 @@ createRoot(document.getElementById("root")!).render(
         identity={{
           name: cfg.deploymentName,
           host: cfg.deploymentHost,
+          siteId: cfg.siteId,
           mode: cfg.mode,
           chatApiUri: cfg.chatApiUri,
           deviceApiUri: cfg.deviceApiUri,

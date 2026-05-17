@@ -22,6 +22,8 @@ const Config = z.object({
   deploymentName: z.string(),
   /** Deployment hostname / URL fragment. Shown under the deployment name. */
   deploymentHost: z.string(),
+  /** Site identifier — MUST match analyst-server's `SITE_ID` env var. Sent in `context.siteId`. */
+  siteId: z.string(),
   /** MQTT broker URL — `ws://` / `wss://` for browser MQTT-over-WebSocket. Empty in demo. */
   mqttUri: z.string(),
   /** Base URL for ems-device-api (`/topology/view`, `/topology/sld.svg`, `/asyncapi`). */

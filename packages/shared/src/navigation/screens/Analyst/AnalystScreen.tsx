@@ -10,13 +10,18 @@
  *   - Bubble holds prose only; chart artifacts render below
  */
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { View, ScrollView, Text } from "react-native";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../theme/tokens";
 import { SPACE } from "../../../theme/tokens/primitives";
 import { useAnalystChat } from "../../../data/analyst/useAnalystChat";
-import type { AnalystMessage } from "../../../data/analyst/types";
+import { analystChat } from "../../../data/analyst/AnalystClient";
+import type {
+  AnalystChatRequest,
+  AnalystMessage,
+} from "../../../data/analyst/types";
+import { useDeploymentIdentity } from "../../../data/deployment/useDeploymentIdentity";
 import { ChatBubble } from "../../../components/composed/ChatBubble/ChatBubble";
 import { ChartRenderer } from "../../../components/composed/ChartRenderer/ChartRenderer";
 import { Composer } from "./parts/Composer";
@@ -47,7 +52,19 @@ function MessageBlock({ msg }: { msg: AnalystMessage }): React.ReactElement {
 export function AnalystScreen(): React.ReactElement {
   const t = useTheme();
   const isSov = t.name === "sovereign";
-  const { messages, status, send } = useAnalystChat();
+  const identity = useDeploymentIdentity();
+  // Reason: bind the backend once per chatApiUri so the hook receives a
+  // stable reference; the context carries the siteId so the server can
+  // detect mid-conversation tenant drift (409 site_id_changed).
+  const backend = useMemo(
+    () => (req: AnalystChatRequest) => analystChat(identity.chatApiUri, req),
+    [identity.chatApiUri],
+  );
+  const context = useMemo(
+    () => ({ siteId: identity.siteId }),
+    [identity.siteId],
+  );
+  const { messages, status, send } = useAnalystChat({ backend, context });
   const scrollRef = useRef<ScrollView | null>(null);
   const [pendingText, setPendingText] = useState<string | null>(null);
 
@@ -111,20 +128,6 @@ export function AnalystScreen(): React.ReactElement {
             Ask about devices · alarms · energy
           </Text>
         </View>
-        <Text
-          style={[
-            resolveTypeStyle(t, "caption"),
-            {
-              fontSize: 9,
-              letterSpacing: 0.15,
-              color: t.textSoft,
-              textTransform: "uppercase",
-              fontStyle: "italic",
-            },
-          ]}
-        >
-          fixture backend
-        </Text>
       </View>
 
       <ScrollView

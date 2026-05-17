@@ -19,6 +19,8 @@ export interface DeploymentIdentity {
   name: string;
   /** Deployment hostname / URL fragment, shown under the site name. */
   host: string;
+  /** Site identifier — MUST match analyst-server's `SITE_ID` env var. Sent in `context.siteId`. */
+  siteId: string;
   /** Build-target mode — `demo` swaps in MockMqttProvider; others use real broker. */
   mode: DeploymentMode;
   /** Analyst-agent chat API base URL. Used by Settings' connection test. */

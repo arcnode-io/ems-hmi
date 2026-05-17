@@ -23,6 +23,7 @@ const Config = z.object({
   e2e: z.boolean(),
   deploymentName: z.string(),
   deploymentHost: z.string(),
+  siteId: z.string(),
   mqttUri: z.string(),
   deviceApiUri: z.string(),
   chatApiUri: z.string(),

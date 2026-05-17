@@ -12,6 +12,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import type { AnalystChatRequest, AnalystMessage } from "./types";
 import { fixtureChat } from "./fixtureBackend";
+import { SiteIdChangedError } from "./AnalystClient";
 
 export type AnalystSendStatus = "idle" | "sending" | "error";
 
@@ -57,6 +58,11 @@ export function useAnalystChat(
   const backend = options.backend ?? fixtureChat;
   const context = options.context;
   const conversationIdRef = useRef<string>(freshConversationId());
+  // Reason: when the server rejects a turn with site_id_changed, the next
+  // user send must mint a fresh conversationId — per the original handoff
+  // recovery rule. Tracked as a ref so it survives across renders without
+  // forcing extra state churn.
+  const needsFreshIdRef = useRef<boolean>(false);
   const [messages, setMessages] = useState<AnalystMessage[]>([]);
   const [status, setStatus] = useState<AnalystSendStatus>("idle");
   const [error, setError] = useState<string | null>(null);
@@ -65,6 +71,10 @@ export function useAnalystChat(
     async (text: string): Promise<void> => {
       const trimmed = text.trim();
       if (trimmed === "") return;
+      if (needsFreshIdRef.current) {
+        conversationIdRef.current = freshConversationId();
+        needsFreshIdRef.current = false;
+      }
       const userMsg: AnalystMessage = {
         role: "user",
         timestamp: new Date().toISOString(),
@@ -82,6 +92,29 @@ export function useAnalystChat(
         setMessages((prev) => [...prev, reply]);
         setStatus("idle");
       } catch (e: unknown) {
+        if (e instanceof SiteIdChangedError) {
+          const nowIso = new Date().toISOString();
+          const errMsg: AnalystMessage = {
+            role: "assistant",
+            timestamp: nowIso,
+            content: [
+              {
+                type: "artifact",
+                artifact: {
+                  kind: "error",
+                  code: "site_id_changed",
+                  message:
+                    "Conversation invalidated — site identifier changed. Starting a fresh conversation.",
+                  dataAsOf: nowIso,
+                },
+              },
+            ],
+          };
+          setMessages((prev) => [...prev, errMsg]);
+          needsFreshIdRef.current = true;
+          setStatus("idle");
+          return;
+        }
         setError(e instanceof Error ? e.message : "unknown error");
         setStatus("error");
       }

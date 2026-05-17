@@ -57,6 +57,7 @@ export type ToolErrorCode =
   | "historian_down"
   | "invalid_input"
   | "rate_limited"
+  | "site_id_changed"
   | "unknown";
 
 export interface ToolError {
