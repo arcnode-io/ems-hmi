@@ -39,6 +39,10 @@
 
   <!-- POI → main breaker → AC bus (conductor split around the breaker glyph) -->
   <path d="M 360 156 L 360 188" fill="none" stroke="currentColor" stroke-width="2" />
+  <!-- particle on the POI drop conveys settlement-direction flow -->
+  <circle data-region="particle" r="2" fill="currentColor" opacity="0.7">
+    <animateMotion dur="3s" repeatCount="indefinite" path="M 360 156 L 360 188" />
+  </circle>
   <g data-comp="breaker" transform="translate(360 195)">
     <circle data-region="ring" cx="0" cy="0" r="7" fill="none" stroke="currentColor" stroke-width="1.5" />
     <line data-region="ring-bar" x1="-4" y1="0" x2="4" y2="0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
@@ -47,6 +51,16 @@
 
   <!-- ── AC bus (horizontal) ──────────────────────────────────────────── -->
   <path id="bus_ac_bus_1" data-comp="bus" data-bus-type="ac" d="M 110 240 L 610 240" fill="none" stroke="currentColor" />
+  <!-- particles: three offset dots streaming left→right at 5s cycle -->
+  <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
+    <animateMotion dur="5s" repeatCount="indefinite" begin="0s" path="M 110 240 L 610 240" />
+  </circle>
+  <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
+    <animateMotion dur="5s" repeatCount="indefinite" begin="-1.66s" path="M 110 240 L 610 240" />
+  </circle>
+  <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
+    <animateMotion dur="5s" repeatCount="indefinite" begin="-3.33s" path="M 110 240 L 610 240" />
+  </circle>
 
   <!-- AC drops -->
   <path d="M 360 215 L 360 240" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.7" />
@@ -90,6 +104,16 @@
 
   <!-- ── DC bus (horizontal) ──────────────────────────────────────────── -->
   <path id="bus_dc_bus_1" data-comp="bus" data-bus-type="dc" d="M 200 410 L 540 410" fill="none" stroke="currentColor" />
+  <!-- particles: three offset dots streaming left→right at 7s (slower DC flow) -->
+  <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
+    <animateMotion dur="7s" repeatCount="indefinite" begin="0s" path="M 200 410 L 540 410" />
+  </circle>
+  <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
+    <animateMotion dur="7s" repeatCount="indefinite" begin="-2.33s" path="M 200 410 L 540 410" />
+  </circle>
+  <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
+    <animateMotion dur="7s" repeatCount="indefinite" begin="-4.66s" path="M 200 410 L 540 410" />
+  </circle>
 
   <!-- DC drops -->
   <path d="M 320 410 L 320 430" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.7" />
