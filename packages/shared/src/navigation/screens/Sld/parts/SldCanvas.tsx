@@ -14,6 +14,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSldSvg } from "../../../../data/sld/useSldSvg";
 import { useTheme } from "../../../../theme/ThemeProvider";
+import { useOperatingEnvelope } from "../../../../data/envelope/useOperatingEnvelope";
 
 const MIN_SCALE = 0.25;
 const MAX_SCALE = 6;
@@ -84,9 +85,18 @@ function svgDims(svg: string): { w: number; h: number } | null {
   return { w, h };
 }
 
+function stateTokenLabel(doeState: string): string {
+  if (doeState === "stale") return "STALE";
+  if (doeState === "invalid") return "INVALID";
+  if (doeState === "comm-fail") return "COMM FAIL";
+  if (doeState === "island") return "ISLAND";
+  return "OK";
+}
+
 export function SldCanvas(): React.ReactElement {
   const t = useTheme();
   const { status, svg, error } = useSldSvg();
+  const envelope = useOperatingEnvelope();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [tx, setTx] = useState<Transform | null>(null);
   const dragRef = useRef<{ startX: number; startY: number; baseX: number; baseY: number } | null>(null);
@@ -107,6 +117,29 @@ export function SldCanvas(): React.ReactElement {
     ro.observe(el);
     return (): void => ro.disconnect();
   }, [dims]);
+
+  // Reason: edp-api emits structural slots (data-role="poi" + state-label
+  // / state-token / primary-value text placeholders). HMI fills them with
+  // live values from useOperatingEnvelope. Runs whenever envelope state
+  // changes OR the SVG is (re)injected.
+  useEffect(() => {
+    const root = containerRef.current?.querySelector(".sld-svg-root");
+    if (!root) return;
+    const primary = root.querySelector('[data-role="poi"] [data-region="primary-value"]');
+    if (primary) primary.textContent = envelope.settlement;
+    const token = root.querySelector('[data-role="poi"] [data-region="state-token"]');
+    if (token) {
+      token.textContent = stateTokenLabel(envelope.doeState);
+      // Color elevation per UTILITY-FEEDS §7 severity mapping.
+      const color =
+        envelope.doeState === "ok" || envelope.doeState === "island"
+          ? t.textSoft
+          : envelope.doeState === "stale"
+            ? t.statusWarn
+            : t.statusAlarm;
+      (token as SVGElement).setAttribute("fill", color);
+    }
+  }, [envelope.settlement, envelope.doeState, t, svg, tx]);
 
   const reset = useCallback((): void => {
     const el = containerRef.current;
@@ -252,6 +285,63 @@ export function SldCanvas(): React.ReactElement {
         }
         /* Hit-area transparent but pointer-friendly. */
         .sld-svg-root [data-region="hit-area"] { cursor: pointer; }
+
+        /* ── Utility-side feed styling (per UTILITY-FEEDS.md §5) ───────────── */
+
+        /* POI revenue meter — emphasize as the settlement node. Accent
+           border + dedicated primary-value slot above name; state row below. */
+        .sld-svg-root [data-role="poi"] [data-region="body"] {
+          stroke: ${t.accent};
+          stroke-width: 2;
+        }
+        /* Reposition the name into the slot above center so the primary-value
+           slot (y=-2 in source) becomes the top reading. */
+        .sld-svg-root [data-role="poi"] [data-region="label-name"] {
+          font-size: 9px;
+          fill: ${t.textSoft};
+          transform: translateY(8px);
+        }
+        .sld-svg-root [data-role="poi"] [data-region="primary-value"] {
+          fill: ${t.text};
+          font-weight: 700;
+          font-size: 11px;
+          transform: translateY(-4px);
+        }
+        .sld-svg-root [data-role="poi"] [data-region="state-label"] {
+          fill: ${t.textSoft};
+          font-size: 7px;
+          font-weight: 600;
+          letter-spacing: 0.4px;
+          text-transform: uppercase;
+          transform: translateY(2px);
+        }
+        .sld-svg-root [data-role="poi"] [data-region="state-token"] {
+          font-size: 7px;
+          font-weight: 700;
+          letter-spacing: 0.3px;
+          text-transform: uppercase;
+          transform: translateY(2px);
+        }
+        /* Hide the template-slug subtitle on POI — primary-value already
+           occupies that vertical real estate. */
+        .sld-svg-root [data-role="poi"] [data-region="label-template"] {
+          display: none;
+        }
+
+        /* DLR badge — compact treatment via reduced label sizing. The
+           graphviz layout still positions it; visual scale collapses it. */
+        .sld-svg-root [data-role="dlr-badge"] [data-region="body"] {
+          stroke: ${t.textSoft};
+          stroke-width: 1;
+          stroke-dasharray: 3 2;
+        }
+        .sld-svg-root [data-role="dlr-badge"] [data-region="label-name"] {
+          font-size: 9px;
+          fill: ${t.textSoft};
+        }
+        .sld-svg-root [data-role="dlr-badge"] [data-region="label-template"] {
+          display: none;
+        }
       `}</style>
       {overlayLabel && (
         <div

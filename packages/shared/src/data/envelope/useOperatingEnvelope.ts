@@ -35,6 +35,12 @@ export interface OperatingEnvelope {
   counterHeadroom: string;
   /** Fraction of import_limit consumed, [0..1]. Null when n/a. */
   usedFraction: number | null;
+  /**
+   * Pre-formatted settlement reading at the POI revenue meter, e.g.
+   * "+142 kW IMPORT". Empty string when no revenue_meter subscription.
+   * Used by the SLD POI node primary-value slot.
+   */
+  settlement: string;
 }
 
 const DEFAULT_ENVELOPE: OperatingEnvelope = {
@@ -44,6 +50,7 @@ const DEFAULT_ENVELOPE: OperatingEnvelope = {
   headroom: "—",
   counterHeadroom: "—",
   usedFraction: null,
+  settlement: "",
 };
 
 /**
@@ -94,6 +101,10 @@ export function useOperatingEnvelope(): OperatingEnvelope {
           if (m) list.push(measurementTopic(SITE_ID, deviceId, meas, m.unit as TopicUnit));
         }
       }
+      if (device.template === "revenue_meter") {
+        const m = tpl.measurements["settlement_power"];
+        if (m) list.push(measurementTopic(SITE_ID, deviceId, "settlement_power", m.unit as TopicUnit));
+      }
     }
     return list;
   }, [view]);
@@ -109,6 +120,7 @@ export function useOperatingEnvelope(): OperatingEnvelope {
     let netPower: number | null = null;
     let importLimit: number | null = null;
     let exportLimit: number | null = null;
+    let settlementW: number | null = null;
     for (const topic of topics) {
       const msg = messages[topic];
       if (!msg) continue;
@@ -122,8 +134,23 @@ export function useOperatingEnvelope(): OperatingEnvelope {
         if (typeof msg.value === "number") importLimit = msg.value;
       } else if (topic.includes("/operating_envelope") && topic.endsWith("/export_limit/watts")) {
         if (typeof msg.value === "number") exportLimit = msg.value;
+      } else if (topic.includes("/revenue_meter") && topic.endsWith("/settlement_power/watts")) {
+        if (typeof msg.value === "number") settlementW = msg.value;
       }
     }
+
+    // Settlement string: signed kW or MW + direction word.
+    const settlement = (() => {
+      if (settlementW === null) return "";
+      const direction = settlementW >= 0 ? "IMPORT" : "EXPORT";
+      const sign = settlementW >= 0 ? "+" : "−";
+      const abs = Math.abs(settlementW);
+      const magnitude =
+        abs >= 1_000_000
+          ? `${(abs / 1_000_000).toFixed(1)} MW`
+          : `${(abs / 1000).toFixed(0)} kW`;
+      return `${sign}${magnitude} ${direction}`;
+    })();
 
     const doeState: DOEState = mode === "ISLAND" ? "island" : asDoeState(doeStatusRaw);
 
@@ -135,6 +162,7 @@ export function useOperatingEnvelope(): OperatingEnvelope {
         headroom: "—",
         counterHeadroom: "—",
         usedFraction: null,
+        settlement,
       };
     }
 
@@ -170,6 +198,7 @@ export function useOperatingEnvelope(): OperatingEnvelope {
       headroom: fmtPower(headroomW),
       counterHeadroom: fmtPower(counterW),
       usedFraction,
+      settlement,
     };
   }, [view, topics, messages]);
 }
