@@ -1,26 +1,29 @@
 /**
  * useAlarms — derive the active-alarm list from topology + live values.
  *
- * For every float measurement on every device, compare the latest value
- * against the per-measurement `thresholds` envelope:
+ * Two classifier paths, one unified list:
  *
- *   value ∈ (alarm_min, warn_min) ∪ (warn_max, alarm_max) → severity "warn"
- *   value <= alarm_min OR value >= alarm_max              → severity "alarm"
+ *   Float-threshold: per-measurement `thresholds` envelope
+ *     value ∈ (alarm_min, warn_min) ∪ (warn_max, alarm_max) → "warn"
+ *     value <= alarm_min OR value >= alarm_max              → "alarm"
  *
- * The hook is topology-driven — no hardcoded device list. Threshold tripping
- * derives from the bounds shipped in `/topology/view`, not from a per-screen
- * config.
+ *   Enum-status: utility-side feed `status` enums (DOE / DLR)
+ *     "OK"                  → no alarm
+ *     "STALE"               → "warn"
+ *     "INVALID" / "COMM_FAIL" → "alarm"
+ *
+ * Per constitution rule 3.12 the row label is still the device ID;
+ * alarms from utility-side feeds carry `category: "UTILITY"` so the
+ * AlarmRow surface can render the small category chip.
  *
  * Deferred:
  *  - Ack state — needs a per-alarm acknowledgement store.
- *  - Fire severity — requires either an explicit enum value (BMS reporting
- *    "thermal_runaway") or template-level metadata declaring which range
- *    promotes to fire. Out of scope until a class YAML demands it.
- *  - Latency / debounce — the same value can flap across the threshold.
- *    Future: hysteresis / cool-down per measurement.
+ *  - Fire severity — explicit enum value or template-level metadata.
+ *  - Latency / debounce — hysteresis / cool-down per measurement.
  */
 
 import { useMemo } from "react";
+import { match } from "ts-pattern";
 import { useTopologyView } from "../topology/useTopologyView";
 import { useAggregateMeasurements } from "../mqtt/useAggregateMeasurements";
 import { measurementTopic, type TopicUnit } from "../topics/topicBuilder";
@@ -38,17 +41,22 @@ export interface ActiveAlarm {
   measurementName: string;
   /** Humanized measurement label, from `display_name_default`. */
   measurementLabel: string;
-  /** Severity derived from threshold envelope. */
+  /** Severity derived from threshold/status. */
   severity: AlarmSeverity;
-  /** Latest value that tripped the threshold. */
-  value: number;
-  /** Display unit. */
-  unit: string;
+  /** Pre-formatted display value (e.g. "4.21 V" or "STALE"). */
+  displayValue: string;
   /** Most-recent message timestamp (ISO). */
   ts: string;
+  /**
+   * Optional origin category — "UTILITY" for DOE / DLR feeds. Renders
+   * as a small chip in AlarmRow per rule 3.12 (label is index,
+   * diagnosis lives in the runbook).
+   */
+  category?: string;
 }
 
-interface WatchEntry {
+interface FloatWatch {
+  kind: "float";
   topic: string;
   deviceId: string;
   deviceDisplayName: string;
@@ -56,59 +64,94 @@ interface WatchEntry {
   measurementLabel: string;
   unit: string;
   thresholds: { warn_min: number; warn_max: number; alarm_min: number; alarm_max: number };
+  category?: string;
 }
 
+interface EnumWatch {
+  kind: "status-enum";
+  topic: string;
+  deviceId: string;
+  deviceDisplayName: string;
+  measurementName: string;
+  measurementLabel: string;
+  category?: string;
+}
+
+type Watch = FloatWatch | EnumWatch;
+
 /**
- * Build the list of (topic, threshold) pairs we need to watch for alarm
- * derivation. One entry per float measurement that has thresholds defined.
+ * Templates that surface as UTILITY alarms per rule 3.12.
+ */
+const UTILITY_TEMPLATES = new Set(["operating_envelope", "line_rating", "revenue_meter"]);
+
+/**
+ * Build the watch list: every float measurement with thresholds, plus
+ * every `status` enum on a utility-side feed template.
  */
 function buildWatchList(
   view: ReturnType<typeof useTopologyView>["view"],
-): WatchEntry[] {
+): Watch[] {
   if (!view) return [];
-  const list: WatchEntry[] = [];
+  const list: Watch[] = [];
   for (const [deviceId, device] of Object.entries(view.devices)) {
     const tpl = view.templates_used[device.template];
     if (!tpl) continue;
+    const category = UTILITY_TEMPLATES.has(device.template) ? "UTILITY" : undefined;
     for (const [measName, meas] of Object.entries(tpl.measurements)) {
-      if (meas.type !== "float") continue;
-      if (!meas.thresholds) continue;
-      list.push({
-        topic: measurementTopic(
-          SITE_ID,
+      if (meas.type === "float" && meas.thresholds) {
+        list.push({
+          kind: "float",
+          topic: measurementTopic(SITE_ID, deviceId, measName, meas.unit as TopicUnit),
           deviceId,
-          measName,
-          meas.unit as TopicUnit,
-        ),
-        deviceId,
-        deviceDisplayName: device.display_name ?? deviceId,
-        measurementName: measName,
-        measurementLabel: meas.display_name_default ?? measName,
-        unit: meas.unit,
-        thresholds: meas.thresholds,
-      });
+          deviceDisplayName: device.display_name ?? deviceId,
+          measurementName: measName,
+          measurementLabel: meas.display_name_default ?? measName,
+          unit: meas.unit,
+          thresholds: meas.thresholds,
+          category,
+        });
+      } else if (
+        meas.type === "enum" &&
+        measName === "status" &&
+        category === "UTILITY"
+      ) {
+        list.push({
+          kind: "status-enum",
+          topic: measurementTopic(SITE_ID, deviceId, measName, meas.unit as TopicUnit),
+          deviceId,
+          deviceDisplayName: device.display_name ?? deviceId,
+          measurementName: measName,
+          measurementLabel: meas.display_name_default ?? measName,
+          category,
+        });
+      }
     }
   }
   return list;
 }
 
 /**
- * Classify a value against a threshold envelope.
- * @param value Latest reading
- * @param th Threshold envelope (warn_min/warn_max/alarm_min/alarm_max)
+ * Classify a numeric value against a threshold envelope.
  * @returns 'alarm' | 'warn' | null when within the warn band
  */
-function classify(
+function classifyFloat(
   value: number,
-  th: WatchEntry["thresholds"],
+  th: FloatWatch["thresholds"],
 ): AlarmSeverity | null {
-  // Reason: strict comparisons. At boundary (value === warn_min) the
-  // measurement is at the edge of nominal — not yet tripping. The Mock
-  // driver clamps to exactly warn_min/warn_max, so `<=`/`>=` would
-  // false-positive alarm/clear every tick → badge flicker. Matches docstring.
   if (value < th.alarm_min || value > th.alarm_max) return "alarm";
   if (value < th.warn_min || value > th.warn_max) return "warn";
   return null;
+}
+
+/**
+ * Classify a status-enum string per UTILITY-FEEDS §7 severity mapping.
+ */
+function classifyStatus(value: string): AlarmSeverity | null {
+  return match(value)
+    .with("STALE", () => "warn" as const)
+    .with("INVALID", () => "alarm" as const)
+    .with("COMM_FAIL", () => "alarm" as const)
+    .otherwise(() => null);
 }
 
 /**
@@ -119,25 +162,40 @@ export function useAlarms(): ActiveAlarm[] {
   const { view } = useTopologyView();
   const watchList = useMemo(() => buildWatchList(view), [view]);
   const topics = useMemo(() => watchList.map((w) => w.topic), [watchList]);
-  const messages = useAggregateMeasurements<number>(topics);
+  const messages = useAggregateMeasurements<number | string>(topics);
 
   return useMemo(() => {
     const active: ActiveAlarm[] = [];
     for (const w of watchList) {
       const msg = messages[w.topic];
       if (!msg) continue;
-      const severity = classify(msg.value, w.thresholds);
-      if (!severity) continue;
-      active.push({
-        deviceId: w.deviceId,
-        deviceDisplayName: w.deviceDisplayName,
-        measurementName: w.measurementName,
-        measurementLabel: w.measurementLabel,
-        severity,
-        value: msg.value,
-        unit: w.unit,
-        ts: msg.ts,
-      });
+      if (w.kind === "float" && typeof msg.value === "number") {
+        const severity = classifyFloat(msg.value, w.thresholds);
+        if (!severity) continue;
+        active.push({
+          deviceId: w.deviceId,
+          deviceDisplayName: w.deviceDisplayName,
+          measurementName: w.measurementName,
+          measurementLabel: w.measurementLabel,
+          severity,
+          displayValue: `${msg.value.toFixed(2)} ${w.unit}`,
+          ts: msg.ts,
+          category: w.category,
+        });
+      } else if (w.kind === "status-enum" && typeof msg.value === "string") {
+        const severity = classifyStatus(msg.value);
+        if (!severity) continue;
+        active.push({
+          deviceId: w.deviceId,
+          deviceDisplayName: w.deviceDisplayName,
+          measurementName: w.measurementName,
+          measurementLabel: `${w.measurementLabel} ${msg.value.replace("_", " ").toLowerCase()}`,
+          severity,
+          displayValue: msg.value,
+          ts: msg.ts,
+          category: w.category,
+        });
+      }
     }
     // Sort alarms before warns; keep stable order otherwise.
     return active.sort((a, b) =>

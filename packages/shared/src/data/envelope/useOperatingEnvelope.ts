@@ -41,6 +41,10 @@ export interface OperatingEnvelope {
    * Used by the SLD POI node primary-value slot.
    */
   settlement: string;
+  /** Raw import_limit in kW. Used as a chart threshold by Energy. */
+  importLimitKw: number | null;
+  /** Raw export_limit in kW (negative = export ceiling). */
+  exportLimitKw: number | null;
 }
 
 const DEFAULT_ENVELOPE: OperatingEnvelope = {
@@ -51,6 +55,8 @@ const DEFAULT_ENVELOPE: OperatingEnvelope = {
   counterHeadroom: "—",
   usedFraction: null,
   settlement: "",
+  importLimitKw: null,
+  exportLimitKw: null,
 };
 
 /**
@@ -154,6 +160,9 @@ export function useOperatingEnvelope(): OperatingEnvelope {
 
     const doeState: DOEState = mode === "ISLAND" ? "island" : asDoeState(doeStatusRaw);
 
+    const importLimitKw = importLimit === null ? null : importLimit / 1000;
+    const exportLimitKw = exportLimit === null ? null : -exportLimit / 1000;
+
     if (doeState === "island") {
       return {
         mode: "ISLAND",
@@ -163,6 +172,8 @@ export function useOperatingEnvelope(): OperatingEnvelope {
         counterHeadroom: "—",
         usedFraction: null,
         settlement,
+        importLimitKw,
+        exportLimitKw,
       };
     }
 
@@ -199,6 +210,8 @@ export function useOperatingEnvelope(): OperatingEnvelope {
       counterHeadroom: fmtPower(counterW),
       usedFraction,
       settlement,
+      importLimitKw,
+      exportLimitKw,
     };
   }, [view, topics, messages]);
 }

@@ -27,7 +27,12 @@ export type StatusVariant =
   | "fire"
   | "maintenance"
   | "offline"
-  | "sim";
+  | "sim"
+  // Utility-feed fault states per UTILITY-FEEDS.md §7. Color elevation
+  // follows the spec: stale → statusWarn, invalid + comm-fail → statusAlarm.
+  | "stale"
+  | "invalid"
+  | "comm-fail";
 
 export type StatusBadgeSize = "sm" | "md" | "lg";
 
@@ -66,6 +71,9 @@ function variantColor(t: Theme, v: StatusVariant): string {
     .with("maintenance", () => t.statusMaintenance)
     .with("offline", () => t.statusOffline)
     .with("sim", () => t.statusSim)
+    .with("stale", () => t.statusWarn)
+    .with("invalid", () => t.statusAlarm)
+    .with("comm-fail", () => t.statusAlarm)
     .exhaustive();
 }
 
@@ -80,6 +88,11 @@ function variantIcon(
     .with("ok", () => IconCheck)
     .with("offline", () => null)
     .with("sim", () => null)
+    // Fault variants share warning glyphs — stale = caution, invalid +
+    // comm-fail = alarm octagon. Glyph difference reinforces severity.
+    .with("stale", () => IconWarning)
+    .with("invalid", () => IconAlarm)
+    .with("comm-fail", () => IconAlarm)
     .exhaustive();
 }
 
@@ -114,10 +127,17 @@ export function StatusBadge({
   const s = SIZES[size];
   const color = variantColor(t, variant);
   const Icon = variantIcon(variant);
-  // Reason: rule 3.2 — fire always breathes; unacked warn/alarm breathe.
+  // Reason: rule 3.2 — fire always breathes; unacked warn/alarm/utility-
+  // fault breathe. STALE elevates to warn-class breathing, INVALID +
+  // COMM_FAIL to alarm-class.
   const breathing =
     variant === "fire" ||
-    ((variant === "warn" || variant === "alarm") && !acknowledged);
+    ((variant === "warn" ||
+      variant === "alarm" ||
+      variant === "stale" ||
+      variant === "invalid" ||
+      variant === "comm-fail") &&
+      !acknowledged);
   const opacity = usePulseOpacity(breathing);
 
   const a11yLabel = label

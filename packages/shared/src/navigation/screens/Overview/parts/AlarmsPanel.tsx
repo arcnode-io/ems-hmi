@@ -121,7 +121,8 @@ export function AlarmsPanel(): React.ReactElement {
             acknowledged={false}
             device={a.deviceDisplayName}
             name={a.measurementLabel}
-            value={`${a.value.toFixed(2)} ${a.unit}`}
+            value={a.displayValue}
+            category={a.category}
             age={relativeAge(a.ts)}
           />
         ))

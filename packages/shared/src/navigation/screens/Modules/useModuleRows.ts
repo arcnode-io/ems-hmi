@@ -147,7 +147,16 @@ export function useModuleRows(): ModuleRow[] {
     }
     // Sort alarms first, then warns, then ok.
     const rank: Record<StatusVariant, number> = {
-      fire: 0, alarm: 1, warn: 2, maintenance: 3, sim: 4, ok: 5, offline: 6,
+      fire: 0,
+      alarm: 1,
+      invalid: 1,
+      "comm-fail": 1,
+      warn: 2,
+      stale: 2,
+      maintenance: 3,
+      sim: 4,
+      ok: 5,
+      offline: 6,
     };
     return out.sort((a, b) => rank[a.status] - rank[b.status]);
   }, [view, allAlarms, messages]);
