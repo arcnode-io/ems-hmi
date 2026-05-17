@@ -27,7 +27,7 @@ const MeasurementView = z.object({
   type: z.enum(["float", "bool", "enum"]),
   poll_rate_hz: z.number().nullable(),
   display_name_default: z.string().nullable(),
-  iec_61850_ref: z.string(),
+  iec_61850_ref: z.string().nullable(),
   bounds: Bounds.nullable(),
   thresholds: Thresholds.nullable(),
   values: z.record(z.string(), z.string()).nullable(),

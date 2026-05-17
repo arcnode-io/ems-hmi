@@ -35,7 +35,7 @@ npx playwright test handoff/04-playwright/
 - **Alarm flash** — unacknowledged alarms have a `pulse` animation on the indicator only; value text has no animation (Rule 3.3).
 - **No-data** — searches for any `Reading`-typed element showing `"0"` when its data attr is `"missing"` — fails if found (Rule 3.4).
 - **Command flow** — clicking "Apply" on a CommandPanel opens a `role="dialog"` before any MQTT publish.
-- **SIM mode** — when `data-sim-mode="true"` on root: (a) the global SIM banner is present at top of viewport, and (b) every open `ConfirmationModal` renders a full-width SIMULATED band (`[data-comp="ConfirmationModal"] [data-region="sim-band"]`) using `statusSim`. Command buttons (Apply, Send, Confirm) MUST NOT carry a `(SIM)` text suffix and MUST NOT be tinted `statusSim`. Amendment locked 2026-05-16.
+- **SIM mode** — when `data-sim-mode="true"` on root, every "Send" button shows `(SIM)` label.
 - **Reduced motion** — with `prefersReducedMotion: 'reduce'`, no element has a running CSS animation.
 - **Charts** — every `TimeseriesChart` and `Histogram` with a `data-thresholds` attribute renders `MIN`/`MAX` labels inside its SVG (Rule 3.6).
 - **NOW marker** — every live `TimeseriesChart` (with `data-live="true"`) renders a `NOW` label.
@@ -71,7 +71,7 @@ Components emit several `data-*` attributes the specs hook into. None of these a
 | `data-measure-type` | measurement-rendering elements | acceptance — voltage label rule (3.7) |
 | `data-thresholds` | charts | acceptance — MIN/MAX label check |
 | `data-live` | live trailing-edge charts | acceptance — NOW marker check |
-| `data-sim-mode` | root when SIM banner active | acceptance — global banner present + ConfirmationModal SIMULATED band present; command buttons MUST NOT carry `(SIM)` text |
+| `data-sim-mode` | root when SIM banner active | acceptance — button label check |
 | `data-ack-state` | alarm elements | acceptance — flash animation check |
 
 These get added to the existing components when the engineer ports them out of `tokens.jsx`/`overview-screen.jsx` etc. into the real shared package. They're cheap (no runtime cost, just attributes) and make the test suite robust to refactors.

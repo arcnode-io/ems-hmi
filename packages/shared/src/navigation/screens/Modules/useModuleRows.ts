@@ -44,34 +44,26 @@ interface MetricSpec {
  * `measurementName` MUST exist on the template (else cell renders as "—").
  */
 const METRIC_SPEC: Record<string, MetricSpec[]> = {
-  bess_rack: [
+  bess_module: [
     { label: "SoC", measurementName: "state_of_charge", unit: "%", colorHint: "bess" },
     { label: "Power", measurementName: "active_power", unit: "kW", format: (v) => `${(v / 1000).toFixed(1)}` },
-    { label: "V min", measurementName: "min_cell_voltage", unit: "V", format: (v) => v.toFixed(2) },
+    { label: "Headroom", measurementName: "import_headroom", unit: "MW", format: (v) => `${(v / 1_000_000).toFixed(1)}` },
   ],
-  compute_pod: [
+  compute_module: [
     { label: "Util", measurementName: "gpu_utilization", unit: "%", colorHint: "compute" },
     { label: "Draw", measurementName: "active_power", unit: "kW", format: (v) => `${(v / 1000).toFixed(1)}` },
-    { label: "Temp", measurementName: "gpu_temperature", unit: "°C", format: (v) => v.toFixed(1) },
   ],
-  grid_tap: [
-    { label: "Import", measurementName: "active_power", unit: "kW", colorHint: "grid", format: (v) => `${(v / 1000).toFixed(1)}` },
-    { label: "Freq", measurementName: "frequency", unit: "Hz", format: (v) => v.toFixed(2) },
-    { label: "V", measurementName: "voltage", unit: "V", format: (v) => v.toFixed(0) },
-  ],
-  cdu: [
-    { label: "Out", measurementName: "outlet_temperature", unit: "°C", colorHint: "thermal", format: (v) => v.toFixed(1) },
-    { label: "In", measurementName: "inlet_temperature", unit: "°C", format: (v) => v.toFixed(1) },
-    { label: "Flow", measurementName: "coolant_flow", unit: "L/m", format: (v) => v.toFixed(0) },
+  grid_module: [
+    { label: "Net", measurementName: "net_active_power", unit: "kW", colorHint: "grid", format: (v) => `${(v / 1000).toFixed(1)}` },
+    { label: "Freq", measurementName: "grid_frequency", unit: "Hz", format: (v) => v.toFixed(2) },
   ],
 };
 
 function templateToModuleType(templateName: string): ModuleType | null {
   return match(templateName)
-    .with("bess_rack", () => "bess" as const)
-    .with("compute_pod", () => "compute" as const)
-    .with("grid_tap", () => "grid" as const)
-    .with("cdu", () => "thermal" as const)
+    .with("bess_module", () => "bess" as const)
+    .with("compute_module", () => "compute" as const)
+    .with("grid_module", () => "grid" as const)
     .otherwise(() => null);
 }
 
@@ -115,10 +107,14 @@ export function useModuleRows(): ModuleRow[] {
     if (!view) return [];
     const out: ModuleRow[] = [];
     for (const [deviceId, device] of Object.entries(view.devices)) {
-      const moduleType = templateToModuleType(device.template);
-      if (!moduleType) continue;
       const tpl = view.templates_used[device.template];
       if (!tpl) continue;
+      // Reason: constitution rule 3.15 — /modules shows operator-owned
+      // hardware only. `kind: leaf` devices (utility-side feeds, sub-
+      // component sensors) surface contextually elsewhere.
+      if (tpl.kind !== "module") continue;
+      const moduleType = templateToModuleType(device.template);
+      if (!moduleType) continue;
       const deviceAlarms = allAlarms.filter((a) => a.deviceId === deviceId);
       const specs = METRIC_SPEC[device.template] ?? [];
       const measurements: ModuleMeasurement[] = specs.map((s) => {

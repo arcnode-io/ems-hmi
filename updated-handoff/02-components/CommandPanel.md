@@ -13,7 +13,7 @@ See it live in the [gallery](./index.html#commandpanel).
 | Header | `t.panel bg · t.borderSoft divider` | device name + section |
 | Mode selector | `segmented control with t.accent active` | — |
 | Setpoint input | `t.sunken bg · t.border` | P + optional Q |
-| Apply button | `t.accent` | opens ConfirmationModal — color does NOT change in SIM (see Don't below) |
+| Apply button | `t.accent (or t.statusSim in SIM)` | opens ConfirmationModal |
 | Maintenance toggle | `switch · statusMaintenance fill when on` | see MaintenanceToggle |
 
 ## Props
@@ -28,7 +28,7 @@ See it live in the [gallery](./index.html#commandpanel).
 | `supportsReset` | `boolean` | `false` | — |
 | `supportsBmcReset` | `boolean` | `false` | Compute only |
 | `maintenanceMode` | `boolean` | `false` | Disables all controls |
-| `simMode` | `boolean` | `false` | Pass-through to ConfirmationModal — does NOT alter Apply button color or label |
+| `simMode` | `boolean` | `false` | — |
 | `onCommand` | `(cmd: CommandPayload) => void` | required | Called after modal confirm |
 
 ## States
@@ -44,7 +44,6 @@ See it live in the [gallery](./index.html#commandpanel).
 
 - ❌ Never dispatch on first click — always open ConfirmationModal first (Rule 3.1).
 - ❌ Never enable Apply if no setpoint is set or mode is unchanged.
-- ❌ Never append `(SIM)` to the Apply button label, and never tint the button `statusSim`. The SIM cue lives at two places only: the global SIM banner (ambient) and the ConfirmationModal SIMULATED band (decision-point). Per-button SIM affordance was rejected as noise. Amendment locked 2026-05-16.
 
 ## References
 

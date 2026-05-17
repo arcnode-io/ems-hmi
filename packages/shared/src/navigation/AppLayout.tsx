@@ -19,6 +19,7 @@ import { useDeploymentIdentity } from "../data/deployment/useDeploymentIdentity"
 import { useTopologyView } from "../data/topology/useTopologyView";
 import { useFleetKpis } from "../data/kpis/useFleetKpis";
 import { useAlarmCount } from "../data/alarms/useAlarmCount";
+import { useOperatingEnvelope } from "../data/envelope/useOperatingEnvelope";
 import { TopBar } from "../components/chrome/TopBar/TopBar";
 import { StatusStrip } from "../components/chrome/StatusStrip/StatusStrip";
 import { BottomTabs } from "../components/chrome/BottomTabs/BottomTabs";
@@ -58,6 +59,7 @@ export function AppLayout({
   const emsMode = topology.view?.ems_mode ?? "sim";
   const alarmCount = useAlarmCount();
   const kpis = useFleetKpis();
+  const envelope = useOperatingEnvelope();
 
   const fmtPct = (v: number | null): string =>
     v === null ? "—" : `${Math.round(v)}%`;
@@ -82,11 +84,27 @@ export function AppLayout({
       value: fmtPct(kpis.gpuUtil.value),
       color: t.colorCompute,
     },
+    // Reason: per UTILITY-FEEDS.md §1, the GRID strip segment renders
+    // direction + headroom. ISLAND collapses to "ISLAND" only (no headroom
+    // number). Non-OK DOE status doesn't crowd the strip — last known
+    // headroom keeps showing, status routes to alarm panel only.
     {
       label: "GRID",
-      value: kpis.grid.label ?? "—",
+      value:
+        envelope.mode === "ISLAND"
+          ? "ISLAND"
+          : envelope.direction === null
+            ? kpis.grid.label ?? "—"
+            : `${envelope.direction === "IMP" ? "+" : "−"}${envelope.headroom}`,
       color: t.colorGrid,
-      sub: fmtFreq(kpis.grid.frequencyHz),
+      sub:
+        envelope.mode === "ISLAND"
+          ? "no utility coordination"
+          : envelope.direction
+            ? envelope.direction === "IMP"
+              ? "Import headroom"
+              : "Export headroom"
+            : fmtFreq(kpis.grid.frequencyHz),
     },
     // TODO: PUE · 24h needs timeseries history hook
     { label: "PUE · 24h", value: "—", color: t.colorThermal, sub: "24h avg" },

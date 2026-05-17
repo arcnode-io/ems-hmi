@@ -1,10 +1,13 @@
 /**
- * StrandedCapacity — Overview Zone B'. Three-bar headroom panel.
- * The constraint that fires first wins the state label (BALANCED, COOLING
- * LIMITED, POWER LIMITED, RUNWAY LIMITED).
+ * StrandedCapacity — Overview Zone B'. 4-way headroom panel after
+ * constitution rule 3.11 / UTILITY-FEEDS §2 (added the Grid row).
  *
- * Currently mocked — wire to per-CDU outlet temp + cluster power + BESS
- * runway hooks when those land.
+ * Per rule 3.11: when ISLAND mode is active, the Grid row is excluded
+ * from the heaviest-constraint comparison — a correctly islanded site
+ * must NOT read as GRID LIMITED.
+ *
+ * Power/Cooling/Runway still mocked (need new hooks in step 9b). Grid
+ * row is live via useOperatingEnvelope.
  */
 
 import React from "react";
@@ -13,6 +16,8 @@ import { match } from "ts-pattern";
 import { useTheme } from "../../../../theme/ThemeProvider";
 import { resolveTypeStyle, type Theme } from "../../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
+import { useOperatingEnvelope } from "../../../../data/envelope/useOperatingEnvelope";
+import { DOEHeadroomRow } from "../../../../components/composed/DOEHeadroomRow/DOEHeadroomRow";
 
 interface Row {
   label: string;
@@ -23,14 +28,39 @@ interface Row {
   sub: string;
 }
 
-type State = "BALANCED" | "COOLING LIMITED" | "POWER LIMITED" | "RUNWAY LIMITED";
+type State =
+  | "BALANCED"
+  | "COOLING LIMITED"
+  | "POWER LIMITED"
+  | "RUNWAY LIMITED"
+  | "GRID LIMITED";
 
-function deriveState(power: number, cooling: number, runway: number): State {
-  const worst = Math.max(power, cooling, runway);
-  if (worst < 0.85) return "BALANCED";
-  if (cooling >= power && cooling >= runway) return "COOLING LIMITED";
-  if (power >= runway) return "POWER LIMITED";
-  return "RUNWAY LIMITED";
+/**
+ * Pick the worst-case constraint state from a set of ratios. Pass
+ * `null` for grid when the site is in ISLAND (excluded per rule 3.11)
+ * or when the DOE feed is non-OK (constraint claim degraded with source).
+ */
+function deriveState(
+  power: number,
+  cooling: number,
+  runway: number,
+  grid: number | null,
+): State {
+  const candidates: Array<["POWER LIMITED" | "COOLING LIMITED" | "RUNWAY LIMITED" | "GRID LIMITED", number]> = [
+    ["POWER LIMITED", power],
+    ["COOLING LIMITED", cooling],
+    ["RUNWAY LIMITED", runway],
+  ];
+  if (grid !== null) candidates.push(["GRID LIMITED", grid]);
+  let winner: State = "BALANCED";
+  let worst = 0.85; // below 85% = BALANCED
+  for (const [label, val] of candidates) {
+    if (val >= worst) {
+      worst = val;
+      winner = label;
+    }
+  }
+  return winner;
 }
 
 function stateColor(t: Theme, state: State): string {
@@ -90,11 +120,21 @@ function RatioRow({ row }: RatioRowProps): React.ReactElement {
 
 export function StrandedCapacity(): React.ReactElement {
   const t = useTheme();
-  // Mock ratios per overview JSX
+  const envelope = useOperatingEnvelope();
+  // Mock ratios for Power/Cooling/Runway pending step 9b hooks
   const power = 0.71;
   const cooling = 0.78;
   const runway = 0.62;
-  const state = deriveState(power, cooling, runway);
+  // Grid ratio: excluded from the heaviest-constraint calc when ISLAND
+  // (rule 3.11) OR when DOE feed is non-OK (rule 3.10 default override
+  // mode: "the constraint claim is degraded if its source is degraded").
+  const gridFault =
+    envelope.doeState === "stale" ||
+    envelope.doeState === "invalid" ||
+    envelope.doeState === "comm-fail";
+  const gridForCalc =
+    envelope.mode === "ISLAND" || gridFault ? null : envelope.usedFraction;
+  const state = deriveState(power, cooling, runway, gridForCalc);
   const sColor = stateColor(t, state);
 
   const rows: Row[] = [
@@ -162,6 +202,18 @@ export function StrandedCapacity(): React.ReactElement {
       {rows.map((r) => (
         <RatioRow key={r.label} row={r} />
       ))}
+
+      {/* Grid row — DOEHeadroomRow stranded variant. Renders even in
+          ISLAND/fault so the operator sees why grid headroom is n/a. */}
+      <View style={{ marginTop: 6 }}>
+        <DOEHeadroomRow
+          variant="stranded"
+          state={envelope.doeState}
+          direction={envelope.direction ?? "IMP"}
+          headroom={envelope.headroom}
+          usedFraction={envelope.usedFraction ?? 0}
+        />
+      </View>
 
       <Text
         style={[

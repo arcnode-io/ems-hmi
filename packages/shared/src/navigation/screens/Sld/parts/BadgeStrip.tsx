@@ -19,10 +19,9 @@ import type { ModuleType } from "../../../../components/composed/ModuleCard/Modu
 
 function templateToType(template: string): ModuleType | null {
   return match(template)
-    .with("bess_rack", () => "bess" as const)
-    .with("compute_pod", () => "compute" as const)
-    .with("grid_tap", () => "grid" as const)
-    .with("cdu", () => "thermal" as const)
+    .with("bess_module", () => "bess" as const)
+    .with("compute_module", () => "compute" as const)
+    .with("grid_module", () => "grid" as const)
     .otherwise(() => null);
 }
 

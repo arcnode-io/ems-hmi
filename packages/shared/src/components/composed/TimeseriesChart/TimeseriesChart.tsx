@@ -13,7 +13,7 @@
 
 import React from "react";
 import { View, Text } from "react-native";
-import { Svg, Line, Polyline, Text as SvgText } from "react-native-svg";
+import { Svg, Line, Polyline, Rect, Text as SvgText } from "react-native-svg";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { resolveTypeStyle, type Theme } from "../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../theme/tokens/primitives";
@@ -31,6 +31,14 @@ export interface TimeseriesSeries {
   points: readonly TimeseriesPoint[];
   /** Forecast/projection series render dashed; historical render solid. */
   style?: "solid" | "dashed";
+  /**
+   * Interpolation between samples.
+   * - "linear" (default): straight line — continuous process measurements.
+   * - "step": flat plateau + vertical edge — event-driven measurements
+   *   (DOE limits, breaker state). Per constitution rule 3.14, smoothing
+   *   would imply gradual drift and is a lie for these values.
+   */
+  interpolation?: "linear" | "step";
 }
 
 export interface TimeseriesThreshold {
@@ -39,12 +47,23 @@ export interface TimeseriesThreshold {
   severity: "warn" | "alarm";
 }
 
+/**
+ * Shaded fault-gap region rendered behind series lines. Per rule 3.14,
+ * data outages render as visible gaps, never silently zero.
+ */
+export interface TimeseriesGap {
+  xStart: number;
+  xEnd: number;
+}
+
 export interface TimeseriesChartProps {
   title: string;
   xAxis: { label: string; kind: "time" | "category" | "numeric" };
   yAxis: { label: string; unit: string };
   series: readonly TimeseriesSeries[];
   thresholds?: readonly TimeseriesThreshold[];
+  /** Time ranges with no/invalid data — rendered as diagonal hatches. */
+  gaps?: readonly TimeseriesGap[];
   /** Hint for the canvas height; clamps to 120..480. */
   height?: number;
   /** ISO timestamp; renders a "as of …" footer when set. */
@@ -108,16 +127,32 @@ function pointsToPolyline(
   scale: Scale,
   chartW: number,
   chartH: number,
+  interpolation: "linear" | "step" = "linear",
 ): string {
   const xRange = scale.xMax - scale.xMin || 1;
   const yRange = scale.yMax - scale.yMin || 1;
+  const project = (x: number, y: number): { px: number; py: number } => ({
+    px: PAD_L + ((x - scale.xMin) / xRange) * chartW,
+    py: PAD_T + chartH - ((y - scale.yMin) / yRange) * chartH,
+  });
   const parts: string[] = [];
+  let prevY: number | null = null;
   for (const p of points) {
-    if (p.y === null) continue;
+    if (p.y === null) {
+      prevY = null;
+      continue;
+    }
     const x = typeof p.x === "number" ? p.x : 0;
-    const px = PAD_L + ((x - scale.xMin) / xRange) * chartW;
-    const py = PAD_T + chartH - ((p.y - scale.yMin) / yRange) * chartH;
+    const { px, py } = project(x, p.y);
+    // Reason: step interpolation injects a synthetic point at (current-x,
+    // prev-y) before drawing to (current-x, current-y). Produces flat
+    // plateau + vertical edge — the canonical event-driven render.
+    if (interpolation === "step" && prevY !== null) {
+      const { py: pyPrev } = project(x, prevY);
+      parts.push(`${px.toFixed(2)},${pyPrev.toFixed(2)}`);
+    }
     parts.push(`${px.toFixed(2)},${py.toFixed(2)}`);
+    prevY = p.y;
   }
   return parts.join(" ");
 }
@@ -136,6 +171,7 @@ export function TimeseriesChart({
   yAxis,
   series,
   thresholds = [],
+  gaps = [],
   height = 220,
   dataAsOf,
 }: TimeseriesChartProps): React.ReactElement {
@@ -240,9 +276,34 @@ export function TimeseriesChart({
           );
         })}
 
+        {/* fault gaps — diagonal hatch rectangles drawn behind series */}
+        {scale && gaps.map((gap, i) => {
+          const xRange = scale.xMax - scale.xMin || 1;
+          const x0 = PAD_L + ((gap.xStart - scale.xMin) / xRange) * chartW;
+          const x1 = PAD_L + ((gap.xEnd - scale.xMin) / xRange) * chartW;
+          return (
+            <Rect
+              key={`gap-${i}`}
+              data-region="gap"
+              x={Math.min(x0, x1)}
+              y={PAD_T}
+              width={Math.abs(x1 - x0)}
+              height={chartH}
+              fill={t.textFaint}
+              opacity={0.18}
+            />
+          );
+        })}
+
         {/* data series */}
         {scale && series.map((s, i) => {
-          const points = pointsToPolyline(s.points, scale, chartW, chartH);
+          const points = pointsToPolyline(
+            s.points,
+            scale,
+            chartW,
+            chartH,
+            s.interpolation ?? "linear",
+          );
           if (points === "") return null;
           return (
             <Polyline
@@ -254,7 +315,7 @@ export function TimeseriesChart({
               fill="none"
               strokeDasharray={s.style === "dashed" ? "5,3" : undefined}
               strokeLinecap="round"
-              strokeLinejoin="round"
+              strokeLinejoin={s.interpolation === "step" ? "miter" : "round"}
             />
           );
         })}

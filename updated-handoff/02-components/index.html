@@ -277,6 +277,10 @@
     <a href="#charts">Timeseries + Histogram</a>
     <a href="#analyst">Chat + Prebuilt query</a>
 
+    <h3>Utility-side feeds</h3>
+    <a href="#doe-headroom">DOE Headroom row</a>
+    <a href="#sld-top">SLD top-of-diagram</a>
+
     <h3>Cross-cutting</h3>
     <a href="#typography">Typography ramp</a>
     <a href="#elevation">Elevation</a>
@@ -296,7 +300,7 @@
       </p>
       <div class="hero-stats">
         <div><label>Primitives</label><value>5</value></div>
-        <div><label>Components</label><value>15</value></div>
+        <div><label>Components</label><value>17</value></div>
         <div><label>Themes</label><value>2</value></div>
         <div><label>Stack</label><value>React + RN-Web</value></div>
       </div>
@@ -602,6 +606,63 @@
       <div id="mount-analyst"></div>
     </section>
 
+    <section id="doe-headroom" class="section">
+      <div class="section-eyebrow">Utility-side feeds · Composable row</div>
+      <h2 class="section-title">DOE Headroom row</h2>
+      <p class="section-desc">
+        Same logical row, three visual variants — it appears in the persistent status
+        strip's <code>GRID</code> segment (compact), the Overview's Stranded Capacity panel (ratio bar),
+        and the BESS Controls panel above the run-mode selector (full layout). Both directions
+        are always shown in the Controls variant: <code>EXP 0.0 MW</code> is the
+        export cliff the operator must see before switching to discharge.
+      </p>
+      <div class="section-tags">
+        <span class="tag tier-1">Tier 1</span>
+        <span class="tag rule">Rule 3.11 · ISLAND mode</span>
+        <span class="tag rule">Rule 3.13 · thresholds from template</span>
+        <span class="tag spec">Source: UTILITY-FEEDS.md</span>
+      </div>
+      <div id="mount-doe-headroom"></div>
+      <div class="rule-callout">
+        <b>The framing rule.</b> DOE is a <i>dispatch constraint</i>, not a metric.
+        It surfaces where the operator commits to a power value — strip, stranded capacity,
+        BESS controls — and only there. It is never a standalone informational screen.
+      </div>
+      <div class="rule-callout">
+        <b>Apply-button behavior during fault is configurable per deployment.</b>
+        Commercial/ISO: block <code>Apply</code> until acknowledged (FERC/ISO violation risk).
+        Defense/off-grid: <code>Apply</code> uses conservative fallback limits (last known good + timeout
+        → “no export, safe import ceiling”). Site keeps running; blocking is unacceptable
+        in off-grid resilience contexts. The banner above is the same in both modes.
+      </div>
+    </section>
+
+    <section id="sld-top" class="section">
+      <div class="section-eyebrow">Utility-side feeds · SLD top-of-diagram</div>
+      <h2 class="section-title">Revenue meter + DLR badge</h2>
+      <p class="section-desc">
+        The point of interconnection on the SLD. The revenue meter <code>GRD-RM-001</code> is the
+        POI node — settlement reading (<code>+142 kW IMPORT</code>) plus a <code>DOE</code> state row inside the
+        card. The DLR badge attaches to the 13.2 kV conductor itself, mid-line, with a persistent
+        <code>DLR</code> label and three visual states: collapsed-nominal (dot only), operational-warning
+        (<code>DLR 94%</code>), status-fault (<code>DLR ⚠ STALE</code>). Label anchors solve two problems:
+        distinguishability from each other, and presence-vs-absence (no label = feature
+        not configured on this deployment).
+      </p>
+      <div class="section-tags">
+        <span class="tag tier-1">Tier 1</span>
+        <span class="tag rule">Rule 1 · domain color = identity</span>
+        <span class="tag rule">Rule 3.11 · ISLAND</span>
+        <span class="tag spec">Source: UTILITY-FEEDS.md §5</span>
+      </div>
+      <div id="mount-sld-top"></div>
+      <div class="rule-callout">
+        <b>Why two badges, two locations.</b> DLR is a property of the conductor; DOE is an
+        authorization at the metering point. They're physically adjacent on the SLD but logically
+        different attachment points. Badge the equipment the constraint applies to.
+      </div>
+    </section>
+
     <!-- ═══════════ CROSS-CUTTING ═══════════ -->
 
     <section id="typography" class="section">
@@ -636,6 +697,7 @@
 <script type="text/babel" src="gallery-tier1.jsx"></script>
 <script type="text/babel" src="gallery-sld.jsx"></script>
 <script type="text/babel" src="gallery-tier2-tier3.jsx"></script>
+<script type="text/babel" src="gallery-utility-feeds.jsx"></script>
 
 <script type="text/babel" data-presets="env,react">
   // ─── Typography + Elevation mini-showcases ─────────────────────────
@@ -719,6 +781,8 @@
     ['mount-command',           CommandShowcase],
     ['mount-charts',            ChartsShowcase],
     ['mount-analyst',           AnalystShowcase],
+    ['mount-doe-headroom',      DOEHeadroomShowcase],
+    ['mount-sld-top',           SLDTopShowcase],
     ['mount-typography',        TypographyShowcase],
     ['mount-elevation',         ElevationShowcase],
   ];

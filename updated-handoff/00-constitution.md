@@ -76,6 +76,32 @@ A `StatusBadge` is informational by default. A badge that navigates is a separat
 ### 3.9 Hero treatment goes to the least-familiar value (was DS-011)
 When the same scalar appears multiple times on a screen, the largest visual weight goes to the **least familiar** value. On a faulted BESS detail page, the cell-voltage histogram (the diagnostic) is the hero. A giant SoC ring repeating a number the operator already saw twice is the slop signature of a dashboard that prioritized symmetry over cognition.
 
+### 3.10 Alarm lifecycle is ISA-18.2-aligned
+
+| State | Behavior |
+|---|---|
+| **Active, unacknowledged** | Indicator pulses; row in alarm panel; counted in chrome |
+| **Active, acknowledged** | Row stays in panel; pulse stops; chrome count decrements |
+| **Cleared** | Condition resolved; row moves to history |
+| **Severity escalation while acknowledged** | Update the SAME row in place + re-pulse at new severity. **NEVER** spawn a duplicate row. |
+
+Two rows for one device in one fault progression IS alarm flooding. The `AlarmRow` component must handle severity escalation as an in-place update, not an insert.
+
+### 3.11 ISLAND mode excludes utility-side feeds from constraint surfaces
+When the site is in ISLAND mode (`grid_module.mode == ISLAND`), DOE-derived metrics — headroom, envelope status, limit thresholds — are excluded from all constraint and dispatch surfaces. Strip `GRID` segment shows `ISLAND` only; Stranded Capacity skips the Grid row; BESS Controls `DOE HEADROOM` row shows a static `ISLAND MODE` label. Treating an islanded site as `GRID LIMITED` would be a category error. See `UTILITY-FEEDS.md` §6.
+
+### 3.12 Alarm labels are indices, not diagnoses
+Alarm row labels carry the device ID (consistent across all alarm types). Root-cause analysis ("is this our gear, the comms, or the utility?") lives in the **runbook** linked from the row, not in the label text. Specialized alarm origins (UTILITY, MAINTENANCE, etc.) appear as a small **category tag** alongside the device ID — never replacing it. The label is an index; the diagnosis is a decision tree.
+
+### 3.13 Thresholds come from device templates, never hardcoded
+Color transitions on ratio bars, alarm severity bands, gauge warn/alarm zones — all read their threshold values from the device template's `warn_min` / `warn_max` / `alarm_min` / `alarm_max` fields. A 500 kW deployment and a 50 MW deployment configure their own thresholds in YAML; the design just consumes them. Design must never hardcode a numeric threshold.
+
+### 3.14 Event-driven measurements render as step-change, no smoothing
+Measurements that update event-driven (DOE limits, breaker state, run mode) render as step-change lines on timeseries charts. **No interpolation between samples.** Flat plateau + vertical step IS the information. Smoothing implies gradual drift, which is a lie for event-driven values. Data gaps render as shaded regions or broken lines, never silently zero.
+
+### 3.15 `/modules` shows operator-owned hardware only
+`/modules` is filtered by `kind: module` (DTM field). `kind: leaf` devices — utility-side feeds (DOE, DLR, revenue meter), sub-component sensors — surface contextually elsewhere (SLD, alarm panel, headroom rows on consumer modules), never in the modules list. Adding them as a demoted section trains operators to skim.
+
 ---
 
 ## 4. Information density

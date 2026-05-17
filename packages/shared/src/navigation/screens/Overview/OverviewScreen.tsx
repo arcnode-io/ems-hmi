@@ -25,7 +25,14 @@ export function OverviewScreen(): React.ReactElement {
   const t = useTheme();
   const { view } = useTopologyView();
   const alarms = useAlarms();
-  const deviceCount = view ? Object.keys(view.devices).length : 0;
+  // Reason: constitution rule 3.15 — operator-owned hardware count.
+  // Leaf devices (utility-side feeds, sub-components) are surfaced
+  // contextually elsewhere and shouldn't pad this number.
+  const moduleCount = view
+    ? Object.values(view.devices).filter(
+        (d) => view.templates_used[d.template]?.kind === "module",
+      ).length
+    : 0;
   const warnCount = alarms.filter((a) => a.severity === "warn").length;
   const alarmCount = alarms.filter((a) => a.severity === "alarm").length;
   const accent =
@@ -36,7 +43,7 @@ export function OverviewScreen(): React.ReactElement {
       : warnCount > 0
         ? `${warnCount} active warning${warnCount === 1 ? "" : "s"}`
         : "All systems nominal";
-  const detail = `${deviceCount} module${deviceCount === 1 ? "" : "s"} online`;
+  const detail = `${moduleCount} module${moduleCount === 1 ? "" : "s"} online`;
   return (
     <ScrollView
       dataSet={{ comp: "OverviewScreen" }}

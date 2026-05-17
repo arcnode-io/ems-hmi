@@ -31,6 +31,13 @@ export interface AlarmRowProps {
   age: string;
   /** Absent in Analyst (read-only). */
   onAcknowledge?: () => void;
+  /**
+   * Optional alarm-origin category tag (e.g. "UTILITY", "MAINTENANCE").
+   * Renders as a small chip on the right beside the Ack button — never
+   * replaces the device ID. Per constitution rule 3.12 the label is an
+   * index; the diagnosis is in the runbook.
+   */
+  category?: string;
 }
 
 function severityColor(t: Theme, severity: AlarmSeverity): string {
@@ -68,6 +75,7 @@ export function AlarmRow({
   value,
   age,
   onAcknowledge,
+  category,
 }: AlarmRowProps): React.ReactElement {
   const t = useTheme();
   const sev = severityColor(t, severity);
@@ -183,6 +191,35 @@ export function AlarmRow({
           Ack&apos;d
         </Text>
       )}
+
+      {category ? (
+        <View
+          dataSet={{ region: "category" }}
+          style={{
+            paddingVertical: 2,
+            paddingHorizontal: 6,
+            borderRadius: RADIUS[2],
+            borderWidth: 1,
+            borderColor: t.borderSoft,
+            backgroundColor: "transparent",
+          }}
+        >
+          <Text
+            style={[
+              resolveTypeStyle(t, "caption"),
+              {
+                fontSize: 8.5,
+                fontWeight: "700",
+                letterSpacing: 0.2,
+                color: t.textSoft,
+                textTransform: "uppercase",
+              },
+            ]}
+          >
+            {category}
+          </Text>
+        </View>
+      ) : null}
     </View>
   );
 }

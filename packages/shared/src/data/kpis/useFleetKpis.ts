@@ -89,20 +89,23 @@ export function useFleetKpis(): FleetKpis {
 
   // Build topic lists once per topology change. useMemo so the inner
   // useAggregateMeasurements gets a stable identity until devices change.
+  // Reason: post-constitution-3.15 fixture uses module-tier templates as
+  // the operator-owned hardware. We pull fleet aggregates from the module
+  // rollup measurements, not from the underlying leaf devices.
   const socTopics = useMemo(
-    () => topicsForMeasurement(view, "bess_rack", "state_of_charge"),
+    () => topicsForMeasurement(view, "bess_module", "state_of_charge"),
     [view],
   );
   const gpuTopics = useMemo(
-    () => topicsForMeasurement(view, "compute_pod", "gpu_utilization"),
+    () => topicsForMeasurement(view, "compute_module", "gpu_utilization"),
     [view],
   );
   const gridPowerTopics = useMemo(
-    () => topicsForMeasurement(view, "grid_tap", "active_power"),
+    () => topicsForMeasurement(view, "grid_module", "net_active_power"),
     [view],
   );
   const gridFreqTopics = useMemo(
-    () => topicsForMeasurement(view, "grid_tap", "frequency"),
+    () => topicsForMeasurement(view, "grid_module", "grid_frequency"),
     [view],
   );
 

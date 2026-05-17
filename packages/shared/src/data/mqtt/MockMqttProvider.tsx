@@ -173,11 +173,11 @@ class MockMqttClientImpl implements MqttClient {
  * Suffix match (not full topic) so we don't have to hardcode `demo_site`.
  */
 const DEMO_ALARM_INJECTIONS: Readonly<Record<string, number>> = {
-  // bess_02 SoC stuck at 12% — below warn_min (15), above alarm_min (5)
+  // bess_module_02 SoC stuck at 12% — below warn_min (15), above alarm_min (5)
   //   → trips warn, so the alarm path renders in demos. Constitution
   //   rule 1 still holds (sim default = no alarms); this is opt-in
   //   per the `demoAlarms` prop on MockMqttProvider (default true).
-  "devices/bess_02/measurements/state_of_charge/percent": 12,
+  "devices/bess_module_02/measurements/state_of_charge/percent": 12,
 };
 
 interface MockMqttProviderProps {

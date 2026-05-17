@@ -10,12 +10,12 @@ See it live in the [gallery](./index.html#confirmationmodal).
 
 | Region | Token | Note |
 |--------|-------|------|
-| SIMULATED band | `t.statusSim` background, `t.textInverse` text | Full-width banner pinned to modal top, label `SIMULATED`. Renders only when `simMode=true`. `data-region="sim-band"` for Playwright. |
-| Header bar | `t.borderSoft divider · grab cursor` | draggable, below SIMULATED band if present |
+| Header bar | `t.borderSoft divider · grab cursor` | draggable |
 | Command summary | `t.text · fontBody · bold` | human-readable |
 | Target panel | `t.bg inset · t.border` | name + current state |
+| SIM badge | `t.statusSim` | only when sim=true |
 | Cancel | `ghost button` | — |
-| Confirm | `t.accent` | Label is always `Send` — never `Send (SIM)`. Color does NOT change in SIM mode. The SIMULATED band carries the cue. |
+| Confirm | `t.accent (or t.statusSim if sim)` | "Send (SIM)" in sim mode |
 
 ## Props
 
@@ -41,7 +41,6 @@ See it live in the [gallery](./index.html#confirmationmodal).
 
 - ❌ Never auto-confirm.
 - ❌ Never enable confirm before user reads the target panel — focus starts on Cancel.
-- ❌ Never embed `(SIM)` in the Confirm button label, and never tint the button `statusSim`. The SIMULATED band is the only SIM affordance on this modal. Per-button SIM text/color was rejected as noise. Amendment locked 2026-05-16.
 
 ## References
 
