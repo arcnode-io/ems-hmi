@@ -206,11 +206,52 @@ export function SldCanvas(): React.ReactElement {
         />
       )}
       <style>{`
-        .sld-svg-root [data-region="body"] { fill: ${t.surface}; stroke: ${t.text}; stroke-width: 1; }
-        .sld-svg-root [data-region="label-name"] { fill: ${t.text}; font-weight: 700; }
-        .sld-svg-root [data-region="label-template"] { fill: ${t.textSoft}; font-size: 9px; }
-        .sld-svg-root [data-region="status-indicator"] { fill: ${t.statusOk}; }
-        .sld-svg-root [data-comp="bus"] { stroke: ${t.textSoft}; stroke-width: 1.5; fill: none; }
+        /* Device body: filled surface with a domain-neutral stroke. */
+        .sld-svg-root [data-region="body"] {
+          fill: ${t.surface};
+          stroke: ${t.border};
+          stroke-width: 1.5;
+        }
+        /* Device-node group hover hint — desktop only. */
+        .sld-svg-root [data-comp="device-node"]:hover [data-region="body"] {
+          stroke: ${t.accent};
+          stroke-width: 2;
+        }
+        /* Label names: bold, full-text color. */
+        .sld-svg-root [data-region="label-name"] {
+          fill: ${t.text};
+          font-weight: 700;
+          font-size: 11px;
+        }
+        /* Template slug: smaller, softer. */
+        .sld-svg-root [data-region="label-template"] {
+          fill: ${t.textSoft};
+          font-size: 9px;
+          font-weight: 500;
+          letter-spacing: 0.5px;
+          text-transform: uppercase;
+        }
+        /* Status indicator: bigger dot + soft halo via stroke. */
+        .sld-svg-root [data-region="status-indicator"] {
+          fill: ${t.statusOk};
+          stroke: ${t.surface};
+          stroke-width: 1.5;
+          r: 5;
+        }
+        /* Bus paths: thick + capped, drawn behind device groups via opacity. */
+        .sld-svg-root [data-comp="bus"] {
+          stroke: ${t.textMid};
+          stroke-width: 3;
+          stroke-linecap: round;
+          fill: none;
+          opacity: 0.55;
+        }
+        /* DC vs AC bus get distinct dasharrays for at-a-glance type read. */
+        .sld-svg-root [data-comp="bus"][data-bus-type="ac"] {
+          stroke-dasharray: 6 3;
+        }
+        /* Hit-area transparent but pointer-friendly. */
+        .sld-svg-root [data-region="hit-area"] { cursor: pointer; }
       `}</style>
       {overlayLabel && (
         <div
