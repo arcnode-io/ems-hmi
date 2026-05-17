@@ -12,7 +12,7 @@ const TABS: Array<{ tab: string; marker: RegExp }> = [
   { tab: "Overview", marker: /All systems nominal|active alarm|active warning/i },
   { tab: "Modules", marker: /Single line diagram/i },
   { tab: "Energy", marker: /Dispatch · Markets|Revenue today/i },
-  { tab: "Compute", marker: /Screen pending/i },
+  { tab: "Compute", marker: /Cluster · GPUs · Thermal|GPU heatmap/i },
   { tab: "Analyst", marker: /Ask about devices|Try one of these/i },
 ];
 

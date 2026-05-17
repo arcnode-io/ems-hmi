@@ -162,9 +162,32 @@ class MockMqttClientImpl implements MqttClient {
   }
 }
 
+/**
+ * Demo-mode alarm injection: map of measurement-topic suffix → stuck value.
+ * Tickers matching the suffix bypass the safe-band clamp and publish the
+ * stuck value verbatim, so threshold-derivation in useAlarms trips.
+ *
+ * Keep entries short — exactly enough to show the alarm path in a demo
+ * (badges + AlarmsPanel + AlarmRow breath + SLD node tint).
+ *
+ * Suffix match (not full topic) so we don't have to hardcode `demo_site`.
+ */
+const DEMO_ALARM_INJECTIONS: Readonly<Record<string, number>> = {
+  // bess_02 SoC stuck at 12% — below warn_min (15), above alarm_min (5)
+  //   → trips warn, so the alarm path renders in demos. Constitution
+  //   rule 1 still holds (sim default = no alarms); this is opt-in
+  //   per the `demoAlarms` prop on MockMqttProvider (default true).
+  "devices/bess_02/measurements/state_of_charge/percent": 12,
+};
+
 interface MockMqttProviderProps {
   /** Site id used in topic strings. Demo default is "demo_site". */
   siteId?: string;
+  /**
+   * Pass `false` to disable the canned demo alarms (for unit tests or a
+   * "clean" demo state). Default `true`.
+   */
+  demoAlarms?: boolean;
   children: React.ReactNode;
 }
 
@@ -176,8 +199,17 @@ interface MockMqttProviderProps {
  * @param props.children Subtree that consumes via useSubscription
  * @returns Provider element
  */
+/** Find a demo-injection stuck value for a topic, if any. */
+function demoInjectionFor(topic: string): number | null {
+  for (const [suffix, value] of Object.entries(DEMO_ALARM_INJECTIONS)) {
+    if (topic.endsWith(suffix)) return value;
+  }
+  return null;
+}
+
 export function MockMqttProvider({
   siteId = "demo_site",
+  demoAlarms = true,
   children,
 }: MockMqttProviderProps): React.ReactElement {
   const { status, view } = useTopologyView();
@@ -198,7 +230,16 @@ export function MockMqttProvider({
         t.nextDueAt = now + t.intervalMs;
         let value: unknown;
         if (t.kind === "float") {
-          t.current = nextFloatValue(t);
+          // Reason: demo-mode injection — if this topic matches a canned
+          // alarm entry, publish the stuck value verbatim instead of the
+          // mean-reverting walk. Lets the alarm path render in demos
+          // without abandoning the rule-1 "sim never alarms" default.
+          const stuck = demoAlarms ? demoInjectionFor(t.topic) : null;
+          if (stuck !== null) {
+            t.current = stuck;
+          } else {
+            t.current = nextFloatValue(t);
+          }
           value = t.current;
         } else if (t.kind === "bool") {
           // Flip with 1% probability per tick — stays mostly stable.
