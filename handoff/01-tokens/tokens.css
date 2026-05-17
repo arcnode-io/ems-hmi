@@ -1,0 +1,148 @@
+/* Generated from tokens.ts — do not edit by hand. */
+/* Run: npx tsx scripts/generate-tokens.mjs */
+
+:root {
+  /* Spacing scale */
+  --space-0: 0px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 40px;
+  --space-8: 48px;
+  --space-10: 64px;
+
+  /* Radius scale */
+  --radius-0: 0px;
+  --radius-1: 2px;
+  --radius-2: 4px;
+  --radius-3: 6px;
+  --radius-4: 8px;
+  --radius-5: 12px;
+  --radius-full: 9999px;
+
+  /* Motion */
+  --duration-instant: 0ms;
+  --duration-fast: 100ms;
+  --duration-base: 200ms;
+  --duration-slow: 350ms;
+  --duration-pulse: 800ms;
+  --easing-standard: cubic-bezier(0.2, 0.0, 0.0, 1.0);
+  --easing-decelerate: cubic-bezier(0.0, 0.0, 0.2, 1.0);
+  --easing-accelerate: cubic-bezier(0.4, 0.0, 1.0, 1.0);
+  --easing-pulse: ease-in-out;
+
+  /* z-index */
+  --z-base: 0;
+  --z-raised: 1;
+  --z-overlay: 10;
+  --z-sidebar: 20;
+  --z-topbar: 30;
+  --z-modal: 40;
+  --z-alarm: 50;
+  --z-sim: 60;
+  --z-toast: 70;
+}
+
+/* Sovereign (dark) — default */
+:root,
+[data-theme="sovereign"] {
+  --bg: #080808;
+  --surface: #0e0e0e;
+  --panel: #131313;
+  --raised: #1a1a1a;
+  --sunken: #050505;
+  --border: #1f1f1f;
+  --border-soft: #2a2a2a;
+  --border-focus: #4a7aaa;
+  --text: #d4d0c8;
+  --text-mid: #8a8680;
+  --text-soft: #6b6860;
+  --text-faint: #3a3835;
+  --text-inverse: #0a0a0a;
+  --accent: #4a7aaa;
+  --accent-dim: #3a6090;
+  --accent-faint: #0a1520;
+  --accent-border: #2a4866;
+  --status-ok: #4a7c5f;
+  --status-warn: #f5a623;
+  --status-alarm: #e84040;
+  --status-fire: #ff2020;
+  --status-maintenance: #7a6aaa;
+  --status-offline: #3a3835;
+  --status-sim: #4a7aaa;
+  --color-bess: #4a7c5f;
+  --color-compute: #4a7aaa;
+  --color-thermal: #4a9a9a;
+  --color-grid: #7a9e87;
+  --color-pv: #d4a849;
+  --color-revenue: #b89a5e;
+  --chart-grid: rgba(255, 255, 255, 0.06);
+  --chart-axis: rgba(255, 255, 255, 0.12);
+  --hover-overlay: rgba(255, 255, 255, 0.04);
+  --pressed-overlay: rgba(255, 255, 255, 0.08);
+  --focus-ring: #4a7aaa;
+  --font-heading: "Bebas Neue", "Arial Narrow", sans-serif;
+  --font-label: "DM Mono", ui-monospace, monospace;
+  --font-body: "DM Mono", ui-monospace, monospace;
+  --font-mono: "DM Mono", ui-monospace, monospace;
+  --device-frame: #000000;
+  --status-bar-fg: #d4d0c8;
+}
+
+/* Solarpunk (light) */
+[data-theme="solarpunk"] {
+  --bg: #f5f0e8;
+  --surface: #ede7d9;
+  --panel: #e8e2d4;
+  --raised: #f9f5ec;
+  --sunken: #e0d8c8;
+  --border: #d0c8b8;
+  --border-soft: #e0d8c8;
+  --border-focus: #1e3a2f;
+  --text: #2a2218;
+  --text-mid: #5a5248;
+  --text-soft: #8a8278;
+  --text-faint: #b0a898;
+  --text-inverse: #f5f0e8;
+  --accent: #1e3a2f;
+  --accent-dim: #2d5a44;
+  --accent-faint: #e0f0e8;
+  --accent-border: #88a89a;
+  --status-ok: #2d5a44;
+  --status-warn: #c8820a;
+  --status-alarm: #cc2929;
+  --status-fire: #cc0000;
+  --status-maintenance: #5a4a8a;
+  --status-offline: #b0a898;
+  --status-sim: #3a5a8a;
+  --color-bess: #2d5a44;
+  --color-compute: #3a5a8a;
+  --color-thermal: #2d7a7a;
+  --color-grid: #4a7c5f;
+  --color-pv: #a87818;
+  --color-revenue: #7a5e2a;
+  --chart-grid: rgba(0, 0, 0, 0.08);
+  --chart-axis: rgba(0, 0, 0, 0.18);
+  --hover-overlay: rgba(0, 0, 0, 0.03);
+  --pressed-overlay: rgba(0, 0, 0, 0.06);
+  --focus-ring: #1e3a2f;
+  --font-heading: "Cormorant Garamond", "Georgia", serif;
+  --font-label: "Space Mono", ui-monospace, monospace;
+  --font-body: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-mono: "Space Mono", ui-monospace, monospace;
+  --device-frame: #3a3835;
+  --status-bar-fg: #2a2218;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+    --duration-pulse: 0ms;
+  }
+}

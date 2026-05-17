@@ -1,0 +1,533 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "sovereign": {
+    "bg": {
+      "$value": "#080808",
+      "$type": "color",
+      "$description": "Page / screen background — deepest tonal layer"
+    },
+    "surface": {
+      "$value": "#0e0e0e",
+      "$type": "color",
+      "$description": "Card, panel, modal background — primary surface"
+    },
+    "panel": {
+      "$value": "#131313",
+      "$type": "color",
+      "$description": "Inner panel, sidebar, drawer"
+    },
+    "raised": {
+      "$value": "#1a1a1a",
+      "$type": "color",
+      "$description": "Raised element (modal, hover-lifted card)"
+    },
+    "sunken": {
+      "$value": "#050505",
+      "$type": "color",
+      "$description": "Sunken element (input well, recessed area)"
+    },
+    "border": {
+      "$value": "#1f1f1f",
+      "$type": "color",
+      "$description": "Structural borders"
+    },
+    "borderSoft": {
+      "$value": "#2a2a2a",
+      "$type": "color",
+      "$description": "Subtle dividers"
+    },
+    "borderFocus": {
+      "$value": "#4a7aaa",
+      "$type": "color",
+      "$description": "Focus ring border"
+    },
+    "text": {
+      "$value": "#d4d0c8",
+      "$type": "color"
+    },
+    "textMid": {
+      "$value": "#8a8680",
+      "$type": "color"
+    },
+    "textSoft": {
+      "$value": "#6b6860",
+      "$type": "color"
+    },
+    "textFaint": {
+      "$value": "#3a3835",
+      "$type": "color"
+    },
+    "textInverse": {
+      "$value": "#0a0a0a",
+      "$type": "color"
+    },
+    "accent": {
+      "$value": "#4a7aaa",
+      "$type": "color",
+      "$description": "Primary CTA — buttons, active nav, focus rings. NOT alarm. (DS-001)"
+    },
+    "accentDim": {
+      "$value": "#3a6090",
+      "$type": "color"
+    },
+    "accentFaint": {
+      "$value": "#0a1520",
+      "$type": "color"
+    },
+    "accentBorder": {
+      "$value": "#2a4866",
+      "$type": "color"
+    },
+    "statusOk": {
+      "$value": "#4a7c5f",
+      "$type": "color",
+      "$description": "OK / nominal state. RESERVED — alarm use only."
+    },
+    "statusWarn": {
+      "$value": "#f5a623",
+      "$type": "color",
+      "$description": "Warning severity. RESERVED — caution triangle icon. Never decorative."
+    },
+    "statusAlarm": {
+      "$value": "#e84040",
+      "$type": "color",
+      "$description": "Alarm severity. RESERVED — warning octagon icon. Never decorative."
+    },
+    "statusFire": {
+      "$value": "#ff2020",
+      "$type": "color",
+      "$description": "Fire alarm. RESERVED. Must pulse (DS-002), not flash."
+    },
+    "statusMaintenance": {
+      "$value": "#7a6aaa",
+      "$type": "color",
+      "$description": "Maintenance mode — wrench icon state"
+    },
+    "statusOffline": {
+      "$value": "#3a3835",
+      "$type": "color",
+      "$description": "Offline / communication loss"
+    },
+    "statusSim": {
+      "$value": "#4a7aaa",
+      "$type": "color",
+      "$description": "Simulation mode banner — intentionally distinct from alarm hues"
+    },
+    "colorBess": {
+      "$value": "#4a7c5f",
+      "$type": "color",
+      "$description": "BESS SoC, charge flow — non-alarm green family"
+    },
+    "colorCompute": {
+      "$value": "#4a7aaa",
+      "$type": "color",
+      "$description": "Compute utilization — blue family"
+    },
+    "colorThermal": {
+      "$value": "#4a9a9a",
+      "$type": "color",
+      "$description": "Thermal measurements — teal"
+    },
+    "colorGrid": {
+      "$value": "#7a9e87",
+      "$type": "color",
+      "$description": "Grid import/export — sage"
+    },
+    "colorPv": {
+      "$value": "#d4a849",
+      "$type": "color",
+      "$description": "Photovoltaic generation — sun amber"
+    },
+    "colorRevenue": {
+      "$value": "#b89a5e",
+      "$type": "color",
+      "$description": "Revenue / economics — bronze"
+    },
+    "chartGrid": {
+      "$value": "rgba(255, 255, 255, 0.06)",
+      "$type": "color"
+    },
+    "chartAxis": {
+      "$value": "rgba(255, 255, 255, 0.12)",
+      "$type": "color"
+    },
+    "hoverOverlay": {
+      "$value": "rgba(255, 255, 255, 0.04)",
+      "$type": "color"
+    },
+    "pressedOverlay": {
+      "$value": "rgba(255, 255, 255, 0.08)",
+      "$type": "color"
+    },
+    "focusRing": {
+      "$value": "#4a7aaa",
+      "$type": "color"
+    },
+    "fontHeading": {
+      "$value": "\"Bebas Neue\", \"Arial Narrow\", sans-serif",
+      "$type": "fontFamily"
+    },
+    "fontLabel": {
+      "$value": "\"DM Mono\", ui-monospace, monospace",
+      "$type": "fontFamily"
+    },
+    "fontBody": {
+      "$value": "\"DM Mono\", ui-monospace, monospace",
+      "$type": "fontFamily"
+    },
+    "fontMono": {
+      "$value": "\"DM Mono\", ui-monospace, monospace",
+      "$type": "fontFamily"
+    },
+    "deviceFrame": {
+      "$value": "#000000",
+      "$type": "color"
+    },
+    "statusBarFg": {
+      "$value": "#d4d0c8",
+      "$type": "color"
+    }
+  },
+  "solarpunk": {
+    "bg": {
+      "$value": "#f5f0e8",
+      "$type": "color",
+      "$description": "Page / screen background — deepest tonal layer"
+    },
+    "surface": {
+      "$value": "#ede7d9",
+      "$type": "color",
+      "$description": "Card, panel, modal background — primary surface"
+    },
+    "panel": {
+      "$value": "#e8e2d4",
+      "$type": "color",
+      "$description": "Inner panel, sidebar, drawer"
+    },
+    "raised": {
+      "$value": "#f9f5ec",
+      "$type": "color",
+      "$description": "Raised element (modal, hover-lifted card)"
+    },
+    "sunken": {
+      "$value": "#e0d8c8",
+      "$type": "color",
+      "$description": "Sunken element (input well, recessed area)"
+    },
+    "border": {
+      "$value": "#d0c8b8",
+      "$type": "color",
+      "$description": "Structural borders"
+    },
+    "borderSoft": {
+      "$value": "#e0d8c8",
+      "$type": "color",
+      "$description": "Subtle dividers"
+    },
+    "borderFocus": {
+      "$value": "#1e3a2f",
+      "$type": "color",
+      "$description": "Focus ring border"
+    },
+    "text": {
+      "$value": "#2a2218",
+      "$type": "color"
+    },
+    "textMid": {
+      "$value": "#5a5248",
+      "$type": "color"
+    },
+    "textSoft": {
+      "$value": "#8a8278",
+      "$type": "color"
+    },
+    "textFaint": {
+      "$value": "#b0a898",
+      "$type": "color"
+    },
+    "textInverse": {
+      "$value": "#f5f0e8",
+      "$type": "color"
+    },
+    "accent": {
+      "$value": "#1e3a2f",
+      "$type": "color",
+      "$description": "Primary CTA — buttons, active nav, focus rings. NOT alarm. (DS-001)"
+    },
+    "accentDim": {
+      "$value": "#2d5a44",
+      "$type": "color"
+    },
+    "accentFaint": {
+      "$value": "#e0f0e8",
+      "$type": "color"
+    },
+    "accentBorder": {
+      "$value": "#88a89a",
+      "$type": "color"
+    },
+    "statusOk": {
+      "$value": "#2d5a44",
+      "$type": "color",
+      "$description": "OK / nominal state. RESERVED — alarm use only."
+    },
+    "statusWarn": {
+      "$value": "#c8820a",
+      "$type": "color",
+      "$description": "Warning severity. RESERVED — caution triangle icon. Never decorative."
+    },
+    "statusAlarm": {
+      "$value": "#cc2929",
+      "$type": "color",
+      "$description": "Alarm severity. RESERVED — warning octagon icon. Never decorative."
+    },
+    "statusFire": {
+      "$value": "#cc0000",
+      "$type": "color",
+      "$description": "Fire alarm. RESERVED. Must pulse (DS-002), not flash."
+    },
+    "statusMaintenance": {
+      "$value": "#5a4a8a",
+      "$type": "color",
+      "$description": "Maintenance mode — wrench icon state"
+    },
+    "statusOffline": {
+      "$value": "#b0a898",
+      "$type": "color",
+      "$description": "Offline / communication loss"
+    },
+    "statusSim": {
+      "$value": "#3a5a8a",
+      "$type": "color",
+      "$description": "Simulation mode banner — intentionally distinct from alarm hues"
+    },
+    "colorBess": {
+      "$value": "#2d5a44",
+      "$type": "color",
+      "$description": "BESS SoC, charge flow — non-alarm green family"
+    },
+    "colorCompute": {
+      "$value": "#3a5a8a",
+      "$type": "color",
+      "$description": "Compute utilization — blue family"
+    },
+    "colorThermal": {
+      "$value": "#2d7a7a",
+      "$type": "color",
+      "$description": "Thermal measurements — teal"
+    },
+    "colorGrid": {
+      "$value": "#4a7c5f",
+      "$type": "color",
+      "$description": "Grid import/export — sage"
+    },
+    "colorPv": {
+      "$value": "#a87818",
+      "$type": "color",
+      "$description": "Photovoltaic generation — sun amber"
+    },
+    "colorRevenue": {
+      "$value": "#7a5e2a",
+      "$type": "color",
+      "$description": "Revenue / economics — bronze"
+    },
+    "chartGrid": {
+      "$value": "rgba(0, 0, 0, 0.08)",
+      "$type": "color"
+    },
+    "chartAxis": {
+      "$value": "rgba(0, 0, 0, 0.18)",
+      "$type": "color"
+    },
+    "hoverOverlay": {
+      "$value": "rgba(0, 0, 0, 0.03)",
+      "$type": "color"
+    },
+    "pressedOverlay": {
+      "$value": "rgba(0, 0, 0, 0.06)",
+      "$type": "color"
+    },
+    "focusRing": {
+      "$value": "#1e3a2f",
+      "$type": "color"
+    },
+    "fontHeading": {
+      "$value": "\"Cormorant Garamond\", \"Georgia\", serif",
+      "$type": "fontFamily"
+    },
+    "fontLabel": {
+      "$value": "\"Space Mono\", ui-monospace, monospace",
+      "$type": "fontFamily"
+    },
+    "fontBody": {
+      "$value": "\"Plus Jakarta Sans\", system-ui, sans-serif",
+      "$type": "fontFamily"
+    },
+    "fontMono": {
+      "$value": "\"Space Mono\", ui-monospace, monospace",
+      "$type": "fontFamily"
+    },
+    "deviceFrame": {
+      "$value": "#3a3835",
+      "$type": "color"
+    },
+    "statusBarFg": {
+      "$value": "#2a2218",
+      "$type": "color"
+    }
+  },
+  "primitive": {
+    "space": {
+      "0": {
+        "$value": "0px",
+        "$type": "dimension"
+      },
+      "1": {
+        "$value": "4px",
+        "$type": "dimension"
+      },
+      "2": {
+        "$value": "8px",
+        "$type": "dimension"
+      },
+      "3": {
+        "$value": "12px",
+        "$type": "dimension"
+      },
+      "4": {
+        "$value": "16px",
+        "$type": "dimension"
+      },
+      "5": {
+        "$value": "24px",
+        "$type": "dimension"
+      },
+      "6": {
+        "$value": "32px",
+        "$type": "dimension"
+      },
+      "7": {
+        "$value": "40px",
+        "$type": "dimension"
+      },
+      "8": {
+        "$value": "48px",
+        "$type": "dimension"
+      },
+      "10": {
+        "$value": "64px",
+        "$type": "dimension"
+      }
+    },
+    "radius": {
+      "0": {
+        "$value": "0px",
+        "$type": "dimension"
+      },
+      "1": {
+        "$value": "2px",
+        "$type": "dimension"
+      },
+      "2": {
+        "$value": "4px",
+        "$type": "dimension"
+      },
+      "3": {
+        "$value": "6px",
+        "$type": "dimension"
+      },
+      "4": {
+        "$value": "8px",
+        "$type": "dimension"
+      },
+      "5": {
+        "$value": "12px",
+        "$type": "dimension"
+      },
+      "full": {
+        "$value": "9999px",
+        "$type": "dimension"
+      }
+    },
+    "motion": {
+      "duration": {
+        "instant": {
+          "$value": "0ms",
+          "$type": "duration"
+        },
+        "fast": {
+          "$value": "100ms",
+          "$type": "duration"
+        },
+        "base": {
+          "$value": "200ms",
+          "$type": "duration"
+        },
+        "slow": {
+          "$value": "350ms",
+          "$type": "duration"
+        },
+        "pulse": {
+          "$value": "800ms",
+          "$type": "duration"
+        }
+      },
+      "easing": {
+        "standard": {
+          "$value": "cubic-bezier(0.2, 0.0, 0.0, 1.0)",
+          "$type": "cubicBezier"
+        },
+        "decelerate": {
+          "$value": "cubic-bezier(0.0, 0.0, 0.2, 1.0)",
+          "$type": "cubicBezier"
+        },
+        "accelerate": {
+          "$value": "cubic-bezier(0.4, 0.0, 1.0, 1.0)",
+          "$type": "cubicBezier"
+        },
+        "pulse": {
+          "$value": "ease-in-out",
+          "$type": "cubicBezier"
+        }
+      }
+    },
+    "zIndex": {
+      "base": {
+        "$value": 0,
+        "$type": "number"
+      },
+      "raised": {
+        "$value": 1,
+        "$type": "number"
+      },
+      "overlay": {
+        "$value": 10,
+        "$type": "number"
+      },
+      "sidebar": {
+        "$value": 20,
+        "$type": "number"
+      },
+      "topbar": {
+        "$value": 30,
+        "$type": "number"
+      },
+      "modal": {
+        "$value": 40,
+        "$type": "number"
+      },
+      "alarm": {
+        "$value": 50,
+        "$type": "number"
+      },
+      "sim": {
+        "$value": 60,
+        "$type": "number"
+      },
+      "toast": {
+        "$value": 70,
+        "$type": "number"
+      }
+    }
+  }
+}

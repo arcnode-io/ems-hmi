@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=1280"/>
+<title>EMS HMI — ENERGY · Mobile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=Cormorant+Garamond:wght@400;500;600&family=Space+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    background: linear-gradient(90deg, #050505 0%, #0a0a0a 50%, #d8d0bf 50%, #c8bea8 100%);
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+  .stage { min-height: 100vh; display: flex; align-items: center; justify-content: center;
+           padding: 36px 24px 60px; box-sizing: border-box; gap: 32px; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .col-label { font-family: 'DM Mono', monospace; font-size: 11px; font-weight: 600;
+               letter-spacing: 0.18em; text-transform: uppercase; }
+  .col-label.sov  { color: #8a8680; }
+  .col-label.solr { color: #5a5248; }
+  .col-meta { font-family: 'DM Mono', monospace; font-size: 10px;
+              letter-spacing: 0.1em; text-transform: uppercase; margin-top: -10px; }
+  .col-meta.sov  { color: #6b6860; }
+  .col-meta.solr { color: #8a8278; }
+  .header { position: fixed; top: 14px; left: 0; right: 0; text-align: center;
+            pointer-events: none; font-family: 'DM Mono', monospace;
+            font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; }
+  .header .t { color: #d4d0c8; mix-blend-mode: difference; }
+  ::-webkit-scrollbar { display: none; }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="marketing-mode.js"></script>
+</head>
+<body>
+<div class="header"><span class="t">EMS HMI · ENERGY · Mobile · v1</span></div>
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#1a2a3d"/>
+        <stop offset="1" stop-color="#5a7aaa"/>
+      </linearGradient>
+    </defs>
+    <rect width="100" height="100" fill="url(#g)"/>
+    <g transform="translate(38 38) scale(1)"  fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 17l4-6 4 3 4-7 6 8"/>
+    </g>
+  </svg>
+</template>
+
+<div id="root"></div>
+
+<script type="text/babel" src="tokens.jsx"></script>
+<script type="text/babel" src="icons.jsx"></script>
+<script type="text/babel" src="phone-shell.jsx"></script>
+<script type="text/babel" src="energy-detail-screen.jsx"></script>
+
+<script type="text/babel">
+  function EnergyTabs({ t }) {
+    const tabs = [
+      { id: 'overview', label: 'Overview', Icon: IconOverview, active: false },
+      { id: 'modules',  label: 'Modules',  Icon: IconModules,  active: false },
+      { id: 'energy',   label: 'Energy',   Icon: IconEnergy,   active: true },
+      { id: 'compute',  label: 'Compute',  Icon: IconCompute,  active: false },
+      { id: 'analyst',  label: 'Analyst',  Icon: IconAnalyst,  active: false },
+    ];
+    return (
+      <div style={{ borderTop: `1px solid ${t.border}`, background: t.panel,
+                    display: 'flex', paddingBottom: 4, flexShrink: 0 }}>
+        {tabs.map(tb => {
+          const c = tb.active ? t.accent : t.textSoft;
+          return (
+            <button key={tb.id} style={{
+              flex: 1, background: 'transparent', border: 'none',
+              padding: '8px 4px 6px', display: 'flex', flexDirection: 'column',
+              alignItems: 'center', gap: 2, cursor: 'pointer', position: 'relative',
+            }}>
+              {tb.active && (
+                <div style={{ position: 'absolute', top: 0, left: '20%', right: '20%',
+                              height: 2, background: t.accent, borderRadius: '0 0 2px 2px' }}/>
+              )}
+              <tb.Icon size={20} color={c}/>
+              <span style={{
+                fontFamily: t.fontLabel, fontSize: 9, fontWeight: 600,
+                color: c, letterSpacing: 0.15, textTransform: 'uppercase',
+                lineHeight: 1.1, textAlign: 'center', maxWidth: '100%',
+              }}>{tb.label}</span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  }
+
+  function App() {
+    return (
+      <div className="stage">
+        <div className="col" data-screen-label="ENERGY · Solarpunk · Mobile">
+          <div className="col-label solr">Solarpunk · Light</div>
+          <PhoneShell t={SOLARPUNK} bottom={<EnergyTabs t={SOLARPUNK}/>}>
+            <EnergyDetailScreen t={SOLARPUNK}/>
+          </PhoneShell>
+          <div className="col-meta solr">380 × 820 · phone breakpoint</div>
+        </div>
+        <div className="col" data-screen-label="ENERGY · Sovereign · Mobile">
+          <div className="col-label sov">Sovereign · Dark</div>
+          <PhoneShell t={SOVEREIGN} bottom={<EnergyTabs t={SOVEREIGN}/>}>
+            <EnergyDetailScreen t={SOVEREIGN}/>
+          </PhoneShell>
+          <div className="col-meta sov">380 × 820 · phone breakpoint</div>
+        </div>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
