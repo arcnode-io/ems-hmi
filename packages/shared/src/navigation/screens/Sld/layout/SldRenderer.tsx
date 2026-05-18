@@ -56,8 +56,17 @@ function Particle({
 function ConductorPath({ c }: { c: SldConductor }): React.ReactElement {
   const isBus = c.kind === "ac" && c.id === "ac_bus_1";
   const isDcBus = c.kind === "dc" && c.id === "dc_bus_1";
+  // Polyline routing for info conductors (right-angle bends); otherwise
+  // a straight M-L line between endpoints.
+  const d = c.points && c.points.length > 0
+    ? [
+        `M ${c.x1} ${c.y1}`,
+        ...c.points.map((p) => `L ${p.x} ${p.y}`),
+        `L ${c.x2} ${c.y2}`,
+      ].join(" ")
+    : `M ${c.x1} ${c.y1} L ${c.x2} ${c.y2}`;
   const baseAttrs: React.SVGProps<SVGPathElement> = {
-    d: `M ${c.x1} ${c.y1} L ${c.x2} ${c.y2}`,
+    d,
     fill: "none",
     stroke: "currentColor",
   };

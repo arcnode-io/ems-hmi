@@ -138,10 +138,15 @@ function nodeHeightFor(role: "poi" | "dlr-badge" | null, template: string): numb
 export function layoutSld(view: TopologyViewType): SldLayout {
   const { poi, utilityFeeds, acMembers, dcMembers, moduleChildren } = classify(view);
 
-  // Width grows with the busiest row.
+  // Width grows with the busiest row. DC bus anchors at Grid Module's x
+  // and extends rightward to fit dcMembers, so accommodate that overhang.
+  const gridIdxForWidth = acMembers.findIndex((d) => d.template === "grid_module");
+  const dcOverhang = dcMembers.length > 0 && gridIdxForWidth >= 0
+    ? gridIdxForWidth + dcMembers.length + 1
+    : 0;
   const cols = Math.max(
     acMembers.length,
-    dcMembers.length,
+    dcOverhang,
     utilityFeeds.length + 1,
     3,
   );
@@ -171,12 +176,19 @@ export function layoutSld(view: TopologyViewType): SldLayout {
       x: midX, y: Y_POI,
       width: NODE_W_POI, height: NODE_H_POI,
     });
-    // Dotted info lines from each utility feed to the POI top edge.
+    // Dotted info lines from each utility feed to the POI top edge —
+    // right-angle polyline (down, across, down) rather than diagonal.
+    const infoBendY = (Y_UTILITY + NODE_H / 2 + Y_POI - NODE_H_POI / 2) / 2;
     utilityFeeds.forEach((d, i) => {
+      const ux = utilXs[i] ?? midX;
       conductors.push({
         id: `info_${d.device_id}`,
-        x1: utilXs[i] ?? midX, y1: Y_UTILITY + NODE_H / 2,
+        x1: ux, y1: Y_UTILITY + NODE_H / 2,
         x2: midX, y2: Y_POI - NODE_H_POI / 2,
+        points: [
+          { x: ux, y: infoBendY },
+          { x: midX, y: infoBendY },
+        ],
         kind: "info", flowSource: null, particles: [], dashed: true,
       });
     });
@@ -270,11 +282,17 @@ export function layoutSld(view: TopologyViewType): SldLayout {
   }
 
   // DC bus + module placements.
+  // DC bus anchors at gridX (where inverter taps in) and spreads BESS
+  // modules across the remaining width. Width calc above guarantees room.
   const dcStart = grid ? acXs[acMembers.indexOf(grid)] ?? midX : midX;
-  const dcMaxXMember = dcMembers.length > 0
-    ? dcStart + (dcMembers.length - 1) * COLUMN_PITCH
-    : dcStart;
-  const dcXs = dcMembers.map((_, i) => dcStart + (i + 1) * (COLUMN_PITCH * 0.85));
+  const dcLeftX = dcStart + COLUMN_PITCH * 0.5;
+  const dcRightX = width - 80;
+  const dcXs =
+    dcMembers.length === 0
+      ? []
+      : dcMembers.length === 1
+        ? [(dcLeftX + dcRightX) / 2]
+        : spreadX(dcMembers.length, dcLeftX, dcRightX);
   if (dcMembers.length > 0) {
     conductors.push({
       id: "dc_bus_1",
@@ -295,9 +313,6 @@ export function layoutSld(view: TopologyViewType): SldLayout {
       kind: "drop", flowSource: { kind: "envelope" }, particles: dropParticle(1.5),
     });
   });
-  // Suppress unused-var lint for dcMaxXMember (kept for future right-bound expansion).
-  void dcMaxXMember;
-
   // Module-children (CDU below compute, etc.) — dashed informational drops.
   moduleChildren.forEach((d) => {
     const parent = acMembers.find((m) => m.device_id === d.parent);
