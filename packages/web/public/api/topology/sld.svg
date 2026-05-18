@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Hand-laid demo SLD fixture. Mirrors gallery-sld.jsx structure with
      real device IDs from view.json. Preserves data-* attribute contract
-     so SldCanvas overlay (status + POI/DLR styling) still binds. -->
+     so SldCanvas overlay (status + POI/DLR styling + flow direction)
+     still binds.
+
+     Particles tagged `data-flip="envelope"` are reversed by SldCanvas on
+     EXP (site sourcing). Particles WITHOUT that attribute hold a fixed
+     direction — used for permanent loads like Compute. -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 480">
 
   <!-- ── Utility-side feeds (top row) ─────────────────────────────────── -->
@@ -33,14 +38,13 @@
     <rect data-region="hit-area" x="-72" y="-26" width="144" height="52" fill="transparent" />
   </g>
 
-  <!-- Light dotted conductors from utility feeds to POI -->
+  <!-- Dotted information lines from utility feeds to POI (no particles) -->
   <path d="M 180 72 L 180 100 L 320 100 L 320 110" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="2 3" opacity="0.5" />
   <path d="M 540 72 L 540 100 L 400 100 L 400 110" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="2 3" opacity="0.5" />
 
   <!-- POI → main breaker → AC bus (conductor split around the breaker glyph) -->
   <path d="M 360 156 L 360 188" fill="none" stroke="currentColor" stroke-width="2" />
-  <!-- particle on the POI drop — overlay flips direction per envelope.direction -->
-  <circle id="poi_drop_particle" data-region="particle" r="2" fill="currentColor" opacity="0.7">
+  <circle id="p_poi_top" data-region="particle" data-flip="envelope" r="2" fill="currentColor" opacity="0.75">
     <animateMotion dur="3s" repeatCount="indefinite" path="M 360 156 L 360 188" />
   </circle>
   <g data-comp="breaker" transform="translate(360 195)">
@@ -48,29 +52,39 @@
     <line data-region="ring-bar" x1="-4" y1="0" x2="4" y2="0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
   </g>
   <path d="M 360 202 L 360 240" fill="none" stroke="currentColor" stroke-width="2" />
+  <circle id="p_poi_bot" data-region="particle" data-flip="envelope" r="2" fill="currentColor" opacity="0.75">
+    <animateMotion dur="3s" begin="-1.5s" repeatCount="indefinite" path="M 360 202 L 360 240" />
+  </circle>
 
   <!-- ── AC bus (horizontal) ──────────────────────────────────────────── -->
   <path id="bus_ac_bus_1" data-comp="bus" data-bus-type="ac" d="M 110 240 L 610 240" fill="none" stroke="currentColor" />
-  <!-- particles flow OUTWARD from POI tap at x=360 — POI injects, splits to
-       Grid Module (left) and ARC-COMPUTE-01 (right). Two segments, each
-       with two staggered dots so the visual cadence reads as flow-from-center. -->
-  <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
+  <!-- Left half: POI tap → Grid Module. Flips on EXP (BESS discharging via
+       Grid Module pushes upstream toward POI). -->
+  <circle data-region="particle" data-flip="envelope" r="2.5" fill="currentColor" opacity="0.75">
     <animateMotion dur="3.5s" repeatCount="indefinite" begin="0s" path="M 360 240 L 110 240" />
   </circle>
-  <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
+  <circle data-region="particle" data-flip="envelope" r="2.5" fill="currentColor" opacity="0.75">
     <animateMotion dur="3.5s" repeatCount="indefinite" begin="-1.75s" path="M 360 240 L 110 240" />
   </circle>
-  <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
+  <!-- Right half: POI tap → ARC-COMPUTE-01. Compute is a permanent load —
+       particles always flow toward it regardless of site direction. -->
+  <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.75">
     <animateMotion dur="3.5s" repeatCount="indefinite" begin="0s" path="M 360 240 L 610 240" />
   </circle>
-  <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
+  <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.75">
     <animateMotion dur="3.5s" repeatCount="indefinite" begin="-1.75s" path="M 360 240 L 610 240" />
   </circle>
 
   <!-- AC drops -->
-  <path d="M 360 215 L 360 240" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.7" />
   <path d="M 200 240 L 200 280" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.7" />
+  <circle data-region="particle" data-flip="envelope" r="2" fill="currentColor" opacity="0.75">
+    <animateMotion dur="2s" repeatCount="indefinite" path="M 200 240 L 200 280" />
+  </circle>
   <path d="M 540 240 L 540 280" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.7" />
+  <!-- Compute drop: always downward (load). -->
+  <circle data-region="particle" r="2" fill="currentColor" opacity="0.75">
+    <animateMotion dur="2s" repeatCount="indefinite" path="M 540 240 L 540 280" />
+  </circle>
 
   <!-- ── AC modules ───────────────────────────────────────────────────── -->
   <g id="grid_module_01" data-comp="device-node" data-template="grid_module" transform="translate(200 305)">
@@ -89,7 +103,7 @@
     <rect data-region="hit-area" x="-78" y="-22" width="156" height="44" fill="transparent" />
   </g>
 
-  <!-- Compute → CDU (child) -->
+  <!-- Compute → CDU (child, dashed; no flow particle — informational) -->
   <path d="M 540 330 L 540 360" fill="none" stroke="currentColor" stroke-width="1" stroke-dasharray="2 2" opacity="0.5" />
   <g id="cdu_01" data-comp="device-node" data-template="cdu" transform="translate(540 380)">
     <rect data-region="body" x="-48" y="-18" width="96" height="36" rx="3" fill="currentColor" />
@@ -99,30 +113,42 @@
     <rect data-region="hit-area" x="-48" y="-18" width="96" height="36" fill="transparent" />
   </g>
 
-  <!-- Grid Module → inverter → DC bus (BESS side) — conductor splits around glyph -->
+  <!-- Grid Module → inverter → DC bus (conductor splits around the glyph) -->
   <path d="M 200 327 L 200 351" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.7" />
+  <circle data-region="particle" data-flip="envelope" r="2" fill="currentColor" opacity="0.75">
+    <animateMotion dur="2s" repeatCount="indefinite" path="M 200 327 L 200 351" />
+  </circle>
   <g data-comp="inverter" transform="translate(200 360)">
     <circle data-region="ring" cx="0" cy="0" r="9" fill="none" stroke="currentColor" stroke-width="1.2" />
     <text data-region="glyph" x="0" y="3" text-anchor="middle" fill="currentColor" font-size="11" font-weight="700">~</text>
   </g>
   <path d="M 200 369 L 200 410" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.7" />
+  <circle data-region="particle" data-flip="envelope" r="2" fill="currentColor" opacity="0.75">
+    <animateMotion dur="2.5s" repeatCount="indefinite" path="M 200 369 L 200 410" />
+  </circle>
 
   <!-- ── DC bus (horizontal) ──────────────────────────────────────────── -->
   <path id="bus_dc_bus_1" data-comp="bus" data-bus-type="dc" d="M 200 410 L 540 410" fill="none" stroke="currentColor" />
-  <!-- particles: three offset dots streaming left→right at 7s (slower DC flow) -->
-  <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
+  <!-- DC bus particles: charging direction (inverter → BESS). Reverse on EXP. -->
+  <circle data-region="particle" data-flip="envelope" r="2.5" fill="currentColor" opacity="0.75">
     <animateMotion dur="7s" repeatCount="indefinite" begin="0s" path="M 200 410 L 540 410" />
   </circle>
-  <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
+  <circle data-region="particle" data-flip="envelope" r="2.5" fill="currentColor" opacity="0.75">
     <animateMotion dur="7s" repeatCount="indefinite" begin="-2.33s" path="M 200 410 L 540 410" />
   </circle>
-  <circle data-region="particle" r="2.5" fill="currentColor" opacity="0.7">
+  <circle data-region="particle" data-flip="envelope" r="2.5" fill="currentColor" opacity="0.75">
     <animateMotion dur="7s" repeatCount="indefinite" begin="-4.66s" path="M 200 410 L 540 410" />
   </circle>
 
-  <!-- DC drops -->
+  <!-- DC drops to BESS -->
   <path d="M 320 410 L 320 430" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.7" />
+  <circle data-region="particle" data-flip="envelope" r="2" fill="currentColor" opacity="0.75">
+    <animateMotion dur="1.5s" repeatCount="indefinite" path="M 320 410 L 320 430" />
+  </circle>
   <path d="M 480 410 L 480 430" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.7" />
+  <circle data-region="particle" data-flip="envelope" r="2" fill="currentColor" opacity="0.75">
+    <animateMotion dur="1.5s" repeatCount="indefinite" path="M 480 410 L 480 430" />
+  </circle>
 
   <!-- ── DC modules (BESS) ────────────────────────────────────────────── -->
   <g id="bess_module_01" data-comp="device-node" data-template="bess_module" transform="translate(320 452)">

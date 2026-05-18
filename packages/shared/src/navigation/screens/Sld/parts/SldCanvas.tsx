@@ -154,22 +154,21 @@ export function SldCanvas(): React.ReactElement {
             : t.statusAlarm;
       (token as SVGElement).setAttribute("fill", color);
     }
-    // POI drop particle direction reflects settlement direction:
-    // IMP (utility → site) flows top→bottom (the SVG's authored path);
-    // EXP (site → utility) flows bottom→top (path endpoints reversed).
-    const motion = root.querySelector("#poi_drop_particle animateMotion");
-    if (motion) {
-      const authored = motion.getAttribute("data-fwd-path") ?? motion.getAttribute("path");
-      if (authored) {
-        if (!motion.getAttribute("data-fwd-path")) {
-          motion.setAttribute("data-fwd-path", authored);
-        }
-        motion.setAttribute(
-          "path",
-          envelope.direction === "EXP" ? reversePath(authored) : authored,
-        );
-      }
-    }
+    // Direction-aware particles: every particle tagged data-flip="envelope"
+    // reverses on EXP (site sourcing) and runs its authored direction on
+    // IMP (utility sourcing). Authored path is cached in data-fwd-path on
+    // first run so re-applies stay idempotent.
+    const flipParticles = root.querySelectorAll('[data-flip="envelope"] animateMotion');
+    flipParticles.forEach((motion) => {
+      const cached = motion.getAttribute("data-fwd-path");
+      const authored = cached ?? motion.getAttribute("path");
+      if (!authored) return;
+      if (!cached) motion.setAttribute("data-fwd-path", authored);
+      motion.setAttribute(
+        "path",
+        envelope.direction === "EXP" ? reversePath(authored) : authored,
+      );
+    });
   }, [envelope.settlement, envelope.doeState, envelope.direction, t, svg, tx]);
 
   const reset = useCallback((): void => {
