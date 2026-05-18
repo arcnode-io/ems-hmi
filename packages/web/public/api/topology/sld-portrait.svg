@@ -38,7 +38,7 @@
 
   <!-- POI → main breaker → AC bus (conductor split around breaker glyph) -->
   <path d="M 190 186 L 190 225" fill="none" stroke="currentColor" stroke-width="2" />
-  <circle data-region="particle" r="2" fill="currentColor" opacity="0.7">
+  <circle id="poi_drop_particle" data-region="particle" r="2" fill="currentColor" opacity="0.7">
     <animateMotion dur="3s" repeatCount="indefinite" path="M 190 186 L 190 225" />
   </circle>
   <g data-comp="breaker" transform="translate(190 232)">

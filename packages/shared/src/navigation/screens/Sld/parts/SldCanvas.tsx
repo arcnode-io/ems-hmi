@@ -93,6 +93,21 @@ function stateTokenLabel(doeState: string): string {
   return "OK";
 }
 
+/**
+ * Reverse a simple two-point SVG path of the form `M x1 y1 L x2 y2`.
+ * Used to flip the POI-drop particle direction when settlement goes
+ * from IMP (utility sourcing) to EXP (site sourcing).
+ * @param path Two-point path string
+ * @returns Same path with endpoints swapped
+ * @example reversePath("M 360 156 L 360 188") // "M 360 188 L 360 156"
+ */
+export function reversePath(path: string): string {
+  const m = path.trim().match(/^M\s+(-?[\d.]+)\s+(-?[\d.]+)\s+L\s+(-?[\d.]+)\s+(-?[\d.]+)$/);
+  if (!m) return path;
+  const [, x1, y1, x2, y2] = m;
+  return `M ${x2} ${y2} L ${x1} ${y1}`;
+}
+
 export function SldCanvas(): React.ReactElement {
   const t = useTheme();
   const { status, svg, error } = useSldSvg();
@@ -139,7 +154,23 @@ export function SldCanvas(): React.ReactElement {
             : t.statusAlarm;
       (token as SVGElement).setAttribute("fill", color);
     }
-  }, [envelope.settlement, envelope.doeState, t, svg, tx]);
+    // POI drop particle direction reflects settlement direction:
+    // IMP (utility → site) flows top→bottom (the SVG's authored path);
+    // EXP (site → utility) flows bottom→top (path endpoints reversed).
+    const motion = root.querySelector("#poi_drop_particle animateMotion");
+    if (motion) {
+      const authored = motion.getAttribute("data-fwd-path") ?? motion.getAttribute("path");
+      if (authored) {
+        if (!motion.getAttribute("data-fwd-path")) {
+          motion.setAttribute("data-fwd-path", authored);
+        }
+        motion.setAttribute(
+          "path",
+          envelope.direction === "EXP" ? reversePath(authored) : authored,
+        );
+      }
+    }
+  }, [envelope.settlement, envelope.doeState, envelope.direction, t, svg, tx]);
 
   const reset = useCallback((): void => {
     const el = containerRef.current;
