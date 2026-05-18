@@ -1,7 +1,7 @@
 /**
- * SldScreen — `/sld` route. Spatial view of the deployment driven by an
- * edp-api-generated SVG fetched via SldProvider (same lifecycle as the DTM:
- * regenerated whenever the topology changes).
+ * SldScreen — `/sld` route. Spatial view of the deployment laid out
+ * client-side from the topology view (`layoutSld` → `SldRenderer`),
+ * so arbitrary device counts / topology shapes render correctly.
  *
  * Composition: BadgeStrip → ReadOnlyBanner → SldCanvas (pan/zoom).
  * The chrome's TopBar/StatusStrip wraps the screen via AppLayout.

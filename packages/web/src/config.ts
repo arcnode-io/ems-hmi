@@ -26,7 +26,7 @@ const Config = z.object({
   siteId: z.string(),
   /** MQTT broker URL — `ws://` / `wss://` for browser MQTT-over-WebSocket. Empty in demo. */
   mqttUri: z.string(),
-  /** Base URL for ems-device-api (`/topology/view`, `/topology/sld.svg`, `/asyncapi`). */
+  /** Base URL for ems-device-api (`/topology/view`, `/asyncapi`). */
   deviceApiUri: z.string(),
   /** Base URL for the analyst chat backend. */
   chatApiUri: z.string(),

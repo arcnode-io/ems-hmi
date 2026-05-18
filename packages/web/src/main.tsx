@@ -4,12 +4,11 @@
  *     ErrorBoundary                — catches render errors
  *       DeploymentIdentityProvider — name + host + mode from cfg.yml
  *         TopologyProvider         — fetches /topology/view at boot
- *           SldProvider            — fetches /topology/sld.svg at boot
- *             MqttRoot             — MockMqttProvider in demo mode
- *               App                — chrome + routes + screens
+ *           MqttRoot               — MockMqttProvider in demo mode
+ *             App                  — chrome + routes + screens
  *
- * MQTT provider impl is selected by `cfg.mode`. Demo mode swaps in
- * MockMqttProvider; other modes will use RealMqttProvider once it lands.
+ * SLD is rendered client-side from the topology view via layoutSld +
+ * SldRenderer (no fetched SVG fixture).
  */
 
 import React from "react";
@@ -19,8 +18,6 @@ import "./theme/fonts.css";
 import { ThemeProvider } from "@ems-hmi/shared/theme/ThemeProvider";
 import { DeploymentIdentityProvider } from "@ems-hmi/shared/data/deployment/DeploymentIdentityProvider";
 import { TopologyProvider } from "@ems-hmi/shared/data/topology/TopologyProvider";
-import { SldProvider } from "@ems-hmi/shared/data/sld/SldProvider";
-import { useBreakpoint } from "@ems-hmi/shared/hooks/useBreakpoint";
 import { MockMqttProvider } from "@ems-hmi/shared/data/mqtt/MockMqttProvider";
 import { ErrorBoundary } from "./components/features";
 import App from "./App";
@@ -34,36 +31,6 @@ console.info(`Running with config: ${JSON.stringify(cfg)}`);
 // beta talks to a real device-api. Append `.json` for the static cases so the
 // dev server / S3 serve the file directly.
 const topologyViewUrl = `${cfg.deviceApiUri}/topology/view${cfg.mode === "beta" ? "" : ".json"}`;
-
-/**
- * Pick the SLD SVG URL by breakpoint. Phone → portrait (vertical stack),
- * everything else → landscape (horizontal row). edp-api emits both via the
- * `orientation` query/arg on /edp-api/sld-hmi-svg; local + demo serve them
- * as static fixtures.
- * @param layout breakpoint layout (phone or desktop)
- * @returns absolute or same-origin URL for the SVG fixture/endpoint
- */
-function sldSvgUrlFor(layout: "phone" | "desktop"): string {
-  if (cfg.mode === "beta") {
-    return `${cfg.deviceApiUri}/topology/sld.svg?orientation=${layout === "phone" ? "portrait" : "landscape"}`;
-  }
-  return `${cfg.deviceApiUri}/topology/sld${layout === "phone" ? "-portrait" : ""}.svg`;
-}
-
-/**
- * Wraps SldProvider with a breakpoint-aware URL. Re-fetches on rotate/resize.
- * @param props children subtree
- * @param props.children subtree to wrap
- * @returns SldProvider element
- */
-function SldRoot({
-  children,
-}: {
-  children: React.ReactNode;
-}): React.ReactElement {
-  const { layout } = useBreakpoint();
-  return <SldProvider svgUrl={sldSvgUrlFor(layout)}>{children}</SldProvider>;
-}
 
 /**
  * MQTT provider chosen by deployment mode. Demo wires MockMqttProvider; other
@@ -100,11 +67,9 @@ createRoot(document.getElementById("root")!).render(
         }}
       >
         <TopologyProvider viewUrl={topologyViewUrl}>
-          <SldRoot>
-            <MqttRoot>
-              <App />
-            </MqttRoot>
-          </SldRoot>
+          <MqttRoot>
+            <App />
+          </MqttRoot>
         </TopologyProvider>
       </DeploymentIdentityProvider>
     </ErrorBoundary>
