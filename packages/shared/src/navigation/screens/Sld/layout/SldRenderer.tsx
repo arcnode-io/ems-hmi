@@ -1,23 +1,28 @@
 /**
- * SldRenderer — renders a precomputed SldLayout as JSX SVG. Replaces the
- * fetched edp-api SVG fixture entirely. Nodes carry the same data-* hooks
- * the SldCanvas CSS expects (data-comp, data-region, data-role) so all
- * existing theming (surface, accent, status indicator) keeps working.
+ * SldRenderer — renders a precomputed SldLayout as JSX SVG. The renderer
+ * itself is just an orchestrator: NodeBox, ConductorPath, Particle, and
+ * DecorationByKind own the visual primitives.
  *
- * Particle direction is chosen at render-time per envelope.direction —
- * no more DOM-poke post-render effects.
+ * Particle direction is chosen at render time per `envelopeDirection` —
+ * no DOM post-edit overlay.
  */
 
 import React from "react";
-import type {
-  SldLayout,
-  SldNode,
-  SldConductor,
-  SldDecoration,
-  ParticleSpec,
-} from "./types";
+import type { SldLayout } from "./types";
+import { ConductorPath, Particle } from "./Conductor";
+import { DecorationByKind } from "./Decorations";
+import { NodeBox } from "./NodeBox";
 
 export type SldNodeStatus = "ok" | "warn" | "alarm" | "offline";
+
+export interface PoiOverlay {
+  /** Pre-formatted settlement reading, e.g. "+142 kW IMPORT". */
+  settlement: string;
+  /** Label shown in the POI state-token slot, e.g. "OK" / "STALE" / "ISLAND". */
+  stateToken: string;
+  /** Color (theme-resolved) for the state-token text — driven by severity. */
+  stateColor: string;
+}
 
 interface SldRendererProps {
   layout: SldLayout;
@@ -25,174 +30,33 @@ interface SldRendererProps {
   envelopeDirection: "IMP" | "EXP" | null;
   /** Fired when a device node is tapped/clicked. Wires SLD → device detail. */
   onSelectDevice?: (deviceId: string) => void;
-  /** Per-device status override for the status-indicator dot. Missing entries
-   *  fall back to the CSS default (statusOk). */
+  /** Per-device status override for the status-indicator dot. */
   statusByDevice?: Record<string, SldNodeStatus>;
-  /** Theme-resolved colors for each status. Provided by caller so this
-   *  renderer stays decoupled from useTheme. */
+  /** Theme-resolved colors for each status. */
   statusColors?: Record<SldNodeStatus, string>;
+  /** Live values rendered into the POI node's text slots. */
+  poiOverlay?: PoiOverlay;
 }
 
-function pathString(c: SldConductor, reverse: boolean): string {
-  return reverse
-    ? `M ${c.x2} ${c.y2} L ${c.x1} ${c.y1}`
-    : `M ${c.x1} ${c.y1} L ${c.x2} ${c.y2}`;
-}
-
-function Particle({
-  conductor,
-  spec,
-  envelopeDirection,
-}: {
-  conductor: SldConductor;
-  spec: ParticleSpec;
-  envelopeDirection: "IMP" | "EXP" | null;
-}): React.ReactElement {
-  const flip =
-    conductor.flowSource?.kind === "envelope" && envelopeDirection === "EXP";
-  const path = pathString(conductor, flip);
-  return (
-    <circle data-region="particle" r={spec.radius} fill="currentColor" opacity={0.75}>
-      <animateMotion
-        dur={`${spec.durationSec}s`}
-        begin={`${spec.beginOffsetSec}s`}
-        repeatCount="indefinite"
-        path={path}
-      />
-    </circle>
-  );
-}
-
-function ConductorPath({ c }: { c: SldConductor }): React.ReactElement {
-  const isBus = c.kind === "ac" && c.id === "ac_bus_1";
-  const isDcBus = c.kind === "dc" && c.id === "dc_bus_1";
-  // Polyline routing for info conductors (right-angle bends); otherwise
-  // a straight M-L line between endpoints.
-  const d = c.points && c.points.length > 0
-    ? [
-        `M ${c.x1} ${c.y1}`,
-        ...c.points.map((p) => `L ${p.x} ${p.y}`),
-        `L ${c.x2} ${c.y2}`,
-      ].join(" ")
-    : `M ${c.x1} ${c.y1} L ${c.x2} ${c.y2}`;
-  const baseAttrs: React.SVGProps<SVGPathElement> = {
-    d,
-    fill: "none",
-    stroke: "currentColor",
+function statusFillResolver(
+  statusByDevice: SldRendererProps["statusByDevice"],
+  statusColors: SldRendererProps["statusColors"],
+): (id: string) => string | undefined {
+  return (id) => {
+    const state = statusByDevice?.[id];
+    return state && statusColors ? statusColors[state] : undefined;
   };
-  if (isBus || isDcBus) {
-    return (
-      <path
-        {...baseAttrs}
-        id={c.id}
-        data-comp="bus"
-        data-bus-type={isBus ? "ac" : "dc"}
-      />
-    );
-  }
-  // Soft drops / info lines get reduced opacity and optional dashes.
-  return (
-    <path
-      {...baseAttrs}
-      strokeWidth={c.kind === "info" ? 1 : c.kind === "drop" ? 1.5 : 2}
-      strokeDasharray={c.dashed ? "2 2" : undefined}
-      opacity={c.dashed ? 0.5 : c.kind === "drop" ? 0.7 : 1}
-    />
-  );
 }
 
-function Breaker({ d }: { d: SldDecoration }): React.ReactElement {
-  return (
-    <g data-comp="breaker" transform={`translate(${d.x} ${d.y})`}>
-      <circle data-region="ring" cx={0} cy={0} r={7} fill="none" stroke="currentColor" strokeWidth={1.5} />
-      {d.state === "open" ? (
-        <line x1={-4} y1={0} x2={4} y2={-5} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" />
-      ) : (
-        <line x1={-4} y1={0} x2={4} y2={0} stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" />
-      )}
-    </g>
-  );
-}
-
-function Inverter({ d }: { d: SldDecoration }): React.ReactElement {
-  return (
-    <g data-comp="inverter" transform={`translate(${d.x} ${d.y})`}>
-      <circle data-region="ring" cx={0} cy={0} r={9} fill="none" stroke="currentColor" strokeWidth={1.2} />
-      <text data-region="glyph" x={0} y={3} textAnchor="middle" fill="currentColor" fontSize={11} fontWeight={700}>
-        ~
-      </text>
-    </g>
-  );
-}
-
-function NodeBox({
-  n,
-  onSelect,
-  statusFill,
-}: {
-  n: SldNode;
-  onSelect?: (id: string) => void;
-  statusFill?: string;
-}): React.ReactElement {
-  const w = n.width;
-  const h = n.height;
-  const baseGroupAttrs: React.SVGProps<SVGGElement> = {
-    id: n.id,
-    transform: `translate(${n.x} ${n.y})`,
-    onClick: onSelect ? () => onSelect(n.id) : undefined,
-  };
-  // Per-role data-attr emits hooks the existing CSS already targets.
-  const groupAttrs = {
-    ...baseGroupAttrs,
-    "data-comp": "device-node",
-    "data-template": n.template,
-    ...(n.role ? { "data-role": n.role } : {}),
-  } as React.SVGProps<SVGGElement>;
-  return (
-    <g {...groupAttrs}>
-      <rect data-region="body" x={-w / 2} y={-h / 2} width={w} height={h} rx={n.role === "poi" ? 4 : 3} fill="currentColor" />
-      <circle
-        data-region="status-indicator"
-        cx={w / 2 - 7}
-        cy={-h / 2 + 8}
-        r={3}
-        {...(statusFill ? { style: { fill: statusFill } as React.CSSProperties } : {})}
-      />
-      {n.role === "poi" && (
-        <>
-          <text data-region="primary-value" x={0} y={-2} textAnchor="middle" fill="currentColor" />
-          <text data-region="label-name" x={0} y={0} textAnchor="middle" fill="currentColor">{n.displayName}</text>
-          <text data-region="label-template" x={0} y={14} textAnchor="middle" fill="currentColor">{n.template}</text>
-          <text data-region="state-label" x={-22} y={16} textAnchor="middle" fill="currentColor">DOE</text>
-          <text data-region="state-token" x={22} y={16} textAnchor="middle" fill="currentColor" />
-        </>
-      )}
-      {n.role !== "poi" && (
-        <>
-          <text data-region="label-name" x={0} y={-2} textAnchor="middle" fill="currentColor">{n.displayName}</text>
-          <text data-region="label-template" x={0} y={n.template === "cdu" ? 10 : 12} textAnchor="middle" fill="currentColor">{n.template}</text>
-        </>
-      )}
-      <rect data-region="hit-area" x={-w / 2} y={-h / 2} width={w} height={h} fill="transparent" />
-    </g>
-  );
-}
-
-/**
- * Render a positioned SLD layout.
- */
 export function SldRenderer({
   layout,
   envelopeDirection,
   onSelectDevice,
   statusByDevice,
   statusColors,
+  poiOverlay,
 }: SldRendererProps): React.ReactElement {
-  const statusFillFor = (id: string): string | undefined => {
-    const s = statusByDevice?.[id];
-    if (!s || !statusColors) return undefined;
-    return statusColors[s];
-  };
+  const statusFillFor = statusFillResolver(statusByDevice, statusColors);
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -200,20 +64,30 @@ export function SldRenderer({
       width={layout.width}
       height={layout.height}
     >
-      {/* Conductors render before nodes so device bodies sit on top. */}
       {layout.conductors.map((c) => (
         <ConductorPath key={c.id} c={c} />
       ))}
       {layout.conductors.flatMap((c) =>
-        c.particles.map((p, i) => (
-          <Particle key={`${c.id}_p${i}`} conductor={c} spec={p} envelopeDirection={envelopeDirection} />
+        c.particles.map((spec, i) => (
+          <Particle
+            key={`${c.id}_p${i}`}
+            conductor={c}
+            spec={spec}
+            envelopeDirection={envelopeDirection}
+          />
         )),
       )}
-      {layout.decorations.map((d) =>
-        d.kind === "breaker" ? <Breaker key={d.id} d={d} /> : <Inverter key={d.id} d={d} />,
-      )}
+      {layout.decorations.map((d) => (
+        <DecorationByKind key={d.id} d={d} />
+      ))}
       {layout.nodes.map((n) => (
-        <NodeBox key={n.id} n={n} onSelect={onSelectDevice} statusFill={statusFillFor(n.id)} />
+        <NodeBox
+          key={n.id}
+          n={n}
+          onSelect={onSelectDevice}
+          statusFill={statusFillFor(n.id)}
+          poiOverlay={n.role === "poi" ? poiOverlay : undefined}
+        />
       ))}
     </svg>
   );

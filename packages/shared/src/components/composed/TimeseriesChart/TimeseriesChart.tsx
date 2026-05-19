@@ -15,8 +15,9 @@ import React from "react";
 import { View, Text } from "react-native";
 import { Svg, Line, Polyline, Rect, Text as SvgText } from "react-native-svg";
 import { useTheme } from "../../../theme/ThemeProvider";
-import { resolveTypeStyle, type Theme } from "../../../theme/tokens";
+import { resolveTypeStyle } from "../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../theme/tokens/primitives";
+import { seriesColor } from "../ChartRenderer/helpers";
 
 /** Point on a series. y === null = gap (skip drawing). */
 export interface TimeseriesPoint {
@@ -78,11 +79,6 @@ const PAD_B = 22;
 const MIN_HEIGHT = 120;
 const MAX_HEIGHT = 480;
 
-/** Cycle of domain colors for series that don't specify a color. */
-function seriesColor(t: Theme, idx: number): string {
-  const palette = [t.colorBess, t.colorCompute, t.colorGrid, t.colorThermal];
-  return palette[idx % palette.length] ?? t.text;
-}
 
 interface Scale {
   xMin: number;

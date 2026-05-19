@@ -13,104 +13,185 @@ import { SPACE } from "../../../theme/tokens/primitives";
 import type { BarSpec } from "../../../data/analyst/types";
 import { seriesColor } from "./helpers";
 
-const W = 320;
-const HEIGHT = 200;
-const PAD_L = 36;
-const PAD_R = 14;
-const PAD_T = 12;
-const PAD_B = 28;
+const CANVAS_W = 320;
+const CANVAS_H = 200;
+const PAD_LEFT = 36;
+const PAD_RIGHT = 14;
+const PAD_TOP = 12;
+const PAD_BOTTOM = 28;
+const BAND_INNER_PAD_RATIO = 0.15;
+const BAR_WIDTH_RATIO = 0.85;
+const USABLE_H = CANVAS_H - PAD_TOP - PAD_BOTTOM;
+const PLOT_W = CANVAS_W - PAD_LEFT - PAD_RIGHT;
+const Y_BASELINE_PX = CANVAS_H - PAD_BOTTOM;
+const Y_LABEL_OFFSET = 6;
+const Y_LABEL_BASELINE = PAD_TOP + 8;
+const X_LABEL_OFFSET = 12;
+const TINY_FONT = 9;
+const LEGEND_FONT = 10;
+const LEGEND_SWATCH_SIZE = 10;
 
 interface BarChartProps {
   spec: BarSpec;
 }
 
-interface Scale {
-  maxY: number;
-  /** Pixel y for value 0 — bars grow upward from here. */
-  zeroPx: number;
+interface ChartScale {
+  /** Largest stacked or per-bar value, never zero (defaults to 1). */
+  yMax: number;
+  /** Pixel-width of a single x-category slot. */
   bandWidth: number;
 }
 
-function computeScale(spec: BarSpec): Scale {
+/**
+ * Largest single value (per-bar) or stack-sum across categories.
+ */
+function maxYAcross(spec: BarSpec): number {
   const stacked = spec.stacked ?? false;
-  let maxY = 0;
   if (stacked) {
-    for (let i = 0; i < spec.xAxis.categories.length; i++) {
+    return spec.xAxis.categories.reduce((max, _, i) => {
       const stackSum = spec.series.reduce((sum, s) => sum + (s.values[i] ?? 0), 0);
-      maxY = Math.max(maxY, stackSum);
-    }
-  } else {
-    for (const s of spec.series) for (const v of s.values) maxY = Math.max(maxY, v);
+      return Math.max(max, stackSum);
+    }, 0);
   }
-  if (maxY === 0) maxY = 1;
-  const usableH = HEIGHT - PAD_T - PAD_B;
-  return {
-    maxY,
-    zeroPx: HEIGHT - PAD_B,
-    bandWidth: (W - PAD_L - PAD_R) / Math.max(1, spec.xAxis.categories.length),
-  };
-  // Reason: usableH consumed implicitly via scale below.
-  void usableH;
+  return spec.series.reduce(
+    (max, s) => s.values.reduce((m, v) => Math.max(m, v), max),
+    0,
+  );
+}
+
+function computeScale(spec: BarSpec): ChartScale {
+  const yMax = Math.max(1, maxYAcross(spec));
+  const bandWidth = PLOT_W / Math.max(1, spec.xAxis.categories.length);
+  return { yMax, bandWidth };
+}
+
+/** Pixel y for a data value — grows up from the x-axis baseline. */
+function yToPx(scale: ChartScale, value: number): number {
+  return Y_BASELINE_PX - (value / scale.yMax) * USABLE_H;
+}
+
+interface BarGeometry {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/** Side-by-side grouped bar geometry for a single (category, series) pair. */
+function groupedBarGeometry(
+  scale: ChartScale,
+  bandX: number,
+  groupW: number,
+  seriesIndex: number,
+  seriesCount: number,
+  value: number,
+): BarGeometry {
+  const slotWidth = groupW / seriesCount;
+  const x = bandX + seriesIndex * slotWidth;
+  const yPx = yToPx(scale, value);
+  return { x, y: yPx, width: slotWidth * BAR_WIDTH_RATIO, height: Y_BASELINE_PX - yPx };
+}
+
+/** Stacked bar geometry: caller tracks `stackBaseY` and we return the new base. */
+function stackedBarGeometry(
+  scale: ChartScale,
+  bandX: number,
+  groupW: number,
+  stackBaseY: number,
+  value: number,
+): BarGeometry & { newBaseY: number } {
+  const height = (value / scale.yMax) * USABLE_H;
+  const y = stackBaseY - height;
+  return { x: bandX, y, width: groupW, height, newBaseY: y };
+}
+
+interface CategoryColumnProps {
+  spec: BarSpec;
+  scale: ChartScale;
+  category: string;
+  categoryIndex: number;
+  t: ReturnType<typeof useTheme>;
+}
+
+function CategoryColumn({ spec, scale, category, categoryIndex, t }: CategoryColumnProps): React.ReactElement {
+  const stacked = spec.stacked ?? false;
+  const bandX = PAD_LEFT + categoryIndex * scale.bandWidth;
+  const innerPad = scale.bandWidth * BAND_INNER_PAD_RATIO;
+  const groupX = bandX + innerPad;
+  const groupW = scale.bandWidth - innerPad * 2;
+  let stackBaseY = Y_BASELINE_PX;
+  return (
+    <React.Fragment>
+      {spec.series.map((s, si) => {
+        const value = s.values[categoryIndex] ?? 0;
+        const color = s.color ?? seriesColor(t, si);
+        if (stacked) {
+          const g = stackedBarGeometry(scale, groupX, groupW, stackBaseY, value);
+          stackBaseY = g.newBaseY;
+          return <Rect key={si} x={g.x} y={g.y} width={g.width} height={g.height} fill={color} />;
+        }
+        const g = groupedBarGeometry(scale, groupX, groupW, si, spec.series.length, value);
+        return <Rect key={si} x={g.x} y={g.y} width={g.width} height={g.height} fill={color} />;
+      })}
+      <SvgText
+        x={bandX + scale.bandWidth / 2}
+        y={Y_BASELINE_PX + X_LABEL_OFFSET}
+        textAnchor="middle"
+        fontSize={TINY_FONT}
+        fill={t.textSoft}
+      >
+        {category}
+      </SvgText>
+    </React.Fragment>
+  );
+}
+
+function Legend({ spec, t }: { spec: BarSpec; t: ReturnType<typeof useTheme> }): React.ReactElement | null {
+  if (spec.series.length <= 1) return null;
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: SPACE[3],
+        paddingHorizontal: SPACE[3],
+        paddingTop: SPACE[2],
+      }}
+    >
+      {spec.series.map((s, si) => (
+        <View key={si} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <View
+            style={{
+              width: LEGEND_SWATCH_SIZE,
+              height: LEGEND_SWATCH_SIZE,
+              backgroundColor: s.color ?? seriesColor(t, si),
+              borderRadius: 2,
+            }}
+          />
+          <Text style={[resolveTypeStyle(t, "caption"), { fontSize: LEGEND_FONT, color: t.textMid }]}>
+            {s.label}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
 }
 
 export function BarChart({ spec }: BarChartProps): React.ReactElement {
   const t = useTheme();
   const scale = computeScale(spec);
-  const usableH = HEIGHT - PAD_T - PAD_B;
-  const stacked = spec.stacked ?? false;
-  const yToPx = (v: number): number => scale.zeroPx - (v / scale.maxY) * usableH;
-  const seriesCount = spec.series.length;
   return (
     <View style={{ paddingVertical: SPACE[2] }}>
-      <Svg width="100%" viewBox={`0 0 ${W} ${HEIGHT}`} preserveAspectRatio="xMidYMid meet">
-        {/* y-axis baseline */}
-        <Line x1={PAD_L} y1={scale.zeroPx} x2={W - PAD_R} y2={scale.zeroPx} stroke={t.borderSoft} strokeWidth={1} />
-        {/* y-axis label (max value) */}
-        <SvgText x={PAD_L - 6} y={PAD_T + 8} textAnchor="end" fontSize={9} fill={t.textSoft}>
-          {scale.maxY.toFixed(0)} {spec.yAxis.unit}
+      <Svg width="100%" viewBox={`0 0 ${CANVAS_W} ${CANVAS_H}`} preserveAspectRatio="xMidYMid meet">
+        <Line x1={PAD_LEFT} y1={Y_BASELINE_PX} x2={CANVAS_W - PAD_RIGHT} y2={Y_BASELINE_PX} stroke={t.borderSoft} strokeWidth={1} />
+        <SvgText x={PAD_LEFT - Y_LABEL_OFFSET} y={Y_LABEL_BASELINE} textAnchor="end" fontSize={TINY_FONT} fill={t.textSoft}>
+          {scale.yMax.toFixed(0)} {spec.yAxis.unit}
         </SvgText>
-        {/* bars */}
-        {spec.xAxis.categories.map((cat, ci) => {
-          const bandX = PAD_L + ci * scale.bandWidth;
-          const innerPad = scale.bandWidth * 0.15;
-          const groupX = bandX + innerPad;
-          const groupW = scale.bandWidth - innerPad * 2;
-          let stackBase = scale.zeroPx;
-          return (
-            <React.Fragment key={cat}>
-              {spec.series.map((s, si) => {
-                const v = s.values[ci] ?? 0;
-                const color = s.color ?? seriesColor(t, si);
-                if (stacked) {
-                  const h = (v / scale.maxY) * usableH;
-                  const y = stackBase - h;
-                  const r = <Rect key={si} x={groupX} y={y} width={groupW} height={h} fill={color} />;
-                  stackBase = y;
-                  return r;
-                }
-                const w = groupW / seriesCount;
-                const x = groupX + si * w;
-                const y = yToPx(v);
-                return <Rect key={si} x={x} y={y} width={w * 0.85} height={scale.zeroPx - y} fill={color} />;
-              })}
-              <SvgText x={bandX + scale.bandWidth / 2} y={HEIGHT - PAD_B + 12} textAnchor="middle" fontSize={9} fill={t.textSoft}>
-                {cat}
-              </SvgText>
-            </React.Fragment>
-          );
-        })}
+        {spec.xAxis.categories.map((category, ci) => (
+          <CategoryColumn key={category} spec={spec} scale={scale} category={category} categoryIndex={ci} t={t} />
+        ))}
       </Svg>
-      {/* Legend */}
-      {seriesCount > 1 ? (
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACE[3], paddingHorizontal: SPACE[3], paddingTop: SPACE[2] }}>
-          {spec.series.map((s, si) => (
-            <View key={si} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <View style={{ width: 10, height: 10, backgroundColor: s.color ?? seriesColor(t, si), borderRadius: 2 }} />
-              <Text style={[resolveTypeStyle(t, "caption"), { fontSize: 10, color: t.textMid }]}>{s.label}</Text>
-            </View>
-          ))}
-        </View>
-      ) : null}
+      <Legend spec={spec} t={t} />
     </View>
   );
 }

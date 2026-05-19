@@ -11,7 +11,9 @@
 import type {
   AnalystChatRequest,
   AnalystMessage,
+  BarSpec,
   LineSpec,
+  PieSpec,
   TableSpec,
 } from "./types";
 
@@ -56,12 +58,57 @@ function alarmsTable(): TableSpec {
   };
 }
 
+function marketsBar(): BarSpec {
+  return {
+    title: "PLACEHOLDER: today's revenue by market",
+    xAxis: { label: "market", categories: ["DAM", "RTM", "FREQ"] },
+    yAxis: { label: "revenue", unit: "$" },
+    series: [{ label: "today", values: [1840, 720, 320] }],
+    dataAsOf: nowIso(),
+  };
+}
+
+function energyBreakdownPie(): PieSpec {
+  return {
+    title: "PLACEHOLDER: today's energy by source",
+    unit: "MWh",
+    slices: [
+      { label: "Grid import", value: 14.2 },
+      { label: "BESS discharge", value: 6.4 },
+      { label: "On-site solar", value: 2.1 },
+    ],
+    dataAsOf: nowIso(),
+  };
+}
+
 interface FixturePattern {
   match: RegExp;
   reply: () => AnalystMessage;
 }
 
 const PATTERNS: FixturePattern[] = [
+  {
+    match: /market|revenue|dam|rtm|freq/i,
+    reply: (): AnalystMessage => ({
+      role: "assistant",
+      timestamp: nowIso(),
+      content: [
+        { type: "text", text: "Today's revenue split (PLACEHOLDER until the markets pipeline lands)." },
+        { type: "artifact", artifact: { kind: "bar", spec: marketsBar() } },
+      ],
+    }),
+  },
+  {
+    match: /breakdown|by source|energy mix/i,
+    reply: (): AnalystMessage => ({
+      role: "assistant",
+      timestamp: nowIso(),
+      content: [
+        { type: "text", text: "Today's energy consumption by source (PLACEHOLDER until the per-meter pipeline lands)." },
+        { type: "artifact", artifact: { kind: "pie", spec: energyBreakdownPie() } },
+      ],
+    }),
+  },
   {
     match: /soc|state of charge|bess.*chart/i,
     reply: (): AnalystMessage => ({
