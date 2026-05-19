@@ -1,8 +1,4 @@
-/**
- * BarChart — categorical grouped/stacked bars. Body component; caller wraps
- * in ArtifactCard. Series colors fall back to the shared domain palette via
- * `seriesColor` when the spec omits explicit colors.
- */
+/** Categorical grouped or stacked bars; wrap the result in `ArtifactCard`. */
 
 import React from "react";
 import { View, Text } from "react-native";
@@ -42,9 +38,6 @@ interface ChartScale {
   bandWidth: number;
 }
 
-/**
- * Largest single value (per-bar) or stack-sum across categories.
- */
 function maxYAcross(spec: BarSpec): number {
   const stacked = spec.stacked ?? false;
   if (stacked) {
@@ -65,7 +58,6 @@ function computeScale(spec: BarSpec): ChartScale {
   return { yMax, bandWidth };
 }
 
-/** Pixel y for a data value — grows up from the x-axis baseline. */
 function yToPx(scale: ChartScale, value: number): number {
   return Y_BASELINE_PX - (value / scale.yMax) * USABLE_H;
 }
@@ -77,7 +69,6 @@ interface BarGeometry {
   height: number;
 }
 
-/** Side-by-side grouped bar geometry for a single (category, series) pair. */
 function groupedBarGeometry(
   scale: ChartScale,
   bandX: number,
@@ -92,7 +83,7 @@ function groupedBarGeometry(
   return { x, y: yPx, width: slotWidth * BAR_WIDTH_RATIO, height: Y_BASELINE_PX - yPx };
 }
 
-/** Stacked bar geometry: caller tracks `stackBaseY` and we return the new base. */
+// Returns geometry + the new stack base so the caller can chain.
 function stackedBarGeometry(
   scale: ChartScale,
   bandX: number,

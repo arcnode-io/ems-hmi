@@ -1,7 +1,4 @@
-/**
- * Geometry helpers: x-spread, particle factories, node sizing. All pure.
- * Centralizing prevents magic numbers from leaking into region helpers.
- */
+/** Geometry helpers: x-spread, particle factories, node sizing. */
 
 import { match } from "ts-pattern";
 import type { DeviceRole } from "./types";
@@ -25,10 +22,7 @@ const BUS_PARTICLE_COUNT = 3;
 const BUS_PARTICLE_RADIUS = 2.5;
 const DROP_PARTICLE_RADIUS = 2;
 
-/**
- * Spread N items evenly across [minX, maxX], returning the center X for each.
- * Single-item case lands at the midpoint; empty case returns [].
- */
+/** Center X of each item spread evenly across [minX, maxX]. */
 export function spreadX(count: number, minX: number, maxX: number): number[] {
   if (count === 0) return [];
   if (count === 1) return [(minX + maxX) / 2];
@@ -36,9 +30,6 @@ export function spreadX(count: number, minX: number, maxX: number): number[] {
   return Array.from({ length: count }, (_, i) => minX + i * step);
 }
 
-/**
- * Three particles staggered evenly over `durationSec` for a long bus.
- */
 export function busParticles(durationSec: number): ParticleSpec[] {
   return Array.from({ length: BUS_PARTICLE_COUNT }, (_, i) => ({
     durationSec,
@@ -47,16 +38,10 @@ export function busParticles(durationSec: number): ParticleSpec[] {
   }));
 }
 
-/**
- * Single particle for short vertical drop conductors.
- */
 export function dropParticle(durationSec: number, beginOffsetSec = 0): ParticleSpec[] {
   return [{ durationSec, beginOffsetSec, radius: DROP_PARTICLE_RADIUS }];
 }
 
-/**
- * Width of a device node body based on template + role.
- */
 export function nodeWidthFor(template: string, role: DeviceRole): number {
   return match<{ template: string; role: DeviceRole }, number>({ template, role })
     .with({ role: "poi" }, () => NODE_W_POI)
@@ -67,9 +52,6 @@ export function nodeWidthFor(template: string, role: DeviceRole): number {
     .otherwise(() => NODE_W_MODULE);
 }
 
-/**
- * Height of a device node body based on role + template.
- */
 export function nodeHeightFor(role: DeviceRole, template: string): number {
   return match<{ role: DeviceRole; template: string }, number>({ role, template })
     .with({ role: "poi" }, () => NODE_H_POI)

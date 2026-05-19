@@ -29,12 +29,9 @@ interface ProbeSpec {
   url: (identity: { chatApiUri: string; deviceApiUri: string }) => string;
 }
 
+// Only the Analyst API is a real network service today; add Device API +
+// MQTT probes once they're not mocked locally.
 const SERVICES: ProbeSpec[] = [
-  // Reason: per PM note, demo only actually connects to the Analyst API.
-  // Device API + MQTT broker are mocked locally today; reintroduce probes
-  // when they're real services so this surface stays honest.
-  // Probe /health (the contract the AI engineer publishes for proxy/k8s
-  // liveness). Server also returns "ok" on root, but /health is canonical.
   { name: "Analyst API", url: (id) => `${id.chatApiUri}/health` },
 ];
 

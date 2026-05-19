@@ -1,7 +1,6 @@
 /**
- * Pure helpers that fold alarm + envelope state into the inputs `SldRenderer`
- * expects (status-per-device, POI overlay). Keeping these out of the React
- * component lets us unit-test the mapping logic without rendering.
+ * Pure helpers that fold alarm + envelope state into the inputs SldRenderer
+ * expects.
  */
 
 import { match } from "ts-pattern";
@@ -11,10 +10,6 @@ import type { OperatingEnvelope } from "../../../../data/envelope/useOperatingEn
 import type { DOEState } from "../../../../components/composed/DOEHeadroomRow/DOEHeadroomRow";
 import type { SldNodeStatus, PoiOverlay } from "../layout/SldRenderer";
 
-/**
- * Combine an existing per-device severity with an incoming one, returning the
- * higher of the two. `alarm` always wins; otherwise `warn`.
- */
 function elevateSeverity(
   current: SldNodeStatus | undefined,
   incoming: ActiveAlarm["severity"],
@@ -23,9 +18,7 @@ function elevateSeverity(
   return "warn";
 }
 
-/**
- * Fold an alarm list into a deviceId → highest-severity map.
- */
+/** Fold an alarm list into deviceId → highest severity. */
 export function foldAlarmsToStatus(
   alarms: readonly ActiveAlarm[],
 ): Record<string, SldNodeStatus> {
@@ -36,10 +29,6 @@ export function foldAlarmsToStatus(
   return byDevice;
 }
 
-/**
- * Theme-resolved colors keyed by SldNodeStatus. Stable identity across renders
- * via shallow-equal inputs.
- */
 export function statusColorsFromTheme(t: Theme): Record<SldNodeStatus, string> {
   return {
     ok: t.statusOk,
@@ -49,9 +38,6 @@ export function statusColorsFromTheme(t: Theme): Record<SldNodeStatus, string> {
   };
 }
 
-/**
- * Uppercase label rendered in the POI state-token slot.
- */
 function stateTokenLabel(state: DOEState): string {
   return match(state)
     .with("stale", () => "STALE")
@@ -62,11 +48,7 @@ function stateTokenLabel(state: DOEState): string {
     .exhaustive();
 }
 
-/**
- * Severity-mapped fill color for the POI state-token. `ok` / `island` are
- * informational (textSoft); `stale` elevates to warn; `invalid` / `comm-fail`
- * elevate to alarm — mirrors UTILITY-FEEDS §7.
- */
+// UTILITY-FEEDS §7 severity mapping.
 function stateTokenColor(state: DOEState, t: Theme): string {
   return match(state)
     .with("ok", "island", () => t.textSoft)
@@ -75,9 +57,6 @@ function stateTokenColor(state: DOEState, t: Theme): string {
     .exhaustive();
 }
 
-/**
- * Derive the `PoiOverlay` payload SldRenderer consumes from the envelope hook.
- */
 export function buildPoiOverlay(envelope: OperatingEnvelope, t: Theme): PoiOverlay {
   return {
     settlement: envelope.settlement,

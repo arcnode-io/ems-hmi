@@ -1,11 +1,6 @@
 /**
- * Local fixture backend — stands in for the analyst-agent until its HTTP
- * surface is reachable. Pattern-matches the user message to one of a few
- * canned responses so the HMI Analyst screen has something to render
- * during development.
- *
- * Swap for a real `fetch("/analyst/chat", ...)` call when the agent
- * is live; the shape is identical.
+ * Local fixture backend used by tests + storybook + offline dev. Production
+ * wiring lives in AnalystClient; AnalystScreen picks via cfg/identity.
  */
 
 import type {
@@ -158,18 +153,11 @@ function fallbackReply(message: string): AnalystMessage {
   };
 }
 
-/**
- * Pretend to call the analyst backend; returns a canned response based on
- * a simple regex match against the user's message. Swap for HTTP when
- * the real agent is reachable.
- *
- * @param req chat request (conversationId + message + context)
- * @returns assistant message
- */
+const FAKE_LATENCY_MS = 300;
+
+/** Match the user message against a regex table and return a canned reply. */
 export async function fixtureChat(req: AnalystChatRequest): Promise<AnalystMessage> {
-  // Reason: simulate ~300ms backend round-trip so the chat UI exercises
-  // its loading state.
-  await new Promise((resolve) => setTimeout(resolve, 300));
+  await new Promise((resolve) => setTimeout(resolve, FAKE_LATENCY_MS));
   const matched = PATTERNS.find((p) => p.match.test(req.message));
   return matched ? matched.reply() : fallbackReply(req.message);
 }

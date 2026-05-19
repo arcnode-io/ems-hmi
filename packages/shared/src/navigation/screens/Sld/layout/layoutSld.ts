@@ -1,8 +1,6 @@
 /**
- * layoutSld — pure layout orchestrator. Each band (utility row, POI +
- * breaker, AC band, DC band, module-children) is placed by a focused
- * helper in `./regions/`; this file only computes the viewport metrics
- * and merges region outputs.
+ * Pure layout orchestrator. Each band is placed by a helper in
+ * `./regions/`; this file sizes the viewport and merges their outputs.
  */
 
 import type { TopologyViewType } from "../../../../data/topology/topology.schema";
@@ -21,11 +19,8 @@ import { placeDcBand } from "./regions/dc";
 import { placeModuleChildren } from "./regions/children";
 import { mergeRegions, type ViewportMetrics } from "./regions/types";
 
-/**
- * The widest band determines viewBox width. The DC band can extend past the
- * AC bus when there are many BESS modules; we account for that overhang via
- * the grid module's AC-bus index.
- */
+// Widest band sets the viewBox width. DC overhang past the AC bus shows up
+// when there are many BESS modules anchored to the grid module's x.
 function requiredColumns(classified: ClassifiedDevices): number {
   const { acMembers, dcMembers, utilityFeeds } = classified;
   const gridIdx = acMembers.findIndex((d) => d.template === GRID_MODULE_TEMPLATE);
@@ -43,11 +38,7 @@ function buildViewport(classified: ClassifiedDevices): {
   return { cols, metrics: { width, midX: width / 2 } };
 }
 
-/**
- * Lay out an SLD from a topology view.
- * @param view Parsed TopologyView (output of useTopologyView)
- * @returns SldLayout ready to render
- */
+/** Lay out an SLD from a topology view. */
 export function layoutSld(view: TopologyViewType): SldLayout {
   const classified = classify(view);
   const { cols, metrics } = buildViewport(classified);

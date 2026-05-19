@@ -1,8 +1,6 @@
 /**
- * DeviceDetailScreen — /devices/:deviceId. Minimal but real device view:
- * shows the template-declared measurements with their latest mock values,
- * the parent device, and the device_id. Reads topology directly (no
- * intermediate hook) since this is a leaf screen with a single device.
+ * /devices/:deviceId. Shows the template-declared measurements with
+ * their latest values, plus the parent device and device_id.
  */
 
 import React, { useMemo } from "react";

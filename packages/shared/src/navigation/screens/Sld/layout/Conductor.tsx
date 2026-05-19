@@ -1,6 +1,6 @@
 /**
- * ConductorPath + Particle subcomponents. Path direction for particles is
- * picked at render time based on `envelopeDirection`; no DOM post-edit.
+ * ConductorPath + Particle. Particle direction follows the conductor's
+ * `flowSource` against the live envelope direction.
  */
 
 import React from "react";

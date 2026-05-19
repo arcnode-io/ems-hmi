@@ -1,12 +1,7 @@
 /**
- * useAnalystChat — minimal chat hook. Maintains an in-memory scrollback
- * of messages + a `send(message)` callback that POSTs to the analyst
- * backend and appends the reply.
- *
- * v1: JSON-only request/reply (no SSE — backend deferred per
- * [[project-analyst-architecture]]). Swap the `backend` function for
- * `fetch("/analyst/chat", ...)` when the agent is live; the shape is
- * identical.
+ * useAnalystChat — chat scrollback + `send(message)` against an injected
+ * backend. On `SiteIdChangedError`, the next send mints a fresh
+ * conversationId after surfacing an error artifact in the scrollback.
  */
 
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -28,40 +23,24 @@ export interface AnalystChatState {
 type ChatBackend = (req: AnalystChatRequest) => Promise<AnalystMessage>;
 
 interface UseAnalystChatOptions {
-  /** Backend dispatcher. Default = local fixture. */
   backend?: ChatBackend;
-  /** Optional context attached to every request. */
   context?: AnalystChatRequest["context"];
 }
 
-/**
- * Generate a fresh UUID for a chat session. Per the contract: opaque to
- * backend; new ChatPanel mount = new conversation.
- */
 function freshConversationId(): string {
-  // Reason: prefer the platform crypto API; fall back to a coarse
-  // timestamp-random for environments lacking it (jsdom may).
+  // crypto.randomUUID is unavailable in some jsdom runs; fall back.
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID();
   }
   return `local-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-/**
- * Chat hook. One instance = one conversation; remount = new conversation.
- * @param options optional backend override + context
- * @returns chat state + send/reset actions
- */
 export function useAnalystChat(
   options: UseAnalystChatOptions = {},
 ): AnalystChatState {
   const backend = options.backend ?? fixtureChat;
   const context = options.context;
   const conversationIdRef = useRef<string>(freshConversationId());
-  // Reason: when the server rejects a turn with site_id_changed, the next
-  // user send must mint a fresh conversationId — per the original handoff
-  // recovery rule. Tracked as a ref so it survives across renders without
-  // forcing extra state churn.
   const needsFreshIdRef = useRef<boolean>(false);
   const [messages, setMessages] = useState<AnalystMessage[]>([]);
   const [status, setStatus] = useState<AnalystSendStatus>("idle");

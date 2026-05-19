@@ -1,9 +1,6 @@
 /**
- * NodeBox — one device rendered as an SVG group. Emits the data-* hooks
- * the SldCanvas CSS targets so theming descends naturally.
- *
- * Status indicator color comes via inline `style.fill` rather than the
- * `fill` SVG attribute because CSS rules win against presentation attrs.
+ * One device rendered as an SVG group. Status fill uses inline `style.fill`
+ * because the sld-svg-root CSS would otherwise win against an SVG attr.
  */
 
 import React from "react";

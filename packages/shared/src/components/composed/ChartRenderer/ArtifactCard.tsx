@@ -1,7 +1,6 @@
 /**
- * ArtifactCard — common chrome around every chat artifact (Line/Bar/Pie/
- * Table/Error). One place owns title styling, accent rail, "data as of"
- * footer, and the PLACEHOLDER chip — sub-renderers just supply their body.
+ * Common chrome around every chat artifact: title row + optional badge +
+ * body slot + optional "as of …" footer.
  */
 
 import React from "react";
@@ -12,11 +11,8 @@ import { SPACE, RADIUS } from "../../../theme/tokens/primitives";
 
 export interface ArtifactCardProps {
   title: string;
-  /** Optional ISO timestamp; rendered as "as of …" footer when present. */
   dataAsOf?: string;
-  /** Small uppercase chip — used for PLACEHOLDER / DEMO DATA / error code. */
   badge?: string;
-  /** Theme token for badge + left-rail accent. Defaults to soft border. */
   badgeColor?: string;
   children: React.ReactNode;
 }
@@ -32,9 +28,6 @@ function relativeTime(iso: string): string {
   return `${hours}h ago`;
 }
 
-/**
- * Render an artifact card with title, optional badge, body, optional footer.
- */
 export function ArtifactCard({
   title,
   dataAsOf,

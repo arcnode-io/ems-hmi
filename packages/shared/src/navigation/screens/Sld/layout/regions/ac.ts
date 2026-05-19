@@ -1,7 +1,7 @@
 /**
- * AC band: AC bus path, the half-bus segments that flow OUT from the POI
- * tap (left toward grid module, right toward compute load), and the AC
- * modules with their drops.
+ * AC band: full bus path + half-bus particle segments + AC modules + drops.
+ * Half-bus particles flow OUT from the POI tap (envelope-driven on the left,
+ * compute-side static on the right).
  */
 
 import {
@@ -25,9 +25,6 @@ interface AcRegionOutput {
   anchor: AcAnchor;
 }
 
-/**
- * Compute X positions for AC bus members; identify gridX if present.
- */
 function buildAcAnchor(classified: ClassifiedDevices, ctx: ViewportMetrics): AcAnchor {
   const { acMembers } = classified;
   if (acMembers.length === 0) return { acXs: [], gridX: null };
@@ -38,9 +35,6 @@ function buildAcAnchor(classified: ClassifiedDevices, ctx: ViewportMetrics): AcA
   return { acXs, gridX };
 }
 
-/**
- * Build the AC bus spanning all members + the half-bus particle segments.
- */
 function placeAcBus(anchor: AcAnchor, ctx: ViewportMetrics): RegionOutput {
   const { acXs } = anchor;
   if (acXs.length === 0) return { nodes: [], conductors: [], decorations: [] };
@@ -89,9 +83,6 @@ function placeAcBus(anchor: AcAnchor, ctx: ViewportMetrics): RegionOutput {
   return { nodes: [], conductors, decorations: [] };
 }
 
-/**
- * Place AC modules (nodes) + their drop conductors from the bus.
- */
 function placeAcModules(classified: ClassifiedDevices, anchor: AcAnchor): RegionOutput {
   const { acMembers } = classified;
   const nodes = acMembers.map((device, i) => ({
@@ -122,10 +113,7 @@ function placeAcModules(classified: ClassifiedDevices, anchor: AcAnchor): Region
   return { nodes, conductors, decorations: [] };
 }
 
-/**
- * Lay out the entire AC band — bus, halves, and modules. Returns the anchor
- * so downstream regions (DC, children) can reference it.
- */
+/** Returns AC band output + the anchor used by downstream regions. */
 export function placeAcBand(
   classified: ClassifiedDevices,
   ctx: ViewportMetrics,

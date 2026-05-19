@@ -1,13 +1,6 @@
 /**
- * AnalystScreen — `/analyst` route. Chat scrollback + composer. Each
- * assistant message can carry interleaved prose + artifacts (charts /
- * tables / errors). Backend is the local fixture in dev; swap to the
- * analyst-agent HTTP endpoint when reachable.
- *
- * v1 contract per [[project-analyst-architecture]]:
- *   - JSON-only (no SSE in v1; v1.1 follow-up)
- *   - 4 artifact kinds: line / bar / table / pie + error
- *   - Bubble holds prose only; chart artifacts render below
+ * AnalystScreen — chat scrollback + composer. Each assistant message can
+ * interleave prose bubbles + artifact cards (line/bar/pie/table/error).
  */
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -28,8 +21,6 @@ import { Composer } from "./parts/Composer";
 import { SuggestionChips, DEFAULT_SUGGESTIONS } from "./parts/SuggestionChips";
 
 function MessageBlock({ msg }: { msg: AnalystMessage }): React.ReactElement {
-  // Reason: the bubble owns prose; artifacts render their own cards in the
-  // flow below the bubble. One message can interleave multiple of either.
   const proseChunks: string[] = [];
   const artifacts: AnalystMessage["content"] = [];
   for (const piece of msg.content) {
@@ -53,9 +44,6 @@ export function AnalystScreen(): React.ReactElement {
   const t = useTheme();
   const isSov = t.name === "sovereign";
   const identity = useDeploymentIdentity();
-  // Reason: bind the backend once per chatApiUri so the hook receives a
-  // stable reference; the context carries the siteId so the server can
-  // detect mid-conversation tenant drift (409 site_id_changed).
   const backend = useMemo(
     () => (req: AnalystChatRequest) => analystChat(identity.chatApiUri, req),
     [identity.chatApiUri],
@@ -67,9 +55,8 @@ export function AnalystScreen(): React.ReactElement {
   const { messages, status, send } = useAnalystChat({ backend, context });
   const scrollRef = useRef<ScrollView | null>(null);
   const [pendingText, setPendingText] = useState<string | null>(null);
-  // Track seconds since the current "sending" turn started so the loading
-  // bubble can surface a soft warning above 30s (Ollama runs can hit ~100s).
   const [elapsedSec, setElapsedSec] = useState(0);
+
   useEffect(() => {
     if (status !== "sending") {
       setElapsedSec(0);
@@ -83,12 +70,10 @@ export function AnalystScreen(): React.ReactElement {
     return () => clearInterval(id);
   }, [status]);
 
-  // Auto-scroll on new message.
   useEffect(() => {
     scrollRef.current?.scrollToEnd?.({ animated: true });
   }, [messages.length, status]);
 
-  // Allow SuggestionChips → composer text fill (chip taps send directly).
   useEffect(() => {
     if (pendingText !== null) {
       void send(pendingText);

@@ -1,7 +1,7 @@
 /**
- * Utility-row region: DOE/DLR feed leaves at the top of the canvas, the POI
- * revenue meter centered just below, dotted info conductors connecting them,
- * and the POI → AC-bus drop with the main breaker glyph.
+ * Top of the canvas: utility-feed leaves, POI revenue meter, dotted info
+ * conductors between them, and the POI → AC-bus drop split around the
+ * main breaker.
  */
 
 import {
@@ -33,10 +33,6 @@ interface UtilityRowOutput {
   utilXs: number[];
 }
 
-/**
- * Place the utility-feed row. Returns the row's nodes plus the per-feed X
- * positions so the POI region can wire info conductors to them.
- */
 export function placeUtilityRow(
   classified: ClassifiedDevices,
   cols: number,
@@ -61,10 +57,6 @@ export function placeUtilityRow(
   return { output: { nodes, conductors: [], decorations: [] }, utilXs };
 }
 
-/**
- * Place the POI revenue meter, the dotted info conductors from each
- * utility feed, and the POI → AC-bus drop split around the main breaker.
- */
 export function placePoiAndBreaker(
   classified: ClassifiedDevices,
   utilXs: number[],

@@ -1,21 +1,12 @@
 /**
- * AnalystClient — HTTP client for the ems-analyst-server `/analyst/chat`
- * endpoint. v1 contract: JSON request, JSON response (SSE deferred to v1.1).
- *
- * Throws SiteIdChangedError on HTTP 409 `code: "site_id_changed"` so the
- * caller can mint a fresh conversationId per the [[project-analyst-architecture]]
- * recovery rule. All other non-2xx → generic Error with the status code.
+ * HTTP client for the analyst-server. Throws `SiteIdChangedError` on
+ * 409 `site_id_changed` so the UI can mint a fresh conversation.
  */
 
 import type { AnalystChatRequest, AnalystMessage } from "./types";
 
 const ENDPOINT = "/analyst/chat";
 
-/**
- * Distinct error type so the UI can branch into the hard-error recovery
- * path (fresh conversationId + dedicated card) without string-matching
- * a generic Error message.
- */
 export class SiteIdChangedError extends Error {
   constructor(message: string) {
     super(message);
@@ -29,12 +20,8 @@ interface ConflictBody {
 }
 
 /**
- * POST a chat turn to the analyst-server and return the assistant reply.
- * @param baseUrl Analyst-server base URL (no trailing slash; endpoint appended)
- * @param req Chat request — conversationId, message, optional context
- * @returns The assistant's AnalystMessage
- * @throws SiteIdChangedError on 409 site_id_changed
- * @throws Error on any other non-2xx
+ * POST a chat turn and return the assistant reply.
+ * @throws SiteIdChangedError on 409 site_id_changed; Error on other non-2xx.
  */
 export async function analystChat(
   baseUrl: string,

@@ -1,9 +1,4 @@
-/**
- * PieChart — donut renderer for `PieSpec`. Body component; caller wraps in
- * ArtifactCard. Slices use the shared `seriesColor` palette when the spec
- * omits explicit colors. Renders an inline legend below the donut with
- * value + percent so operators don't have to estimate from arcs.
- */
+/** Donut renderer + legend rows; wrap the result in `ArtifactCard`. */
 
 import React from "react";
 import { View, Text } from "react-native";
@@ -32,10 +27,7 @@ interface ArcSpec {
   percent: number;
 }
 
-/**
- * Build the SVG path command for a single donut slice between two angles
- * (radians, 0 = right, π/2 = bottom). Handles the >180° large-arc case.
- */
+// Angles in radians: 0 = right, π/2 = bottom; handles the >180° large-arc case.
 function arcPath(start: number, end: number): string {
   const x1 = CX + R_OUTER * Math.cos(start);
   const y1 = CY + R_OUTER * Math.sin(start);

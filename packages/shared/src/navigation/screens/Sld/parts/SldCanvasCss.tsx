@@ -1,9 +1,4 @@
-/**
- * SldCanvasCss — theme-aware CSS scoped to `.sld-svg-root`. Kept in its own
- * file so SldCanvas reads as view glue, not a wall of selectors. The CSS
- * targets the data-* attributes the renderer emits (data-region, data-comp,
- * data-role); inline `style` on individual elements wins where needed.
- */
+/** Theme-aware CSS scoped to `.sld-svg-root`. */
 
 import React from "react";
 import type { Theme } from "../../../../theme/tokens";

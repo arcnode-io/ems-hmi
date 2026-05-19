@@ -1,10 +1,6 @@
 /**
- * SldRenderer — renders a precomputed SldLayout as JSX SVG. The renderer
- * itself is just an orchestrator: NodeBox, ConductorPath, Particle, and
- * DecorationByKind own the visual primitives.
- *
- * Particle direction is chosen at render time per `envelopeDirection` —
- * no DOM post-edit overlay.
+ * Orchestrator that renders a positioned SldLayout. NodeBox, ConductorPath,
+ * Particle, and DecorationByKind own the visual primitives.
  */
 
 import React from "react";
@@ -16,25 +12,17 @@ import { NodeBox } from "./NodeBox";
 export type SldNodeStatus = "ok" | "warn" | "alarm" | "offline";
 
 export interface PoiOverlay {
-  /** Pre-formatted settlement reading, e.g. "+142 kW IMPORT". */
   settlement: string;
-  /** Label shown in the POI state-token slot, e.g. "OK" / "STALE" / "ISLAND". */
   stateToken: string;
-  /** Color (theme-resolved) for the state-token text — driven by severity. */
   stateColor: string;
 }
 
 interface SldRendererProps {
   layout: SldLayout;
-  /** POI net-flow direction; controls every conductor with flowSource=envelope. */
   envelopeDirection: "IMP" | "EXP" | null;
-  /** Fired when a device node is tapped/clicked. Wires SLD → device detail. */
   onSelectDevice?: (deviceId: string) => void;
-  /** Per-device status override for the status-indicator dot. */
   statusByDevice?: Record<string, SldNodeStatus>;
-  /** Theme-resolved colors for each status. */
   statusColors?: Record<SldNodeStatus, string>;
-  /** Live values rendered into the POI node's text slots. */
   poiOverlay?: PoiOverlay;
 }
 

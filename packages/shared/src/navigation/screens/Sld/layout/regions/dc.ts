@@ -1,7 +1,6 @@
 /**
- * DC band: inverter glyph between Grid Module and DC bus, the DC bus
- * spreading from gridX to the right viewBox edge, and BESS modules with
- * their drops.
+ * DC band: inverter between Grid Module and DC bus, the DC bus spreading
+ * from gridX to the right viewBox edge, and BESS modules with their drops.
  */
 
 import {
@@ -60,7 +59,6 @@ function placeInverter(
   };
 }
 
-/** Compute X positions for DC bus members spread between gridX and right margin. */
 function buildDcXs(
   dcMemberCount: number,
   gridX: number | null,
@@ -120,9 +118,6 @@ function placeDcBusAndModules(
   return { nodes, conductors: [busConductor, ...drops], decorations: [] };
 }
 
-/**
- * Lay out inverter + DC bus + DC modules.
- */
 export function placeDcBand(
   classified: ClassifiedDevices,
   acCtx: AcContext,

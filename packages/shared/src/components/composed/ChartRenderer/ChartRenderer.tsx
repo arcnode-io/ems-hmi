@@ -1,8 +1,6 @@
 /**
- * ChartRenderer — switches on AnalystArtifact.kind and renders the matching
- * canonical visual inside a shared ArtifactCard chrome. Backend stubs that
- * emit "PLACEHOLDER" in the title get a DEMO DATA chip so operators don't
- * make decisions on fake numbers.
+ * Render any AnalystArtifact wrapped in `ArtifactCard`. Titles containing
+ * "PLACEHOLDER" get a DEMO DATA chip via `detectPlaceholder`.
  */
 
 import React from "react";
@@ -72,9 +70,6 @@ function TableBody({ spec }: { spec: Extract<AnalystArtifact, { kind: "table" }>
   );
 }
 
-/**
- * Render any AnalystArtifact wrapped in a shared ArtifactCard chrome.
- */
 export function ChartRenderer({ artifact }: ChartRendererProps): React.ReactElement {
   const t = useTheme();
   const placeholderBadge = (title: string): { badge?: string; badgeColor?: string } =>

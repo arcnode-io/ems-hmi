@@ -1,11 +1,6 @@
 /**
- * SldCanvas — web-only pan+zoom SLD viewer. Layout comes from
- * `layoutSld(topology)` (pure function) and renders via `<SldRenderer>`
- * (React/SVG). No fetched fixture SVG — the diagram is derived from
- * /topology/view so arbitrary device counts work.
- *
- * Pan/zoom is delegated to `usePanZoom`; alarm + envelope folding is
- * delegated to `helpers/sldStatus`. This file is now thin view glue.
+ * SldCanvas — web pan+zoom viewer wrapping `<SldRenderer>`. Pan/zoom in
+ * `usePanZoom`; alarm + envelope folding in `helpers/sldStatus`.
  */
 
 import React, { useMemo, useRef } from "react";
