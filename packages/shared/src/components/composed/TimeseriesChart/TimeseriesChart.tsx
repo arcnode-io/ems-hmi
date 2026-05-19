@@ -11,8 +11,8 @@
  * grid lines + axis ticks are in.
  */
 
-import React from "react";
-import { View, Text } from "react-native";
+import React, { useState } from "react";
+import { View, Text, type LayoutChangeEvent } from "react-native";
 import { Svg, Line, Polyline, Rect, Text as SvgText } from "react-native-svg";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../theme/tokens";
@@ -71,7 +71,7 @@ export interface TimeseriesChartProps {
   dataAsOf?: string;
 }
 
-const W = 320;
+const DEFAULT_W = 320;
 const PAD_L = 36;
 const PAD_R = 10;
 const PAD_T = 12;
@@ -173,7 +173,12 @@ export function TimeseriesChart({
 }: TimeseriesChartProps): React.ReactElement {
   const t = useTheme();
   const H = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, height));
-  const chartW = W - PAD_L - PAD_R;
+  const [canvasW, setCanvasW] = useState(DEFAULT_W);
+  const onContainerLayout = (e: LayoutChangeEvent): void => {
+    const measured = Math.max(DEFAULT_W, Math.round(e.nativeEvent.layout.width));
+    if (measured !== canvasW) setCanvasW(measured);
+  };
+  const chartW = canvasW - PAD_L - PAD_R;
   const chartH = H - PAD_T - PAD_B;
   const scale = computeScale(series, thresholds);
   const noData = scale === null;
@@ -184,6 +189,7 @@ export function TimeseriesChart({
         comp: "TimeseriesChart",
         state: noData ? "no-data" : "ready",
       }}
+      onLayout={onContainerLayout}
       style={{
         padding: SPACE[3],
         backgroundColor: t.surface,
@@ -220,13 +226,13 @@ export function TimeseriesChart({
         </Text>
       </View>
 
-      <Svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
+      <Svg width="100%" height={H} viewBox={`0 0 ${canvasW} ${H}`}>
         {/* horizontal grid lines at 0/25/50/75/100% of chartH */}
         {[0, 0.25, 0.5, 0.75, 1].map((g) => (
           <Line
             key={`grid-${g}`}
             x1={PAD_L}
-            x2={W - PAD_R}
+            x2={canvasW - PAD_R}
             y1={PAD_T + chartH * g}
             y2={PAD_T + chartH * g}
             stroke={t.chartGrid}
@@ -262,7 +268,7 @@ export function TimeseriesChart({
               key={`th-${th.label}`}
               data-region="threshold"
               x1={PAD_L}
-              x2={W - PAD_R}
+              x2={canvasW - PAD_R}
               y1={py}
               y2={py}
               stroke={color}

@@ -4,8 +4,8 @@
  * stretches to container width.
  */
 
-import React from "react";
-import { View, Text } from "react-native";
+import React, { useState } from "react";
+import { View, Text, type LayoutChangeEvent } from "react-native";
 import { Svg, Line, Rect, Text as SvgText } from "react-native-svg";
 import { useTheme } from "../../../../theme/ThemeProvider";
 import { resolveTypeStyle, type Theme } from "../../../../theme/tokens";
@@ -19,7 +19,7 @@ const ENERGY_BARS: readonly Bar[] = [
   ["16", 188, 0, 4], ["18", 176, 4, 0], ["20", 168, 10, 0], ["22", 152, 12, 0],
 ];
 
-const W = 320;
+const DEFAULT_W = 320;
 const H = 120;
 const PAD_L = 28;
 const PAD_R = 6;
@@ -110,7 +110,12 @@ export function EnergyChart(): React.ReactElement {
   const t = useTheme();
   const isSov = t.name === "sovereign";
   const maxV = Math.max(...ENERGY_BARS.map(([, c, s, e]) => c + s + e));
-  const chartW = W - PAD_L - PAD_R;
+  const [canvasW, setCanvasW] = useState(DEFAULT_W);
+  const onContainerLayout = (e: LayoutChangeEvent): void => {
+    const measured = Math.max(DEFAULT_W, Math.round(e.nativeEvent.layout.width));
+    if (measured !== canvasW) setCanvasW(measured);
+  };
+  const chartW = canvasW - PAD_L - PAD_R;
   const chartH = H - PAD_B - PAD_T;
   const slot = chartW / ENERGY_BARS.length;
   const barW = slot - 4;
@@ -118,6 +123,7 @@ export function EnergyChart(): React.ReactElement {
   return (
     <View
       dataSet={{ comp: "EnergyChart" }}
+      onLayout={onContainerLayout}
       style={{
         marginHorizontal: SPACE[4],
         marginTop: SPACE[3],
@@ -176,12 +182,12 @@ export function EnergyChart(): React.ReactElement {
           paddingBottom: SPACE[3],
         }}
       >
-        <Svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
+        <Svg width="100%" height={H} viewBox={`0 0 ${canvasW} ${H}`}>
           {[0.25, 0.5, 0.75, 1].map((g) => (
             <Line
               key={g}
               x1={PAD_L}
-              x2={W - PAD_R}
+              x2={canvasW - PAD_R}
               y1={PAD_T + chartH * (1 - g)}
               y2={PAD_T + chartH * (1 - g)}
               stroke={t.chartGrid}
