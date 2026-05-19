@@ -4,18 +4,25 @@
  * so arbitrary device counts / topology shapes render correctly.
  *
  * Composition: BadgeStrip → ReadOnlyBanner → SldCanvas (pan/zoom).
- * The chrome's TopBar/StatusStrip wraps the screen via AppLayout.
+ * Device taps navigate to `/devices/:deviceId`.
  */
 
-import React from "react";
+import React, { useCallback } from "react";
 import { View } from "react-native";
+import { useNavigation, type NavigationProp } from "@react-navigation/native";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { BadgeStrip } from "./parts/BadgeStrip";
 import { ReadOnlyBanner } from "./parts/ReadOnlyBanner";
 import { SldCanvas } from "./parts/SldCanvas";
+import type { RootStackParamList } from "../../routes";
 
 export function SldScreen(): React.ReactElement {
   const t = useTheme();
+  const nav = useNavigation<NavigationProp<RootStackParamList>>();
+  const onSelectDevice = useCallback(
+    (deviceId: string) => nav.navigate("DeviceDetail", { deviceId }),
+    [nav],
+  );
   return (
     <View
       dataSet={{ comp: "SldScreen" }}
@@ -23,7 +30,7 @@ export function SldScreen(): React.ReactElement {
     >
       <BadgeStrip />
       <ReadOnlyBanner />
-      <SldCanvas />
+      <SldCanvas onSelectDevice={onSelectDevice} />
     </View>
   );
 }

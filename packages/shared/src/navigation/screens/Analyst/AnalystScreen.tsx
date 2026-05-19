@@ -67,6 +67,21 @@ export function AnalystScreen(): React.ReactElement {
   const { messages, status, send } = useAnalystChat({ backend, context });
   const scrollRef = useRef<ScrollView | null>(null);
   const [pendingText, setPendingText] = useState<string | null>(null);
+  // Track seconds since the current "sending" turn started so the loading
+  // bubble can surface a soft warning above 30s (Ollama runs can hit ~100s).
+  const [elapsedSec, setElapsedSec] = useState(0);
+  useEffect(() => {
+    if (status !== "sending") {
+      setElapsedSec(0);
+      return;
+    }
+    setElapsedSec(0);
+    const startedAt = Date.now();
+    const id = setInterval(() => {
+      setElapsedSec(Math.floor((Date.now() - startedAt) / 1000));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [status]);
 
   // Auto-scroll on new message.
   useEffect(() => {
@@ -161,7 +176,7 @@ export function AnalystScreen(): React.ReactElement {
           messages.map((msg, i) => <MessageBlock key={i} msg={msg} />)
         )}
         {status === "sending" ? (
-          <ChatBubble role="loading" time={new Date().toISOString()} />
+          <ChatBubble role="loading" time={new Date().toISOString()} elapsedSec={elapsedSec} />
         ) : null}
       </ScrollView>
 

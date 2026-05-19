@@ -21,6 +21,8 @@ interface SldRendererProps {
   layout: SldLayout;
   /** POI net-flow direction; controls every conductor with flowSource=envelope. */
   envelopeDirection: "IMP" | "EXP" | null;
+  /** Fired when a device node is tapped/clicked. Wires SLD → device detail. */
+  onSelectDevice?: (deviceId: string) => void;
 }
 
 function pathString(c: SldConductor, reverse: boolean): string {
@@ -115,12 +117,13 @@ function Inverter({ d }: { d: SldDecoration }): React.ReactElement {
   );
 }
 
-function NodeBox({ n }: { n: SldNode }): React.ReactElement {
+function NodeBox({ n, onSelect }: { n: SldNode; onSelect?: (id: string) => void }): React.ReactElement {
   const w = n.width;
   const h = n.height;
   const baseGroupAttrs: React.SVGProps<SVGGElement> = {
     id: n.id,
     transform: `translate(${n.x} ${n.y})`,
+    onClick: onSelect ? () => onSelect(n.id) : undefined,
   };
   // Per-role data-attr emits hooks the existing CSS already targets.
   const groupAttrs = {
@@ -156,7 +159,7 @@ function NodeBox({ n }: { n: SldNode }): React.ReactElement {
 /**
  * Render a positioned SLD layout.
  */
-export function SldRenderer({ layout, envelopeDirection }: SldRendererProps): React.ReactElement {
+export function SldRenderer({ layout, envelopeDirection, onSelectDevice }: SldRendererProps): React.ReactElement {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -177,7 +180,7 @@ export function SldRenderer({ layout, envelopeDirection }: SldRendererProps): Re
         d.kind === "breaker" ? <Breaker key={d.id} d={d} /> : <Inverter key={d.id} d={d} />,
       )}
       {layout.nodes.map((n) => (
-        <NodeBox key={n.id} n={n} />
+        <NodeBox key={n.id} n={n} onSelect={onSelectDevice} />
       ))}
     </svg>
   );

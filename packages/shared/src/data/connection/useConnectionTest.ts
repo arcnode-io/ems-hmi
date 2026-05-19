@@ -33,7 +33,9 @@ const SERVICES: ProbeSpec[] = [
   // Reason: per PM note, demo only actually connects to the Analyst API.
   // Device API + MQTT broker are mocked locally today; reintroduce probes
   // when they're real services so this surface stays honest.
-  { name: "Analyst API", url: (id) => id.chatApiUri },
+  // Probe /health (the contract the AI engineer publishes for proxy/k8s
+  // liveness). Server also returns "ok" on root, but /health is canonical.
+  { name: "Analyst API", url: (id) => `${id.chatApiUri}/health` },
 ];
 
 /**

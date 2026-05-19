@@ -47,7 +47,11 @@ function stateTokenLabel(doeState: string): string {
   return "OK";
 }
 
-export function SldCanvas(): React.ReactElement {
+interface SldCanvasProps {
+  onSelectDevice?: (deviceId: string) => void;
+}
+
+export function SldCanvas({ onSelectDevice }: SldCanvasProps = {}): React.ReactElement {
   const t = useTheme();
   const { status, view, error } = useTopologyView();
   const envelope = useOperatingEnvelope();
@@ -156,7 +160,7 @@ export function SldCanvas(): React.ReactElement {
             color: t.text, fontFamily: t.fontLabel, fontSize: 11,
           }}
         >
-          <SldRenderer layout={layout} envelopeDirection={envelope.direction} />
+          <SldRenderer layout={layout} envelopeDirection={envelope.direction} onSelectDevice={onSelectDevice} />
         </div>
       )}
       <style>{`

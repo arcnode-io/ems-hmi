@@ -21,6 +21,9 @@ export interface ChatBubbleProps {
   text?: string;
   /** ISO or pre-formatted clock; rendered above the bubble. */
   time: string;
+  /** Seconds elapsed in current "loading" state. Drives the soft "still
+   *  working" warning above 30s. Ignored for other roles. */
+  elapsedSec?: number;
 }
 
 function alphaHex(hex: string, alpha: string): string {
@@ -35,10 +38,13 @@ function fmtClock(iso: string): string {
   return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
 }
 
+const SOFT_WARN_AFTER_SEC = 30;
+
 export function ChatBubble({
   role,
   text,
   time,
+  elapsedSec = 0,
 }: ChatBubbleProps): React.ReactElement {
   const t = useTheme();
   const isUser = role === "user";
@@ -122,14 +128,26 @@ export function ChatBubble({
         }}
       >
         {isLoading ? (
-          <Text
-            style={[
-              resolveTypeStyle(t, "bodyDense"),
-              { color: t.textSoft, fontStyle: "italic" },
-            ]}
-          >
-            thinking…
-          </Text>
+          <View style={{ gap: 4 }}>
+            <Text
+              style={[
+                resolveTypeStyle(t, "bodyDense"),
+                { color: t.textSoft, fontStyle: "italic" },
+              ]}
+            >
+              thinking…
+            </Text>
+            {elapsedSec >= SOFT_WARN_AFTER_SEC ? (
+              <Text
+                style={[
+                  resolveTypeStyle(t, "caption"),
+                  { fontSize: 10, color: t.textSoft },
+                ]}
+              >
+                still working — Ollama runs can take ~100s; Bedrock is faster.
+              </Text>
+            ) : null}
+          </View>
         ) : (
           <Text
             style={[

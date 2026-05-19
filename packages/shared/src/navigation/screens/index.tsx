@@ -7,8 +7,8 @@
 import type { ReactElement } from "react";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../routes";
-import { PlaceholderScreen } from "./PlaceholderScreen";
 import { OverviewScreen as RealOverviewScreen } from "./Overview/OverviewScreen";
+import { DeviceDetailScreen as RealDeviceDetailScreen } from "./DeviceDetail/DeviceDetailScreen";
 import { ModulesScreen as RealModulesScreen } from "./Modules/ModulesScreen";
 import { SldScreen as RealSldScreen } from "./Sld/SldScreen";
 import { EnergyScreen as RealEnergyScreen } from "./Energy/EnergyScreen";
@@ -47,10 +47,5 @@ export function SettingsScreen(): ReactElement {
 export function DeviceDetailScreen({
   route,
 }: NativeStackScreenProps<RootStackParamList, "DeviceDetail">): ReactElement {
-  return (
-    <PlaceholderScreen
-      label="Device Detail"
-      detail={`device_id: ${route.params.deviceId}`}
-    />
-  );
+  return <RealDeviceDetailScreen route={route} />;
 }
