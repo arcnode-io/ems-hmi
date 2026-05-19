@@ -1,9 +1,10 @@
 /**
- * Breaker + Inverter glyphs rendered as SVG groups.
+ * Breaker + Inverter glyphs via react-native-svg primitives.
  */
 
 import React from "react";
 import { match } from "ts-pattern";
+import { Circle, G, Line, Text as SvgText } from "react-native-svg";
 import type { SldDecoration } from "./types";
 import {
   BREAKER_BAR_HALF,
@@ -18,58 +19,49 @@ import {
 const RING_STROKE_BREAKER = STROKE_DROP;
 const RING_STROKE_INVERTER = 1.2;
 
-export function Breaker({ d }: { d: SldDecoration }): React.ReactElement {
+interface DecorationProps {
+  d: SldDecoration;
+  color: string;
+}
+
+export function Breaker({ d, color }: DecorationProps): React.ReactElement {
   const openTipY = d.state === "open" ? -BREAKER_OPEN_LIFT : 0;
   return (
-    <g data-comp="breaker" transform={`translate(${d.x} ${d.y})`}>
-      <circle
-        data-region="ring"
-        r={RING_R_BREAKER}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={RING_STROKE_BREAKER}
-      />
-      <line
+    <G transform={`translate(${d.x} ${d.y})`}>
+      <Circle r={RING_R_BREAKER} fill="none" stroke={color} strokeWidth={RING_STROKE_BREAKER} />
+      <Line
         x1={-BREAKER_BAR_HALF}
         y1={0}
         x2={BREAKER_BAR_HALF}
         y2={openTipY}
-        stroke="currentColor"
+        stroke={color}
         strokeWidth={RING_STROKE_BREAKER}
         strokeLinecap="round"
       />
-    </g>
+    </G>
   );
 }
 
-export function Inverter({ d }: { d: SldDecoration }): React.ReactElement {
+export function Inverter({ d, color }: DecorationProps): React.ReactElement {
   return (
-    <g data-comp="inverter" transform={`translate(${d.x} ${d.y})`}>
-      <circle
-        data-region="ring"
-        r={RING_R_INVERTER}
-        fill="none"
-        stroke="currentColor"
-        strokeWidth={RING_STROKE_INVERTER}
-      />
-      <text
-        data-region="glyph"
+    <G transform={`translate(${d.x} ${d.y})`}>
+      <Circle r={RING_R_INVERTER} fill="none" stroke={color} strokeWidth={RING_STROKE_INVERTER} />
+      <SvgText
         y={INVERTER_GLYPH_BASELINE_Y}
         textAnchor="middle"
-        fill="currentColor"
+        fill={color}
         fontSize={INVERTER_GLYPH_FONT_PX}
-        fontWeight={700}
+        fontWeight="700"
       >
         ~
-      </text>
-    </g>
+      </SvgText>
+    </G>
   );
 }
 
-export function DecorationByKind({ d }: { d: SldDecoration }): React.ReactElement {
+export function DecorationByKind({ d, color }: DecorationProps): React.ReactElement {
   return match(d)
-    .with({ kind: "breaker" }, (deco) => <Breaker d={deco} />)
-    .with({ kind: "inverter" }, (deco) => <Inverter d={deco} />)
+    .with({ kind: "breaker" }, (deco) => <Breaker d={deco} color={color} />)
+    .with({ kind: "inverter" }, (deco) => <Inverter d={deco} color={color} />)
     .exhaustive();
 }
-

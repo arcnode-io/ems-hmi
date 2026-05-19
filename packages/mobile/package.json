@@ -25,6 +25,8 @@
     "commit": "npm run checks && npm run cover && npm run review && git add -A && git cz && git push"
   },
   "dependencies": {
+    "@ems-hmi/shared": "*",
+    "@react-native-async-storage/async-storage": "^3.0.3",
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/native-stack": "^6.11.0",
     "ip-address": "^10.0.1",
@@ -36,8 +38,7 @@
     "react-native-svg": "^15.11.1",
     "ts-pattern": "^5.0.0",
     "yaml": "^2.4.0",
-    "zod": "^4.0.0",
-    "@ems-hmi/shared": "*"
+    "zod": "^4.0.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

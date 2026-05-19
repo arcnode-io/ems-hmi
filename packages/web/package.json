@@ -120,6 +120,17 @@
         }
       ]
     },
+    "moduleFileExtensions": [
+      "web.tsx",
+      "web.ts",
+      "tsx",
+      "ts",
+      "web.jsx",
+      "web.js",
+      "jsx",
+      "js",
+      "json"
+    ],
     "moduleNameMapper": {
       "^react-native$": "react-native-web",
       "\\.(css|less|sass|scss)$": "identity-obj-proxy",

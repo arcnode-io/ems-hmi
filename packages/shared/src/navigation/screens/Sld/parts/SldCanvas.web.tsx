@@ -1,6 +1,6 @@
 /**
- * SldCanvas — web pan+zoom viewer wrapping `<SldRenderer>`. Pan/zoom in
- * `usePanZoom`; alarm + envelope folding in `helpers/sldStatus`.
+ * Web pan+zoom viewer wrapping `<SldRenderer>`. Drag-pan + wheel-zoom + fit.
+ * Theme is threaded through props (no CSS dependency).
  */
 
 import React, { useMemo, useRef } from "react";
@@ -10,14 +10,13 @@ import { useOperatingEnvelope } from "../../../../data/envelope/useOperatingEnve
 import { useTopologyView } from "../../../../data/topology/useTopologyView";
 import { useAlarms } from "../../../../data/alarms/useAlarms";
 import { layoutSld } from "../layout/layoutSld";
-import { SldRenderer } from "../layout/SldRenderer";
+import { SldRenderer, sldThemeFrom } from "../layout/SldRenderer";
 import {
   buildPoiOverlay,
   foldAlarmsToStatus,
   statusColorsFromTheme,
 } from "../helpers/sldStatus";
 import { usePanZoom } from "../hooks/usePanZoom";
-import { SldCanvasCss } from "./SldCanvasCss";
 
 const STATUS_FONT_SIZE = 12;
 const STATUS_LETTER_SPACING = 0.18;
@@ -57,6 +56,7 @@ export function SldCanvas({ onSelectDevice }: SldCanvasProps = {}): React.ReactE
   const layout = useMemo(() => (view ? layoutSld(view) : null), [view]);
   const panZoom = usePanZoom(containerRef, layout);
 
+  const sldTheme = useMemo(() => sldThemeFrom(t), [t]);
   const statusByDevice = useMemo(() => foldAlarmsToStatus(alarms), [alarms]);
   const statusColors = useMemo(() => statusColorsFromTheme(t), [t]);
   const poiOverlay = useMemo(() => buildPoiOverlay(envelope, t), [envelope, t]);
@@ -85,20 +85,18 @@ export function SldCanvas({ onSelectDevice }: SldCanvasProps = {}): React.ReactE
     >
       {layout && panZoom.transform && (
         <div
-          className="sld-svg-root"
           style={{
             position: "absolute",
             top: 0,
             left: 0,
             transform: `translate(${panZoom.transform.x}px, ${panZoom.transform.y}px) scale(${panZoom.transform.scale})`,
             transformOrigin: "0 0",
-            color: t.text,
             fontFamily: t.fontLabel,
-            fontSize: 11,
           }}
         >
           <SldRenderer
             layout={layout}
+            theme={sldTheme}
             envelopeDirection={envelope.direction}
             onSelectDevice={onSelectDevice}
             statusByDevice={statusByDevice}
@@ -107,7 +105,6 @@ export function SldCanvas({ onSelectDevice }: SldCanvasProps = {}): React.ReactE
           />
         </div>
       )}
-      <SldCanvasCss theme={t} />
       {match(overlayLabel)
         .with(P.string, (text) => (
           <div

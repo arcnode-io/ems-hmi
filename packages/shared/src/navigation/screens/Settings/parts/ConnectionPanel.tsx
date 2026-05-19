@@ -26,9 +26,12 @@ export function ConnectionPanel(): React.ReactElement {
   const identity = useDeploymentIdentity();
   const isWeb = Platform.OS === "web";
   const { results, testing, run } = useConnectionTest();
-  // Local-only override; backend wiring of the IP edit lands when the
-  // Android APK build target ships. For web it's read-only anyway.
   const [hostDraft, setHostDraft] = useState(identity.host);
+
+  const commitHost = (): void => {
+    const trimmed = hostDraft.trim();
+    identity.setHost(trimmed === "" ? null : trimmed);
+  };
 
   return (
     <>
@@ -63,6 +66,11 @@ export function ConnectionPanel(): React.ReactElement {
             <TextInput
               value={hostDraft}
               onChangeText={setHostDraft}
+              onBlur={commitHost}
+              onSubmitEditing={commitHost}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="default"
               placeholder="192.168.1.100"
               placeholderTextColor={t.textSoft}
               style={{
@@ -96,6 +104,7 @@ export function ConnectionPanel(): React.ReactElement {
               accessibilityRole="button"
               accessibilityLabel="Test connection"
               onPress={(): void => {
+                commitHost();
                 void run();
               }}
               disabled={testing}

@@ -30,7 +30,7 @@ export const RADIUS_MODULE = 3;
 /** Status-indicator dot placement inside the body, measured from top-right. */
 export const STATUS_DOT_INSET_X = 7;
 export const STATUS_DOT_INSET_Y = 8;
-export const STATUS_DOT_R = 3;
+export const STATUS_DOT_R = 5;
 
 /** POI text-slot offsets. */
 export const POI_PRIMARY_VALUE_Y = -2;

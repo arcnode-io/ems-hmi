@@ -1,19 +1,17 @@
 /**
- * RN entry — registers the App with React Native's AppRegistry under the
- * name from app.json. Wraps in ThemeProvider so every screen has theme access.
+ * RN entry — registers AppRoot with React Native's AppRegistry under the
+ * name from app.json. Shares the provider tree + NavigationRoot with web.
  */
 
 import { AppRegistry } from "react-native";
 import React from "react";
-import App from "./App";
-import { ThemeProvider } from "@ems-hmi/shared/theme/ThemeProvider";
+import { AppRoot } from "@ems-hmi/shared/AppRoot";
 import { name as appName } from "../app.json";
 import { loadConfig } from "./config";
 
 const cfg = loadConfig();
 console.info(`Running with config: ${JSON.stringify(cfg)}`);
 
-const AppWithTheme = (): React.ReactElement =>
-  React.createElement(ThemeProvider, null, React.createElement(App));
+const Root = (): React.ReactElement => React.createElement(AppRoot, { cfg });
 
-AppRegistry.registerComponent(appName, () => AppWithTheme);
+AppRegistry.registerComponent(appName, () => Root);

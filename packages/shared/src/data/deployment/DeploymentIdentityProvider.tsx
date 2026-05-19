@@ -1,55 +1,97 @@
 /**
- * DeploymentIdentityProvider — exposes the deployment's display name,
- * hostname, and build-target mode to descendants.
+ * DeploymentIdentityProvider — name + mode + URLs threaded into descendants.
  *
- * These values come from the platform-specific `cfg.yml` (web reads via
- * `import.meta.env.VITE_ENV`; mobile reads via `react-native-dotenv`).
- * The shared package doesn't know about cfg.yml — consumers wire the
- * identity at App root via this provider.
- *
- * Use `useDeploymentIdentity()` to read.
+ * Initial values come from each platform's cfg.yml. Native callers can
+ * override the host at runtime via `setHost()`; the override persists via
+ * `data/storage/persisted` and is applied to chatApiUri + deviceApiUri.
  */
 
-import React, { createContext } from "react";
+import React, { createContext, useCallback, useEffect, useMemo, useState } from "react";
+import { kv } from "../storage/persisted";
+
+const HOST_OVERRIDE_KEY = "@arcnode/host-override";
 
 export type DeploymentMode = "local" | "beta" | "demo";
 
 export interface DeploymentIdentity {
-  /** Human-readable site name shown in chrome (TopBar, Sidebar). */
   name: string;
-  /** Deployment hostname / URL fragment, shown under the site name. */
   host: string;
-  /** Site identifier — MUST match analyst-server's `SITE_ID` env var. Sent in `context.siteId`. */
   siteId: string;
-  /** Build-target mode — `demo` swaps in MockMqttProvider; others use real broker. */
   mode: DeploymentMode;
-  /** Analyst-agent chat API base URL. Used by Settings' connection test. */
   chatApiUri: string;
-  /** Device-API base URL. Used by Settings' connection test. */
   deviceApiUri: string;
+  /** Set or clear the runtime host override; persisted across launches. */
+  setHost: (host: string | null) => void;
 }
 
 export const DeploymentIdentityContext =
   createContext<DeploymentIdentity | null>(null);
 
+export interface DeploymentIdentityBase {
+  name: string;
+  host: string;
+  siteId: string;
+  mode: DeploymentMode;
+  chatApiUri: string;
+  deviceApiUri: string;
+}
+
 interface DeploymentIdentityProviderProps {
-  identity: DeploymentIdentity;
+  base: DeploymentIdentityBase;
   children: React.ReactNode;
 }
 
 /**
- * React provider for deployment identity.
- * @param props identity + children
- * @param props.identity The deployment identity object loaded from cfg.yml
- * @param props.children Subtree that consumes via useDeploymentIdentity()
- * @returns Context provider element
+ * Replace the hostname portion of an absolute URL. Relative URLs are
+ * returned unchanged because there's no host to swap.
  */
+function applyHostOverride(baseUrl: string, host: string | null): string {
+  if (!host) return baseUrl;
+  try {
+    const url = new URL(baseUrl);
+    url.hostname = host;
+    return url.toString();
+  } catch {
+    return baseUrl;
+  }
+}
+
 export function DeploymentIdentityProvider({
-  identity,
+  base,
   children,
 }: DeploymentIdentityProviderProps): React.ReactElement {
+  const [override, setOverride] = useState<string | null>(null);
+
+  useEffect(() => {
+    void kv.get(HOST_OVERRIDE_KEY).then((v) => {
+      if (v) setOverride(v);
+    });
+  }, []);
+
+  const setHost = useCallback((host: string | null): void => {
+    setOverride(host);
+    if (host === null || host === "") {
+      void kv.remove(HOST_OVERRIDE_KEY);
+    } else {
+      void kv.set(HOST_OVERRIDE_KEY, host);
+    }
+  }, []);
+
+  const value = useMemo<DeploymentIdentity>(
+    () => ({
+      name: base.name,
+      host: override ?? base.host,
+      siteId: base.siteId,
+      mode: base.mode,
+      chatApiUri: applyHostOverride(base.chatApiUri, override),
+      deviceApiUri: applyHostOverride(base.deviceApiUri, override),
+      setHost,
+    }),
+    [base, override, setHost],
+  );
+
   return (
-    <DeploymentIdentityContext.Provider value={identity}>
+    <DeploymentIdentityContext.Provider value={value}>
       {children}
     </DeploymentIdentityContext.Provider>
   );
