@@ -17,12 +17,20 @@ import type {
   ParticleSpec,
 } from "./types";
 
+export type SldNodeStatus = "ok" | "warn" | "alarm" | "offline";
+
 interface SldRendererProps {
   layout: SldLayout;
   /** POI net-flow direction; controls every conductor with flowSource=envelope. */
   envelopeDirection: "IMP" | "EXP" | null;
   /** Fired when a device node is tapped/clicked. Wires SLD → device detail. */
   onSelectDevice?: (deviceId: string) => void;
+  /** Per-device status override for the status-indicator dot. Missing entries
+   *  fall back to the CSS default (statusOk). */
+  statusByDevice?: Record<string, SldNodeStatus>;
+  /** Theme-resolved colors for each status. Provided by caller so this
+   *  renderer stays decoupled from useTheme. */
+  statusColors?: Record<SldNodeStatus, string>;
 }
 
 function pathString(c: SldConductor, reverse: boolean): string {
@@ -117,7 +125,15 @@ function Inverter({ d }: { d: SldDecoration }): React.ReactElement {
   );
 }
 
-function NodeBox({ n, onSelect }: { n: SldNode; onSelect?: (id: string) => void }): React.ReactElement {
+function NodeBox({
+  n,
+  onSelect,
+  statusFill,
+}: {
+  n: SldNode;
+  onSelect?: (id: string) => void;
+  statusFill?: string;
+}): React.ReactElement {
   const w = n.width;
   const h = n.height;
   const baseGroupAttrs: React.SVGProps<SVGGElement> = {
@@ -135,7 +151,13 @@ function NodeBox({ n, onSelect }: { n: SldNode; onSelect?: (id: string) => void 
   return (
     <g {...groupAttrs}>
       <rect data-region="body" x={-w / 2} y={-h / 2} width={w} height={h} rx={n.role === "poi" ? 4 : 3} fill="currentColor" />
-      <circle data-region="status-indicator" cx={w / 2 - 7} cy={-h / 2 + 8} r={3} />
+      <circle
+        data-region="status-indicator"
+        cx={w / 2 - 7}
+        cy={-h / 2 + 8}
+        r={3}
+        {...(statusFill ? { style: { fill: statusFill } as React.CSSProperties } : {})}
+      />
       {n.role === "poi" && (
         <>
           <text data-region="primary-value" x={0} y={-2} textAnchor="middle" fill="currentColor" />
@@ -159,7 +181,18 @@ function NodeBox({ n, onSelect }: { n: SldNode; onSelect?: (id: string) => void 
 /**
  * Render a positioned SLD layout.
  */
-export function SldRenderer({ layout, envelopeDirection, onSelectDevice }: SldRendererProps): React.ReactElement {
+export function SldRenderer({
+  layout,
+  envelopeDirection,
+  onSelectDevice,
+  statusByDevice,
+  statusColors,
+}: SldRendererProps): React.ReactElement {
+  const statusFillFor = (id: string): string | undefined => {
+    const s = statusByDevice?.[id];
+    if (!s || !statusColors) return undefined;
+    return statusColors[s];
+  };
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -180,7 +213,7 @@ export function SldRenderer({ layout, envelopeDirection, onSelectDevice }: SldRe
         d.kind === "breaker" ? <Breaker key={d.id} d={d} /> : <Inverter key={d.id} d={d} />,
       )}
       {layout.nodes.map((n) => (
-        <NodeBox key={n.id} n={n} onSelect={onSelectDevice} />
+        <NodeBox key={n.id} n={n} onSelect={onSelectDevice} statusFill={statusFillFor(n.id)} />
       ))}
     </svg>
   );

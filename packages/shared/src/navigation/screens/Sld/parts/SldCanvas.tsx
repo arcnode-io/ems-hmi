@@ -13,8 +13,9 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useTheme } from "../../../../theme/ThemeProvider";
 import { useOperatingEnvelope } from "../../../../data/envelope/useOperatingEnvelope";
 import { useTopologyView } from "../../../../data/topology/useTopologyView";
+import { useAlarms } from "../../../../data/alarms/useAlarms";
 import { layoutSld } from "../layout/layoutSld";
-import { SldRenderer } from "../layout/SldRenderer";
+import { SldRenderer, type SldNodeStatus } from "../layout/SldRenderer";
 
 const MIN_SCALE = 0.25;
 const MAX_SCALE = 6;
@@ -60,6 +61,28 @@ export function SldCanvas({ onSelectDevice }: SldCanvasProps = {}): React.ReactE
   const dragRef = useRef<{ startX: number; startY: number; baseX: number; baseY: number } | null>(null);
 
   const layout = useMemo(() => (view ? layoutSld(view) : null), [view]);
+
+  // Fold alarms into per-device status. alarm beats warn; missing = ok.
+  const alarms = useAlarms();
+  const statusByDevice = useMemo(() => {
+    const map: Record<string, SldNodeStatus> = {};
+    for (const a of alarms) {
+      const prev = map[a.deviceId];
+      if (a.severity === "alarm" || prev !== "alarm") {
+        map[a.deviceId] = a.severity === "alarm" ? "alarm" : "warn";
+      }
+    }
+    return map;
+  }, [alarms]);
+  const statusColors = useMemo(
+    () => ({
+      ok: t.statusOk,
+      warn: t.statusWarn,
+      alarm: t.statusAlarm,
+      offline: t.statusOffline,
+    }),
+    [t.statusOk, t.statusWarn, t.statusAlarm, t.statusOffline],
+  );
 
   useEffect(() => {
     const el = containerRef.current;
@@ -160,7 +183,13 @@ export function SldCanvas({ onSelectDevice }: SldCanvasProps = {}): React.ReactE
             color: t.text, fontFamily: t.fontLabel, fontSize: 11,
           }}
         >
-          <SldRenderer layout={layout} envelopeDirection={envelope.direction} onSelectDevice={onSelectDevice} />
+          <SldRenderer
+            layout={layout}
+            envelopeDirection={envelope.direction}
+            onSelectDevice={onSelectDevice}
+            statusByDevice={statusByDevice}
+            statusColors={statusColors}
+          />
         </div>
       )}
       <style>{`
