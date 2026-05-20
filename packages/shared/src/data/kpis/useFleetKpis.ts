@@ -27,7 +27,7 @@ import type {
   TemplateViewType,
 } from "../topology/topology.schema";
 
-const SITE_ID = "demo_site";
+const SITE_ID = "demo-site";
 
 export interface FleetKpis {
   /** Site-level status — derived from worst alarm; for now always "Nominal". */

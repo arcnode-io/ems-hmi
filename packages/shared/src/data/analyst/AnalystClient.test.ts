@@ -32,7 +32,7 @@ describe("analystChat", () => {
     const req: AnalystChatRequest = {
       conversationId: "abc-123",
       message: "hello",
-      context: { siteId: "demo_site" },
+      context: { siteId: "demo-site" },
     };
 
     // Act

@@ -74,7 +74,7 @@ function Probe({
   onMessage: (msg: MqttMessage<number> | null) => void;
 }): null {
   const latest = useSubscription<number>(
-    measurementTopic("demo_site", "bess_01", "soc", "percent"),
+    measurementTopic("demo-site", "bess_01", "soc", "percent"),
   );
   useEffect(() => {
     onMessage(latest);
@@ -102,7 +102,7 @@ describe("MockMqttProvider end-to-end", () => {
     await act(async () => {
       render(
         <TopologyProvider viewUrl="/api/topology/view">
-          <MockMqttProvider siteId="demo_site">
+          <MockMqttProvider siteId="demo-site">
             <Probe onMessage={onMessage} />
           </MockMqttProvider>
         </TopologyProvider>,

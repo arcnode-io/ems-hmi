@@ -18,7 +18,7 @@ import { measurementTopic, type TopicUnit } from "../../../data/topics/topicBuil
 import type { ModuleType, ModuleMeasurement } from "../../../components/composed/ModuleCard/ModuleCard";
 import type { StatusVariant } from "../../../components/composed/StatusBadge/StatusBadge";
 
-const SITE_ID = "demo_site";
+const SITE_ID = "demo-site";
 
 export interface ModuleRow {
   id: string;

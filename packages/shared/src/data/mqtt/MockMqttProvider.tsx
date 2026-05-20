@@ -170,7 +170,7 @@ class MockMqttClientImpl implements MqttClient {
  * Keep entries short — exactly enough to show the alarm path in a demo
  * (badges + AlarmsPanel + AlarmRow breath + SLD node tint).
  *
- * Suffix match (not full topic) so we don't have to hardcode `demo_site`.
+ * Suffix match (not full topic) so we don't have to hardcode `demo-site`.
  */
 const DEMO_ALARM_INJECTIONS: Readonly<Record<string, number>> = {
   // bess_module_02 SoC stuck at 12% — below warn_min (15), above alarm_min (5)
@@ -181,7 +181,7 @@ const DEMO_ALARM_INJECTIONS: Readonly<Record<string, number>> = {
 };
 
 interface MockMqttProviderProps {
-  /** Site id used in topic strings. Demo default is "demo_site". */
+  /** Site id used in topic strings. Demo default is "demo-site". */
   siteId?: string;
   /**
    * Pass `false` to disable the canned demo alarms (for unit tests or a
@@ -195,7 +195,7 @@ interface MockMqttProviderProps {
  * Provider — wires Topology + Mock client + rAF tick loop. Renders children
  * inside MqttProvider so useSubscription works.
  * @param props siteId + children
- * @param props.siteId Site id for topic strings (default "demo_site")
+ * @param props.siteId Site id for topic strings (default "demo-site")
  * @param props.children Subtree that consumes via useSubscription
  * @returns Provider element
  */
@@ -208,7 +208,7 @@ function demoInjectionFor(topic: string): number | null {
 }
 
 export function MockMqttProvider({
-  siteId = "demo_site",
+  siteId = "demo-site",
   demoAlarms = true,
   children,
 }: MockMqttProviderProps): React.ReactElement {

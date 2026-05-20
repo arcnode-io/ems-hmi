@@ -28,7 +28,7 @@ import { useTopologyView } from "../topology/useTopologyView";
 import { useAggregateMeasurements } from "../mqtt/useAggregateMeasurements";
 import { measurementTopic, type TopicUnit } from "../topics/topicBuilder";
 
-const SITE_ID = "demo_site";
+const SITE_ID = "demo-site";
 
 export type AlarmSeverity = "warn" | "alarm";
 

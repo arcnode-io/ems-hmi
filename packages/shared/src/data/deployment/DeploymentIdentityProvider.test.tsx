@@ -18,7 +18,7 @@ const HOST_KEY = "@arcnode/host-override";
 const BASE: DeploymentIdentityBase = {
   name: "Test Site",
   host: "localhost",
-  siteId: "demo_site",
+  siteId: "demo-site",
   mode: "local",
   chatApiUri: "http://localhost:3000/analyst",
   deviceApiUri: "http://localhost:3000/device",
