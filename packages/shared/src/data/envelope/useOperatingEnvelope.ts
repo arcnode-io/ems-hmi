@@ -15,10 +15,9 @@
 import { useMemo } from "react";
 import { useTopologyView } from "../topology/useTopologyView";
 import { useAggregateMeasurements } from "../mqtt/useAggregateMeasurements";
+import { useDeploymentIdentity } from "../deployment/useDeploymentIdentity";
 import { measurementTopic, type TopicUnit } from "../topics/topicBuilder";
 import type { DOEState } from "../../components/composed/DOEHeadroomRow/DOEHeadroomRow";
-
-const SITE_ID = "demo-site";
 
 export type GridMode = "GRID" | "ISLAND";
 
@@ -85,6 +84,7 @@ function fmtPower(watts: number | null): string {
  */
 export function useOperatingEnvelope(): OperatingEnvelope {
   const { view } = useTopologyView();
+  const { siteId } = useDeploymentIdentity();
 
   // Build topic list — operating_envelope (import/export/status), grid_module
   // (mode + net_active_power). Topics deduplicated by Set then sorted for
@@ -98,22 +98,22 @@ export function useOperatingEnvelope(): OperatingEnvelope {
       if (device.template === "operating_envelope") {
         for (const meas of ["import_limit", "export_limit", "status"]) {
           const m = tpl.measurements[meas];
-          if (m) list.push(measurementTopic(SITE_ID, deviceId, meas, m.unit as TopicUnit));
+          if (m) list.push(measurementTopic(siteId, deviceId, meas, m.unit as TopicUnit));
         }
       }
       if (device.template === "grid_module") {
         for (const meas of ["mode", "net_active_power"]) {
           const m = tpl.measurements[meas];
-          if (m) list.push(measurementTopic(SITE_ID, deviceId, meas, m.unit as TopicUnit));
+          if (m) list.push(measurementTopic(siteId, deviceId, meas, m.unit as TopicUnit));
         }
       }
       if (device.template === "revenue_meter") {
         const m = tpl.measurements["settlement_power"];
-        if (m) list.push(measurementTopic(SITE_ID, deviceId, "settlement_power", m.unit as TopicUnit));
+        if (m) list.push(measurementTopic(siteId, deviceId, "settlement_power", m.unit as TopicUnit));
       }
     }
     return list;
-  }, [view]);
+  }, [view, siteId]);
 
   const messages = useAggregateMeasurements<number | string>(topics);
 

@@ -14,11 +14,10 @@ import { match } from "ts-pattern";
 import { useTopologyView } from "../../../data/topology/useTopologyView";
 import { useAlarms, type ActiveAlarm } from "../../../data/alarms/useAlarms";
 import { useAggregateMeasurements } from "../../../data/mqtt/useAggregateMeasurements";
+import { useDeploymentIdentity } from "../../../data/deployment/useDeploymentIdentity";
 import { measurementTopic, type TopicUnit } from "../../../data/topics/topicBuilder";
 import type { ModuleType, ModuleMeasurement } from "../../../components/composed/ModuleCard/ModuleCard";
 import type { StatusVariant } from "../../../components/composed/StatusBadge/StatusBadge";
-
-const SITE_ID = "demo-site";
 
 export interface ModuleRow {
   id: string;
@@ -80,6 +79,7 @@ function statusFromAlarms(alarms: ActiveAlarm[]): StatusVariant {
  */
 export function useModuleRows(): ModuleRow[] {
   const { view } = useTopologyView();
+  const { siteId } = useDeploymentIdentity();
   const allAlarms = useAlarms();
 
   // Build the union of topics this screen needs (one per displayed metric).
@@ -94,12 +94,12 @@ export function useModuleRows(): ModuleRow[] {
         const meas = tpl.measurements[s.measurementName];
         if (!meas) continue;
         list.push(
-          measurementTopic(SITE_ID, deviceId, s.measurementName, meas.unit as TopicUnit),
+          measurementTopic(siteId, deviceId, s.measurementName, meas.unit as TopicUnit),
         );
       }
     }
     return list;
-  }, [view]);
+  }, [view, siteId]);
 
   const messages = useAggregateMeasurements<number>(topics);
 
@@ -123,7 +123,7 @@ export function useModuleRows(): ModuleRow[] {
           return { label: s.label, value: "—", unit: "", colorHint: "soft" };
         }
         const topic = measurementTopic(
-          SITE_ID,
+          siteId,
           deviceId,
           s.measurementName,
           meas.unit as TopicUnit,
@@ -159,5 +159,5 @@ export function useModuleRows(): ModuleRow[] {
       offline: 6,
     };
     return out.sort((a, b) => rank[a.status] - rank[b.status]);
-  }, [view, allAlarms, messages]);
+  }, [view, siteId, allAlarms, messages]);
 }

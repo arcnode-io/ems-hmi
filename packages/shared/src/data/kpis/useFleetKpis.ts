@@ -21,16 +21,12 @@
 import { useMemo } from "react";
 import { useTopologyView } from "../topology/useTopologyView";
 import { useAggregateMeasurements } from "../mqtt/useAggregateMeasurements";
+import { useDeploymentIdentity } from "../deployment/useDeploymentIdentity";
+import { useAlarms } from "../alarms/useAlarms";
 import { measurementTopic, type TopicUnit } from "../topics/topicBuilder";
-import type {
-  DeviceViewType,
-  TemplateViewType,
-} from "../topology/topology.schema";
-
-const SITE_ID = "demo-site";
 
 export interface FleetKpis {
-  /** Site-level status — derived from worst alarm; for now always "Nominal". */
+  /** Site-level status — highest active alarm severity, else "Nominal". */
   site: { label: "Nominal" | "Warn" | "Alarm" | "Fire" };
   /** Fleet average state-of-charge across all BESS racks. */
   fleetSoc: { value: number | null };
@@ -53,6 +49,7 @@ export interface FleetKpis {
  */
 function topicsForMeasurement(
   view: ReturnType<typeof useTopologyView>["view"],
+  siteId: string,
   templateName: string,
   measurementName: string,
 ): string[] {
@@ -65,7 +62,7 @@ function topicsForMeasurement(
   for (const [deviceId, dev] of Object.entries(view.devices)) {
     if (dev.template !== templateName) continue;
     matches.push(
-      measurementTopic(SITE_ID, deviceId, measurementName, meas.unit as TopicUnit),
+      measurementTopic(siteId, deviceId, measurementName, meas.unit as TopicUnit),
     );
   }
   return matches;
@@ -86,27 +83,27 @@ function avg(values: (number | null)[]): number | null {
  */
 export function useFleetKpis(): FleetKpis {
   const { view } = useTopologyView();
+  const { siteId } = useDeploymentIdentity();
+  const alarms = useAlarms();
 
-  // Build topic lists once per topology change. useMemo so the inner
-  // useAggregateMeasurements gets a stable identity until devices change.
-  // Reason: post-constitution-3.15 fixture uses module-tier templates as
-  // the operator-owned hardware. We pull fleet aggregates from the module
-  // rollup measurements, not from the underlying leaf devices.
+  // Fleet aggregates come from module-tier rollup measurements, not the
+  // underlying leaf devices. useMemo keeps the topic lists stable so the
+  // inner useAggregateMeasurements doesn't resubscribe on every render.
   const socTopics = useMemo(
-    () => topicsForMeasurement(view, "bess_module", "state_of_charge"),
-    [view],
+    () => topicsForMeasurement(view, siteId, "bess_module", "state_of_charge"),
+    [view, siteId],
   );
   const gpuTopics = useMemo(
-    () => topicsForMeasurement(view, "compute_module", "gpu_utilization"),
-    [view],
+    () => topicsForMeasurement(view, siteId, "compute_module", "gpu_utilization"),
+    [view, siteId],
   );
   const gridPowerTopics = useMemo(
-    () => topicsForMeasurement(view, "grid_module", "net_active_power"),
-    [view],
+    () => topicsForMeasurement(view, siteId, "grid_module", "net_active_power"),
+    [view, siteId],
   );
   const gridFreqTopics = useMemo(
-    () => topicsForMeasurement(view, "grid_module", "grid_frequency"),
-    [view],
+    () => topicsForMeasurement(view, siteId, "grid_module", "grid_frequency"),
+    [view, siteId],
   );
 
   const socMessages = useAggregateMeasurements<number>(socTopics);
@@ -138,10 +135,16 @@ export function useFleetKpis(): FleetKpis {
           ? "Export"
           : "Hold";
 
+  const siteLabel: FleetKpis["site"]["label"] = alarms.some(
+    (a) => a.severity === "alarm",
+  )
+    ? "Alarm"
+    : alarms.some((a) => a.severity === "warn")
+      ? "Warn"
+      : "Nominal";
+
   return {
-    // TODO: derive from useAlarms once alarms exist. For now fixed Nominal —
-    // sim driver clamps inside warn band, so no alarms.
-    site: { label: "Nominal" },
+    site: { label: siteLabel },
     fleetSoc: { value: fleetSocAvg },
     gpuUtil: { value: gpuUtilAvg },
     grid: {
@@ -151,6 +154,3 @@ export function useFleetKpis(): FleetKpis {
     },
   };
 }
-
-// Suppress unused-import warnings; types are re-used elsewhere as the surface grows.
-export type { DeviceViewType, TemplateViewType };

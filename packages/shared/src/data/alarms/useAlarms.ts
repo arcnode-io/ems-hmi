@@ -26,9 +26,8 @@ import { useMemo } from "react";
 import { match } from "ts-pattern";
 import { useTopologyView } from "../topology/useTopologyView";
 import { useAggregateMeasurements } from "../mqtt/useAggregateMeasurements";
+import { useDeploymentIdentity } from "../deployment/useDeploymentIdentity";
 import { measurementTopic, type TopicUnit } from "../topics/topicBuilder";
-
-const SITE_ID = "demo-site";
 
 export type AlarmSeverity = "warn" | "alarm";
 
@@ -90,6 +89,7 @@ const UTILITY_TEMPLATES = new Set(["operating_envelope", "line_rating", "revenue
  */
 function buildWatchList(
   view: ReturnType<typeof useTopologyView>["view"],
+  siteId: string,
 ): Watch[] {
   if (!view) return [];
   const list: Watch[] = [];
@@ -101,7 +101,7 @@ function buildWatchList(
       if (meas.type === "float" && meas.thresholds) {
         list.push({
           kind: "float",
-          topic: measurementTopic(SITE_ID, deviceId, measName, meas.unit as TopicUnit),
+          topic: measurementTopic(siteId, deviceId, measName, meas.unit as TopicUnit),
           deviceId,
           deviceDisplayName: device.display_name ?? deviceId,
           measurementName: measName,
@@ -117,7 +117,7 @@ function buildWatchList(
       ) {
         list.push({
           kind: "status-enum",
-          topic: measurementTopic(SITE_ID, deviceId, measName, meas.unit as TopicUnit),
+          topic: measurementTopic(siteId, deviceId, measName, meas.unit as TopicUnit),
           deviceId,
           deviceDisplayName: device.display_name ?? deviceId,
           measurementName: measName,
@@ -160,7 +160,8 @@ function classifyStatus(value: string): AlarmSeverity | null {
  */
 export function useAlarms(): ActiveAlarm[] {
   const { view } = useTopologyView();
-  const watchList = useMemo(() => buildWatchList(view), [view]);
+  const { siteId } = useDeploymentIdentity();
+  const watchList = useMemo(() => buildWatchList(view, siteId), [view, siteId]);
   const topics = useMemo(() => watchList.map((w) => w.topic), [watchList]);
   const messages = useAggregateMeasurements<number | string>(topics);
 
