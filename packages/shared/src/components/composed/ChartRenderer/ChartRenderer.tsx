@@ -10,7 +10,7 @@ import { useTheme } from "../../../theme/ThemeProvider";
 import { resolveTypeStyle, type Theme } from "../../../theme/tokens";
 import { SPACE } from "../../../theme/tokens/primitives";
 import { TimeseriesChart } from "../TimeseriesChart/TimeseriesChart";
-import type { AnalystArtifact, ToolError } from "../../../data/analyst/types";
+import type { AnalystArtifact, ToolErrorSpec } from "../../../data/analyst/types";
 import { ArtifactCard } from "./ArtifactCard";
 import { detectPlaceholder } from "./helpers";
 import { BarChart } from "./BarChart";
@@ -20,12 +20,12 @@ export interface ChartRendererProps {
   artifact: AnalystArtifact;
 }
 
-function ErrorBody({ error }: { error: ToolError }): React.ReactElement {
+function ErrorBody({ spec }: { spec: ToolErrorSpec }): React.ReactElement {
   const t = useTheme();
   return (
     <View style={{ paddingVertical: SPACE[3], paddingHorizontal: SPACE[3] }}>
       <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.text }]}>
-        {error.message}
+        {spec.message}
       </Text>
     </View>
   );
@@ -106,9 +106,14 @@ export function ChartRenderer({ artifact }: ChartRendererProps): React.ReactElem
         <TableBody spec={spec} />
       </ArtifactCard>
     ))
-    .with({ kind: "error" }, (err) => (
-      <ArtifactCard title={err.code.replace("_", " ").toUpperCase()} dataAsOf={err.dataAsOf} badge={err.code} badgeColor={t.statusAlarm}>
-        <ErrorBody error={err} />
+    .with({ kind: "error" }, ({ spec }) => (
+      <ArtifactCard
+        title={spec.code.replace("_", " ").toUpperCase()}
+        dataAsOf={spec.dataAsOf}
+        badge={spec.code}
+        badgeColor={t.statusAlarm}
+      >
+        <ErrorBody spec={spec} />
       </ArtifactCard>
     ))
     .exhaustive();

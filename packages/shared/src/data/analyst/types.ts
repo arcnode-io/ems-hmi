@@ -60,8 +60,8 @@ export type ToolErrorCode =
   | "site_id_changed"
   | "unknown";
 
-export interface ToolError {
-  kind: "error";
+/** Error-artifact payload — nested under `spec`, symmetric with the chart specs. */
+export interface ToolErrorSpec {
   code: ToolErrorCode;
   message: string;
   dataAsOf: string;
@@ -72,7 +72,7 @@ export type AnalystArtifact =
   | { kind: "bar"; spec: BarSpec }
   | { kind: "table"; spec: TableSpec }
   | { kind: "pie"; spec: PieSpec }
-  | ToolError;
+  | { kind: "error"; spec: ToolErrorSpec };
 
 export interface AnalystToolCall {
   tool: string;
@@ -88,8 +88,12 @@ export interface AnalystMessage {
     | { type: "artifact"; artifact: AnalystArtifact }
   >;
   toolTrace?: AnalystToolCall[];
-  /** ISO timestamp; assigned client-side for user msgs, server-side for assistant msgs. */
-  timestamp: string;
+  /**
+   * ISO timestamp. The server doesn't emit one; useAnalystChat assigns it
+   * on send (user) / on receipt (assistant). Optional so a raw server
+   * AnalystMessage validates before the hook stamps it.
+   */
+  timestamp?: string;
 }
 
 export interface AnalystChatRequest {

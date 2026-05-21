@@ -30,7 +30,7 @@ function MessageBlock({ msg }: { msg: AnalystMessage }): React.ReactElement {
   const text = proseChunks.join("\n");
   return (
     <View style={{ gap: SPACE[2] }}>
-      <ChatBubble role={msg.role} text={text} time={msg.timestamp} />
+      <ChatBubble role={msg.role} text={text} time={msg.timestamp ?? ""} />
       {artifacts.map((art, i) =>
         art.type === "artifact" ? (
           <ChartRenderer key={i} artifact={art.artifact} />

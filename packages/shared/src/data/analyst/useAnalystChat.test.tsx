@@ -61,7 +61,7 @@ describe("useAnalystChat — site_id_changed recovery", () => {
     if (artifact.type !== "artifact") throw new Error("expected artifact");
     expect(artifact.artifact.kind).toBe("error");
     if (artifact.artifact.kind !== "error") throw new Error("expected error");
-    expect(artifact.artifact.code).toBe("site_id_changed");
+    expect(artifact.artifact.spec.code).toBe("site_id_changed");
 
     // Act — second send should use a fresh conversationId.
     await act(async () => {

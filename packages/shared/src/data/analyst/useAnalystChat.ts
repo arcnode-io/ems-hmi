@@ -68,7 +68,12 @@ export function useAnalystChat(
           message: trimmed,
           context,
         });
-        setMessages((prev) => [...prev, reply]);
+        // The server doesn't stamp a timestamp; assign one on receipt.
+        const stamped: AnalystMessage = {
+          ...reply,
+          timestamp: reply.timestamp ?? new Date().toISOString(),
+        };
+        setMessages((prev) => [...prev, stamped]);
         setStatus("idle");
       } catch (e: unknown) {
         if (e instanceof SiteIdChangedError) {
@@ -81,10 +86,12 @@ export function useAnalystChat(
                 type: "artifact",
                 artifact: {
                   kind: "error",
-                  code: "site_id_changed",
-                  message:
-                    "Conversation invalidated — site identifier changed. Starting a fresh conversation.",
-                  dataAsOf: nowIso,
+                  spec: {
+                    code: "site_id_changed",
+                    message:
+                      "Conversation invalidated — site identifier changed. Starting a fresh conversation.",
+                    dataAsOf: nowIso,
+                  },
                 },
               },
             ],
