@@ -2,21 +2,23 @@
  * MockMqttProvider — drop-in for RealMqttProvider in demo mode.
  *
  * Behavior:
- *  - Reads TopologyContext to build a tick plan: one ticker per
- *    (device, measurement). Each ticker fires at the measurement's
- *    poll_rate_hz and emits a value following a mean-reverting random
- *    walk inside the constitutional safe band (clamped between warn_min
- *    and warn_max so the alarm channel stays clean per Rule 1).
- *  - Floats walk; bools flip with low probability; enums cycle slowly.
- *  - Single requestAnimationFrame loop services all tickers — auto-pauses
- *    when the tab is hidden (rAF behavior), saves battery during demos.
+ *  - Reads TopologyContext to build a tick plan (see ./tickers): one ticker
+ *    per (device, measurement). A single rAF loop services all tickers and
+ *    auto-pauses when the tab is hidden.
+ *  - Owns the dispatch lifecycle (DispatchSimulator). The rAF loop advances
+ *    it and, while a dispatch is executing, lets the simulator override the
+ *    dispatched device's active_power + state_of_charge tickers.
  *
  * NEVER alarms — random walks stay inside [warn_min, warn_max] by clamp.
- * Operator commands can later steer tickers toward a target (target-walk
- * mode — to be wired in phase 6).
  */
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { MqttProvider } from "./MqttProvider";
 import type {
   MqttClient,
@@ -25,115 +27,16 @@ import type {
   Unsubscribe,
 } from "./MqttClient";
 import { useTopologyView } from "../topology/useTopologyView";
-import { measurementTopic, type TopicUnit } from "../topics/topicBuilder";
+import { buildTickerPlan, nextFloatValue, type Ticker } from "./tickers";
+import { DispatchSimulator } from "../dispatch/DispatchSimulator";
+import {
+  DispatchContext,
+  type DispatchControls,
+} from "../dispatch/DispatchContext";
 import type {
-  TopologyViewType,
-  MeasurementViewType,
-} from "../topology/topology.schema";
-
-interface FloatTicker {
-  kind: "float";
-  topic: string;
-  intervalMs: number;
-  nextDueAt: number;
-  bounds: { min: number; max: number; nominal: number };
-  safeMin: number;
-  safeMax: number;
-  current: number;
-}
-
-interface BoolTicker {
-  kind: "bool";
-  topic: string;
-  intervalMs: number;
-  nextDueAt: number;
-  current: boolean;
-}
-
-interface EnumTicker {
-  kind: "enum";
-  topic: string;
-  intervalMs: number;
-  nextDueAt: number;
-  values: string[];
-  index: number;
-}
-
-type Ticker = FloatTicker | BoolTicker | EnumTicker;
-
-const DEFAULT_POLL_HZ = 1;
-const MEAN_REVERSION = 0.05; // 5% pull toward nominal per tick
-const STEP_FRACTION = 0.02; // step magnitude as fraction of (max - min)
-
-/** Build the ticker plan once from a ready topology view. */
-function buildTickerPlan(view: TopologyViewType, siteId: string): Ticker[] {
-  const now = performance.now();
-  const tickers: Ticker[] = [];
-  for (const [deviceId, device] of Object.entries(view.devices)) {
-    const tpl = view.templates_used[device.template];
-    if (!tpl) continue;
-    for (const [measName, meas] of Object.entries(tpl.measurements)) {
-      const topic = measurementTopic(
-        siteId,
-        deviceId,
-        measName,
-        meas.unit as TopicUnit,
-      );
-      tickers.push(buildTicker(topic, meas, now));
-    }
-  }
-  return tickers;
-}
-
-function buildTicker(
-  topic: string,
-  meas: MeasurementViewType,
-  now: number,
-): Ticker {
-  const intervalMs = 1000 / (meas.poll_rate_hz ?? DEFAULT_POLL_HZ);
-  if (meas.type === "float" && meas.bounds) {
-    const bounds = meas.bounds;
-    // Clamp to inside warn band so the sim never alarms (constitution Rule 1).
-    const safeMin = meas.thresholds
-      ? Math.max(bounds.min, meas.thresholds.warn_min)
-      : bounds.min;
-    const safeMax = meas.thresholds
-      ? Math.min(bounds.max, meas.thresholds.warn_max)
-      : bounds.max;
-    return {
-      kind: "float",
-      topic,
-      intervalMs,
-      nextDueAt: now,
-      bounds,
-      safeMin,
-      safeMax,
-      current: bounds.nominal,
-    };
-  }
-  if (meas.type === "bool") {
-    return { kind: "bool", topic, intervalMs, nextDueAt: now, current: true };
-  }
-  // enum
-  const values = meas.values ? Object.values(meas.values) : ["UNKNOWN"];
-  return {
-    kind: "enum",
-    topic,
-    intervalMs,
-    nextDueAt: now,
-    values,
-    index: 0,
-  };
-}
-
-/** Compute the next value for a float ticker — mean-reverting Gaussian step. */
-function nextFloatValue(t: FloatTicker): number {
-  const range = t.bounds.max - t.bounds.min;
-  const drift = (t.bounds.nominal - t.current) * MEAN_REVERSION;
-  const noise = (Math.random() - 0.5) * 2 * range * STEP_FRACTION;
-  const next = t.current + drift + noise;
-  return Math.max(t.safeMin, Math.min(t.safeMax, next));
-}
+  DispatchProposal,
+  DispatchState,
+} from "../dispatch/dispatch.types";
 
 /** A concrete MqttClient that talks to local listeners only. */
 class MockMqttClientImpl implements MqttClient {
@@ -152,7 +55,7 @@ class MockMqttClientImpl implements MqttClient {
   }
 
   publish(): void {
-    // No-op for now — phase 6 will wire commands to retarget tickers.
+    // Commands flow through DispatchContext in demo mode, not the wire.
   }
 
   broadcast(topic: string, msg: MqttMessage<unknown>): void {
@@ -163,42 +66,15 @@ class MockMqttClientImpl implements MqttClient {
 }
 
 /**
- * Demo-mode alarm injection: map of measurement-topic suffix → stuck value.
- * Tickers matching the suffix bypass the safe-band clamp and publish the
- * stuck value verbatim, so threshold-derivation in useAlarms trips.
- *
- * Keep entries short — exactly enough to show the alarm path in a demo
- * (badges + AlarmsPanel + AlarmRow breath + SLD node tint).
- *
- * Suffix match (not full topic) so we don't have to hardcode `demo-site`.
+ * Demo-mode alarm injection: measurement-topic suffix → stuck value. Tickers
+ * matching the suffix bypass the safe-band clamp so threshold-derivation in
+ * useAlarms trips. Suffix match so we don't hardcode the site id.
  */
 const DEMO_ALARM_INJECTIONS: Readonly<Record<string, number>> = {
-  // bess_module_02 SoC stuck at 12% — below warn_min (15), above alarm_min (5)
-  //   → trips warn, so the alarm path renders in demos. Constitution
-  //   rule 1 still holds (sim default = no alarms); this is opt-in
-  //   per the `demoAlarms` prop on MockMqttProvider (default true).
+  // bess_module_02 SoC stuck at 12% — below warn_min (15) → trips warn.
   "devices/bess_module_02/measurements/state_of_charge/percent": 12,
 };
 
-interface MockMqttProviderProps {
-  /** Site id used in topic strings. Demo default is "demo-site". */
-  siteId?: string;
-  /**
-   * Pass `false` to disable the canned demo alarms (for unit tests or a
-   * "clean" demo state). Default `true`.
-   */
-  demoAlarms?: boolean;
-  children: React.ReactNode;
-}
-
-/**
- * Provider — wires Topology + Mock client + rAF tick loop. Renders children
- * inside MqttProvider so useSubscription works.
- * @param props siteId + children
- * @param props.siteId Site id for topic strings (default "demo-site")
- * @param props.children Subtree that consumes via useSubscription
- * @returns Provider element
- */
 /** Find a demo-injection stuck value for a topic, if any. */
 function demoInjectionFor(topic: string): number | null {
   for (const [suffix, value] of Object.entries(DEMO_ALARM_INJECTIONS)) {
@@ -207,6 +83,36 @@ function demoInjectionFor(topic: string): number | null {
   return null;
 }
 
+const INITIAL_DISPATCH: DispatchState = {
+  phase: "proposed",
+  proposal: null,
+  executingStartedAt: null,
+  executingEndsAt: null,
+};
+
+/** Mirror the simulator's slow-changing state for the context. */
+function snapshot(sim: DispatchSimulator): DispatchState {
+  const w = sim.executingWindow();
+  return {
+    phase: sim.phase(),
+    proposal: sim.proposal(),
+    executingStartedAt: w?.startedAt ?? null,
+    executingEndsAt: w?.endsAt ?? null,
+  };
+}
+
+interface MockMqttProviderProps {
+  /** Site id used in topic strings. Demo default is "demo-site". */
+  siteId?: string;
+  /** Pass `false` to disable the canned demo alarms. Default `true`. */
+  demoAlarms?: boolean;
+  children: React.ReactNode;
+}
+
+/**
+ * Provider — wires Topology + Mock client + rAF tick loop + dispatch
+ * lifecycle. Renders children inside MqttProvider + DispatchContext.
+ */
 export function MockMqttProvider({
   siteId = "demo-site",
   demoAlarms = true,
@@ -215,8 +121,23 @@ export function MockMqttProvider({
   const { status, view } = useTopologyView();
   const client = useMemo(() => new MockMqttClientImpl(), []);
   const tickersRef = useRef<Ticker[]>([]);
+  const simRef = useRef<DispatchSimulator>(new DispatchSimulator());
   const rafRef = useRef<number | null>(null);
   const [, force] = useState(0); // force re-render once tickers are armed
+  const [dispatchState, setDispatchState] =
+    useState<DispatchState>(INITIAL_DISPATCH);
+
+  const confirm = useCallback(
+    (proposal: DispatchProposal, socStartPct: number): void => {
+      simRef.current.confirm(proposal, socStartPct, performance.now());
+      setDispatchState(snapshot(simRef.current));
+    },
+    [],
+  );
+  const cancel = useCallback((): void => {
+    simRef.current.cancel();
+    setDispatchState(snapshot(simRef.current));
+  }, []);
 
   useEffect(() => {
     if (status !== "ready" || !view) return;
@@ -225,35 +146,28 @@ export function MockMqttProvider({
 
     const tick = (): void => {
       const now = performance.now();
+      const sim = simRef.current;
+      if (sim.tick(now)) setDispatchState(snapshot(sim));
       for (const t of tickersRef.current) {
         if (now < t.nextDueAt) continue;
         t.nextDueAt = now + t.intervalMs;
         let value: unknown;
         if (t.kind === "float") {
-          // Reason: demo-mode injection — if this topic matches a canned
-          // alarm entry, publish the stuck value verbatim instead of the
-          // mean-reverting walk. Lets the alarm path render in demos
-          // without abandoning the rule-1 "sim never alarms" default.
+          // Priority: dispatch override > demo alarm injection > random walk.
+          const override = sim.overrideFor(t.deviceId, t.measurement, now);
           const stuck = demoAlarms ? demoInjectionFor(t.topic) : null;
-          if (stuck !== null) {
-            t.current = stuck;
-          } else {
-            t.current = nextFloatValue(t);
-          }
+          if (override !== null) t.current = override;
+          else if (stuck !== null) t.current = stuck;
+          else t.current = nextFloatValue(t);
           value = t.current;
         } else if (t.kind === "bool") {
-          // Flip with 1% probability per tick — stays mostly stable.
           if (Math.random() < 0.01) t.current = !t.current;
           value = t.current;
         } else {
-          // Advance enum once every ~20 ticks.
           if (Math.random() < 0.05) t.index = (t.index + 1) % t.values.length;
           value = t.values[t.index];
         }
-        client.broadcast(t.topic, {
-          ts: new Date().toISOString(),
-          value,
-        });
+        client.broadcast(t.topic, { ts: new Date().toISOString(), value });
       }
       rafRef.current = requestAnimationFrame(tick);
     };
@@ -264,7 +178,18 @@ export function MockMqttProvider({
       rafRef.current = null;
       tickersRef.current = [];
     };
-  }, [status, view, siteId, client]);
+  }, [status, view, siteId, client, demoAlarms]);
 
-  return <MqttProvider client={client}>{children}</MqttProvider>;
+  const controls = useMemo<DispatchControls>(
+    () => ({ state: dispatchState, confirm, cancel }),
+    [dispatchState, confirm, cancel],
+  );
+
+  return (
+    <MqttProvider client={client}>
+      <DispatchContext.Provider value={controls}>
+        {children}
+      </DispatchContext.Provider>
+    </MqttProvider>
+  );
 }

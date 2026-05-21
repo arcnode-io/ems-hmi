@@ -16,7 +16,11 @@ import { useTopologyView } from "../../../data/topology/useTopologyView";
 import { useAggregateMeasurements } from "../../../data/mqtt/useAggregateMeasurements";
 import { measurementTopic, type TopicUnit } from "../../../data/topics/topicBuilder";
 import { useDeploymentIdentity } from "../../../data/deployment/useDeploymentIdentity";
+import { CommandPanel } from "../../../components/composed/CommandPanel/CommandPanel";
 import type { RootStackParamList } from "../../routes";
+
+/** Template that exposes operator dispatch control. */
+const DISPATCHABLE_TEMPLATE = "bess_module";
 
 interface DeviceDetailScreenProps {
   route: { params: { deviceId: string } };
@@ -108,6 +112,13 @@ export function DeviceDetailScreen({ route }: DeviceDetailScreenProps): React.Re
           })
         )}
       </View>
+
+      {device.template === DISPATCHABLE_TEMPLATE ? (
+        <CommandPanel
+          deviceId={device.device_id}
+          deviceDisplayName={device.display_name ?? device.device_id}
+        />
+      ) : null}
     </ScrollView>
   );
 }

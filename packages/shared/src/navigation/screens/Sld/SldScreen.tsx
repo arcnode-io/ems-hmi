@@ -3,7 +3,7 @@
  * client-side from the topology view (`layoutSld` → `SldRenderer`),
  * so arbitrary device counts / topology shapes render correctly.
  *
- * Composition: BadgeStrip → ReadOnlyBanner → SldCanvas (pan/zoom).
+ * Composition: BadgeStrip → ReadOnlyBanner → DispatchBanner → SldCanvas.
  * Device taps navigate to `/devices/:deviceId`.
  */
 
@@ -14,6 +14,7 @@ import { useTheme } from "../../../theme/ThemeProvider";
 import { BadgeStrip } from "./parts/BadgeStrip";
 import { ReadOnlyBanner } from "./parts/ReadOnlyBanner";
 import { SldCanvas } from "./parts/SldCanvas";
+import { DispatchBanner } from "../../../components/composed/DispatchBanner/DispatchBanner";
 import type { RootStackParamList } from "../../routes";
 
 export function SldScreen(): React.ReactElement {
@@ -30,6 +31,7 @@ export function SldScreen(): React.ReactElement {
     >
       <BadgeStrip />
       <ReadOnlyBanner />
+      <DispatchBanner />
       <SldCanvas onSelectDevice={onSelectDevice} />
     </View>
   );

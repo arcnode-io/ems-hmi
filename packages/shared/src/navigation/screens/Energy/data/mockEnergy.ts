@@ -23,13 +23,6 @@ export const MOCK_ENERGY = {
     total: 6760,
     target: 8200,
   },
-  dispatch: {
-    action: "DISCHARGE BESS",
-    reason: "Arbitrage spread $187/MWh",
-    intervalSecLeft: 142,
-    confidence: 0.94,
-    bessSocPct: 73,
-  },
   markets: [
     { id: "CAISO-DA", name: "CAISO Day-Ahead", product: "Energy", status: "CLEARED", mwh: 8.2, dollars: 187, next: "12:00" },
     { id: "CAISO-RT", name: "CAISO Real-Time", product: "Energy", status: "CLEARED", mwh: 1.4, dollars: 213, next: "NOW" },

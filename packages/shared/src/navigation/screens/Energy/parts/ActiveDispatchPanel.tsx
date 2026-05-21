@@ -1,18 +1,30 @@
 /**
- * ActiveDispatchPanel — shows what the autopilot is doing right now +
- * countdown to next settlement interval.
+ * ActiveDispatchPanel — what dispatch is doing right now, on the Energy
+ * screen. Reads the live dispatch lifecycle; falls back to the autopilot's
+ * standing proposal while resting.
  *
- * Read-only on phone per constitution rule 3.1; dispatch overrides
- * happen at the desk console.
+ * Read-only — dispatch is controlled from the device's CommandPanel at the
+ * desk console (constitution rule 3.1).
  */
 
 import React from "react";
 import { View, Text } from "react-native";
+import { match } from "ts-pattern";
 import { useTheme } from "../../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../../theme/tokens";
 import { SPACE } from "../../../../theme/tokens/primitives";
 import { EDPanel } from "./EDPanel";
-import { MOCK_ENERGY } from "../data/mockEnergy";
+import { useDispatch } from "../../../../data/dispatch/useDispatch";
+import { useDispatchTelemetry } from "../../../../data/dispatch/useDispatchTelemetry";
+import {
+  autopilotProposal,
+  DEMO_DISPATCH_DEVICE_ID,
+} from "../../../../data/dispatch/autopilot";
+import {
+  formatSetpoint,
+  formatUsd,
+  formatCountdown,
+} from "../../../../data/dispatch/format";
 
 interface KvProps {
   label: string;
@@ -57,15 +69,31 @@ function alphaHex(hex: string, alpha: string): string {
 
 export function ActiveDispatchPanel(): React.ReactElement {
   const t = useTheme();
-  const d = MOCK_ENERGY.dispatch;
-  const mins = Math.floor(d.intervalSecLeft / 60);
-  const secs = String(d.intervalSecLeft % 60).padStart(2, "0");
+  const { state } = useDispatch();
+  const tel = useDispatchTelemetry();
+  // Resting → show the autopilot's standing proposal; otherwise the live one.
+  const proposal = state.proposal ?? autopilotProposal(DEMO_DISPATCH_DEVICE_ID);
+
+  const tag = match(state.phase)
+    .with("proposed", () => "AUTO")
+    .with("pending", () => "PENDING")
+    .with("executing", () => "LIVE")
+    .with("settled", () => "SETTLED")
+    .exhaustive();
+
+  const status = match(state.phase)
+    .with("proposed", () => "standing by")
+    .with("pending", () => "awaiting ack")
+    .with("executing", () => `settles ${formatCountdown(tel.secondsRemaining)}`)
+    .with("settled", () => "settled")
+    .exhaustive();
+
   const chipBg = alphaHex(t.colorBess, "14");
 
   return (
     <EDPanel accent={t.colorBess}>
       <View style={{ padding: SPACE[3], gap: 10 }}>
-        {/* Row 1: AUTO action chip + countdown */}
+        {/* Row 1: tag + setpoint + status */}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <View
             style={{
@@ -91,7 +119,7 @@ export function ActiveDispatchPanel(): React.ReactElement {
                 },
               ]}
             >
-              AUTO
+              {tag}
             </Text>
             <Text
               style={[
@@ -105,7 +133,7 @@ export function ActiveDispatchPanel(): React.ReactElement {
                 },
               ]}
             >
-              {d.action}
+              {formatSetpoint(proposal.setpointKw)}
             </Text>
           </View>
           <View style={{ flex: 1 }} />
@@ -115,16 +143,13 @@ export function ActiveDispatchPanel(): React.ReactElement {
               {
                 fontSize: 9,
                 letterSpacing: 0.15,
-                color: t.textMid,
-                fontWeight: "600",
+                color: t.text,
+                fontWeight: "700",
                 textTransform: "uppercase",
               },
             ]}
           >
-            settles{" "}
-            <Text style={{ color: t.text, fontWeight: "700" }}>
-              {mins}:{secs}
-            </Text>
+            {status}
           </Text>
         </View>
 
@@ -135,7 +160,7 @@ export function ActiveDispatchPanel(): React.ReactElement {
             { fontSize: 11, color: t.text, fontWeight: "600", lineHeight: 15 },
           ]}
         >
-          {d.reason}
+          {proposal.reason}
         </Text>
 
         {/* Row 3: KV strip */}
@@ -149,8 +174,8 @@ export function ActiveDispatchPanel(): React.ReactElement {
             flexWrap: "wrap",
           }}
         >
-          <Kv label="conf" value={`${Math.round(d.confidence * 100)}%`} />
-          <Kv label="bess" value={`${d.bessSocPct}%`} color={t.colorBess} />
+          <Kv label="revenue" value={formatUsd(tel.revenueUsd)} color={t.colorBess} />
+          <Kv label="price" value={`$${proposal.priceUsdPerMwh}/MWh`} />
         </View>
       </View>
     </EDPanel>
