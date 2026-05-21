@@ -6,7 +6,7 @@ local:
   siteId: "demo-site"
   mqttUri: "ws://localhost:8083/mqtt"
   deviceApiUri: "http://localhost:3000"
-  chatApiUri: "http://localhost:3000"
+  chatApiUri: "http://localhost:8000"
 
 beta:
   logLevel: "INFO"
