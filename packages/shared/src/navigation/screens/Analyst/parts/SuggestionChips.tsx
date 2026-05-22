@@ -4,10 +4,9 @@
  * questions are long, so a horizontal pill strip clipped them off-screen.
  *
  * Chips lead with questions the demo analyst-server actually answers:
- * path-1 historical market price (real demo CSV) + query_markets /
- * query_energy_breakdown (placeholder artifacts that still render) +
- * listDevicesWhere. Forecast + live-ERCOT prompts are deliberately
- * absent until the forecasts table + the ERCOT quota land (~2026-06-01).
+ * historical + forecast DAM price (the forecasts table is demo-seeded),
+ * query_markets / query_energy_breakdown, and listDevicesWhere. Live-ERCOT
+ * prompts stay absent until the gridstatus quota resets (~2026-06-01).
  */
 
 import React from "react";
@@ -18,6 +17,7 @@ import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
 
 export const DEFAULT_SUGGESTIONS: readonly string[] = [
   "Show me the day-ahead clearing price for market_01 over the last 24 hours",
+  "Show me the DAM LMP price forecast for the next 24 hours",
   "List devices currently in alarm",
   "What was today's revenue by market?",
   "Break down today's energy consumption by source",
