@@ -44,7 +44,7 @@ test.describe("Analyst redesign", () => {
     await expect(page.getByText(/clearing price for market_01/i).first()).toBeAttached();
     await expect(page.locator('[data-comp="SuggestionChips"]')).not.toBeAttached();
 
-    const meaningful = errors.filter((e) => !IGNORE_PATTERN.test(e));
+    const meaningful = errors.filter((err) => !IGNORE_PATTERN.test(err));
     expect(meaningful, `unexpected console errors:\n${meaningful.join("\n")}`).toEqual([]);
   });
 
@@ -57,7 +57,7 @@ test.describe("Analyst redesign", () => {
     await sendAndSettle(page);
     await expect(page.locator('[data-comp="AnalystScreen"]')).toBeAttached();
 
-    const meaningful = errors.filter((e) => !IGNORE_PATTERN.test(e));
+    const meaningful = errors.filter((err) => !IGNORE_PATTERN.test(err));
     expect(meaningful, `unexpected console errors:\n${meaningful.join("\n")}`).toEqual([]);
   });
 });
