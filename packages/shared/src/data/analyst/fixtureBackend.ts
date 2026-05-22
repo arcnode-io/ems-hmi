@@ -1,6 +1,6 @@
 /**
- * Local fixture backend used by tests + storybook + offline dev. Production
- * wiring lives in AnalystClient; AnalystScreen picks via cfg/identity.
+ * Local fixture backend — canned analyst replies for tests + offline dev.
+ * mockAnalystStream wraps it to stand in for the live SSE stream.
  */
 
 import type {

@@ -102,9 +102,9 @@ export interface AnalystMessage {
   >;
   toolTrace?: AnalystToolCall[];
   /**
-   * ISO timestamp. The server doesn't emit one; useAnalystChat assigns it
-   * on send (user) / on receipt (assistant). Optional so a raw server
-   * AnalystMessage validates before the hook stamps it.
+   * ISO timestamp. The server doesn't emit one; the conversation provider
+   * stamps it on send (user) / on receipt (assistant). Optional so a raw
+   * server AnalystMessage validates before stamping.
    */
   timestamp?: string;
 }
