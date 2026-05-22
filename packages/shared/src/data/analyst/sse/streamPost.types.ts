@@ -1,5 +1,13 @@
 /** Shared shape for the platform-split streaming-POST transport. */
 
+/** Thrown by a transport on a non-2xx response — carries the status code. */
+export class StreamHttpError extends Error {
+  constructor(public readonly status: number) {
+    super(`analyst stream — HTTP ${status}`);
+    this.name = "StreamHttpError";
+  }
+}
+
 export interface StreamPostInit {
   headers: Record<string, string>;
   /** JSON request body. */

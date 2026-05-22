@@ -4,7 +4,7 @@
  * events instead. Each progress tick yields the delta since the last.
  */
 
-import type { StreamPostInit } from "./streamPost.types";
+import { StreamHttpError, type StreamPostInit } from "./streamPost.types";
 
 export function streamPost(
   url: string,
@@ -28,7 +28,7 @@ export function streamPost(
     xhr.onprogress = flush;
     xhr.onload = (): void => {
       if (xhr.status < 200 || xhr.status >= 300) {
-        reject(new Error(`analyst stream — HTTP ${xhr.status}`));
+        reject(new StreamHttpError(xhr.status));
         return;
       }
       flush();

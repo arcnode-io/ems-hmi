@@ -9,6 +9,8 @@ import { ThemeProvider } from "./theme/ThemeProvider";
 import { DeploymentIdentityProvider } from "./data/deployment/DeploymentIdentityProvider";
 import { TopologyProvider } from "./data/topology/TopologyProvider";
 import { MockMqttProvider } from "./data/mqtt/MockMqttProvider";
+import { AnalystConversationProvider } from "./data/analyst/AnalystConversationProvider";
+import { mockAnalystStream } from "./data/analyst/mockAnalystStream";
 import { NavigationRoot } from "./navigation/NavigationRoot";
 
 export interface AppRootCfg {
@@ -47,7 +49,11 @@ export function AppRoot({ cfg, errorBoundary: Boundary }: AppRootProps): React.R
     >
       <TopologyProvider viewUrl={topologyUrl(cfg)}>
         <MockMqttProvider siteId={cfg.siteId}>
-          <NavigationRoot />
+          {/* Reason: mockAnalystStream until the server ships its
+              text/event-stream endpoint — then swap to analystStream. */}
+          <AnalystConversationProvider stream={mockAnalystStream}>
+            <NavigationRoot />
+          </AnalystConversationProvider>
         </MockMqttProvider>
       </TopologyProvider>
     </DeploymentIdentityProvider>

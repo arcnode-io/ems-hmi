@@ -4,7 +4,7 @@
  * so the SSE turn rides a POST body and we read the stream ourselves.
  */
 
-import type { StreamPostInit } from "./streamPost.types";
+import { StreamHttpError, type StreamPostInit } from "./streamPost.types";
 
 export async function streamPost(
   url: string,
@@ -16,7 +16,7 @@ export async function streamPost(
     headers: init.headers,
     body: init.body,
   });
-  if (!res.ok) throw new Error(`analyst stream — HTTP ${res.status}`);
+  if (!res.ok) throw new StreamHttpError(res.status);
   if (!res.body) throw new Error("analyst stream — no response body");
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
