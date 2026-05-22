@@ -142,7 +142,7 @@ export function ArtifactCard({
 
       <View>{children}</View>
 
-      {note ? (
+      {note || dataAsOf ? (
         <View
           style={{
             paddingVertical: SPACE[2],
@@ -150,39 +150,32 @@ export function ArtifactCard({
             borderTopWidth: 1,
             borderTopColor: t.borderSoft,
             backgroundColor: t.bg,
+            gap: 3,
           }}
         >
-          <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.textMid }]}>
+          {note ? (
+            <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.textMid }]}>
+              <Text
+                style={[
+                  resolveTypeStyle(t, "caption"),
+                  { fontSize: 8.5, fontWeight: "800", letterSpacing: 0.2, color: t.textSoft, textTransform: "uppercase" },
+                ]}
+              >
+                Insight{"  "}
+              </Text>
+              {note}
+            </Text>
+          ) : null}
+          {dataAsOf ? (
             <Text
               style={[
                 resolveTypeStyle(t, "caption"),
-                { fontSize: 8.5, fontWeight: "800", letterSpacing: 0.2, color: t.textSoft, textTransform: "uppercase" },
+                { fontSize: 9, letterSpacing: 0.18, color: t.textSoft, textTransform: "uppercase" },
               ]}
             >
-              Insight{"  "}
+              as of {relativeTime(dataAsOf)}
             </Text>
-            {note}
-          </Text>
-        </View>
-      ) : null}
-
-      {dataAsOf ? (
-        <View
-          style={{
-            paddingVertical: 5,
-            paddingHorizontal: SPACE[3],
-            borderTopWidth: 1,
-            borderTopColor: t.borderSoft,
-          }}
-        >
-          <Text
-            style={[
-              resolveTypeStyle(t, "caption"),
-              { fontSize: 9, letterSpacing: 0.18, color: t.textSoft, textTransform: "uppercase" },
-            ]}
-          >
-            as of {relativeTime(dataAsOf)}
-          </Text>
+          ) : null}
         </View>
       ) : null}
     </View>
