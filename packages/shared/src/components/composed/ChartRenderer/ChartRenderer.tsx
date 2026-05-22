@@ -14,7 +14,7 @@ import { TimeseriesChart } from "../TimeseriesChart/TimeseriesChart";
 import type { AnalystArtifact, ToolErrorSpec } from "../../../data/analyst/types";
 import { exportCsv } from "../../../data/analyst/export/exportCsv";
 import { ArtifactCard } from "./ArtifactCard";
-import { detectPlaceholder } from "./helpers";
+import { detectPlaceholder, formatTableCell } from "./helpers";
 import { BarChart } from "./BarChart";
 import { PieChart } from "./PieChart";
 
@@ -59,8 +59,7 @@ function TableBody({ spec }: { spec: Extract<AnalystArtifact, { kind: "table" }>
         return (
           <View key={ri} style={{ flexDirection: "row", paddingVertical: SPACE[2], paddingHorizontal: SPACE[3], borderTopWidth: ri > 0 ? 1 : 0, borderTopColor: t.borderSoft, borderLeftWidth: 3, borderLeftColor: severityRailColor(t, sev), gap: SPACE[2] }}>
             {spec.columns.map((col) => {
-              const raw = row[col.key];
-              const value = raw === null || raw === undefined ? "—" : String(raw);
+              const value = formatTableCell(row[col.key]);
               return (
                 <Text key={col.key} numberOfLines={1} style={[resolveTypeStyle(t, "bodyDense"), { flex: 1, textAlign: col.align ?? "left", color: t.text }]}>
                   {value}
