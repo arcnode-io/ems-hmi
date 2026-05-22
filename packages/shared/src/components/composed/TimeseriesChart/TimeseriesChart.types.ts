@@ -54,6 +54,4 @@ export interface TimeseriesChartProps {
   height?: number;
   /** ISO timestamp; renders a "as of …" footer when set. */
   dataAsOf?: string;
-  /** Enables wheel/pinch x-zoom on the plot. Off for dashboard panels. */
-  zoomable?: boolean;
 }
