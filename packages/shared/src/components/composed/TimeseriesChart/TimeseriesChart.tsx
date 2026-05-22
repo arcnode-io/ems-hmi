@@ -11,7 +11,6 @@ import React, { useState } from "react";
 import {
   View,
   Text,
-  Pressable,
   type LayoutChangeEvent,
   type GestureResponderEvent,
 } from "react-native";
@@ -137,10 +136,13 @@ export function TimeseriesChart({
         </Text>
       </View>
 
-      <Pressable
+      {/* Reason: the responder API gives a locationX relative to this view;
+          Pressable.onPress does not carry tap coordinates on RN-Web. */}
+      <View
         dataSet={{ region: "plot" }}
         onLayout={onPlotLayout}
-        onPress={onTap}
+        onStartShouldSetResponder={() => true}
+        onResponderRelease={onTap}
         style={{ position: "relative" }}
       >
         <ChartCanvas
@@ -159,7 +161,7 @@ export function TimeseriesChart({
             rows={readoutRows}
           />
         ) : null}
-      </Pressable>
+      </View>
 
       {noData ? (
         <Text
