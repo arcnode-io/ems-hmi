@@ -74,8 +74,8 @@ export function HeadlineStrip({
     return () => clearInterval(id);
   }, [headlines.length]);
 
-  if (headlines.length === 0) return null;
   const h = headlines[idx % headlines.length];
+  if (h === undefined) return null;
   return (
     <View
       dataSet={{ comp: "HeadlineStrip" }}

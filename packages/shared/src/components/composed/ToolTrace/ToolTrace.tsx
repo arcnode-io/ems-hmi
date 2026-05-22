@@ -9,7 +9,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { View, Text, Pressable, Animated } from "react-native";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../theme/tokens";
-import { SPACE } from "../../../theme/tokens/primitives";
 import type { TraceStep } from "../../../data/analyst/conversation.types";
 import type { AnalystToolCall } from "../../../data/analyst/types";
 
