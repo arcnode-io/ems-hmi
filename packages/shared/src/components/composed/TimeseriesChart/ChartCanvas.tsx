@@ -4,14 +4,23 @@
  */
 
 import React from "react";
-import { Svg, Line, Polyline, Rect, Text as SvgText } from "react-native-svg";
+import {
+  Svg,
+  Line,
+  Polyline,
+  Rect,
+  Circle,
+  Text as SvgText,
+} from "react-native-svg";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { seriesColor } from "../ChartRenderer/helpers";
 import {
   PAD_L,
   PAD_R,
   PAD_T,
+  numericX,
   pointsToPolyline,
+  projectPoint,
   type Scale,
 } from "./TimeseriesChart.math";
 import type {
@@ -28,6 +37,8 @@ export interface ChartCanvasProps {
   canvasW: number;
   chartH: number;
   height: number;
+  /** Series point index to mark with readout dots, or null. */
+  readoutIndex?: number | null;
 }
 
 export function ChartCanvas({
@@ -38,8 +49,10 @@ export function ChartCanvas({
   canvasW,
   chartH,
   height,
+  readoutIndex,
 }: ChartCanvasProps): React.ReactElement {
   const t = useTheme();
+  const plotW = canvasW - PAD_L - PAD_R;
   return (
     <Svg width="100%" height={height} viewBox={`0 0 ${canvasW} ${height}`}>
       {/* horizontal grid lines at 0/25/50/75/100% of chartH */}
@@ -121,7 +134,7 @@ export function ChartCanvas({
           const pts = pointsToPolyline(
             s.points,
             scale,
-            canvasW - PAD_L - PAD_R,
+            plotW,
             chartH,
             s.interpolation ?? "linear",
           );
@@ -137,6 +150,29 @@ export function ChartCanvas({
               strokeDasharray={s.style === "dashed" ? "5,3" : undefined}
               strokeLinecap="round"
               strokeLinejoin={s.interpolation === "step" ? "miter" : "round"}
+            />
+          );
+        })}
+
+      {/* tap-to-read markers */}
+      {scale &&
+        readoutIndex != null &&
+        series.map((s, i) => {
+          const p = s.points[readoutIndex];
+          if (p === undefined || p.y === null) return null;
+          const x = numericX(p.x);
+          if (!Number.isFinite(x)) return null;
+          const { px, py } = projectPoint(scale, plotW, chartH, x, p.y);
+          return (
+            <Circle
+              key={`readout-${i}`}
+              data-region="readout"
+              cx={px}
+              cy={py}
+              r={3.5}
+              fill={s.color ?? seriesColor(t, i)}
+              stroke={t.surface}
+              strokeWidth={1.5}
             />
           );
         })}

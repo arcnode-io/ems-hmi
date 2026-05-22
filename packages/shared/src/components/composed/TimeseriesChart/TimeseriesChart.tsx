@@ -3,26 +3,38 @@
  * the Analyst LineSpec renderer, and any "value over time" surface.
  *
  * Geometry lives in TimeseriesChart.math; the SVG in ChartCanvas; the
- * swatch row in ChartLegend. This file is the container — measure, scale,
- * header, compose.
+ * swatch row in ChartLegend; the tap readout in ChartReadout. This file is
+ * the container — measure, scale, header, tap handling, compose.
  */
 
 import React, { useState } from "react";
-import { View, Text, type LayoutChangeEvent } from "react-native";
+import {
+  View,
+  Text,
+  Pressable,
+  type LayoutChangeEvent,
+  type GestureResponderEvent,
+} from "react-native";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../theme/tokens/primitives";
+import { seriesColor } from "../ChartRenderer/helpers";
 import type { TimeseriesChartProps } from "./TimeseriesChart.types";
 import {
   DEFAULT_W,
+  PAD_L,
+  PAD_R,
   PAD_T,
   PAD_B,
   MIN_HEIGHT,
   MAX_HEIGHT,
   computeScale,
+  pxToDataX,
+  nearestPointIndex,
 } from "./TimeseriesChart.math";
 import { ChartCanvas } from "./ChartCanvas";
 import { ChartLegend } from "./ChartLegend";
+import { ChartReadout, type ReadoutRow } from "./ChartReadout";
 
 export type {
   TimeseriesPoint,
@@ -32,11 +44,23 @@ export type {
   TimeseriesChartProps,
 } from "./TimeseriesChart.types";
 
+/** Format the readout x — a clock time on a time axis, else the raw value. */
+function formatXLabel(x: number | string, kind: string): string {
+  if (kind === "time") {
+    const ms = typeof x === "number" ? x : Date.parse(x);
+    if (Number.isFinite(ms)) {
+      const d = new Date(ms);
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mm = String(d.getMinutes()).padStart(2, "0");
+      return `${hh}:${mm}`;
+    }
+  }
+  return String(x);
+}
+
 export function TimeseriesChart({
   title,
-  // Reason: xAxis.kind affects future "time" axis formatting; the field is
-  // part of the LineSpec contract so callers can pass it.
-  xAxis: _xAxis,
+  xAxis,
   yAxis,
   series,
   thresholds: thresholdsProp,
@@ -51,21 +75,38 @@ export function TimeseriesChart({
   const gaps = gapsProp ?? [];
   const H = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, height));
   const [canvasW, setCanvasW] = useState(DEFAULT_W);
-  const onContainerLayout = (e: LayoutChangeEvent): void => {
-    const measured = Math.max(
-      DEFAULT_W,
-      Math.round(e.nativeEvent.layout.width),
-    );
-    if (measured !== canvasW) setCanvasW(measured);
-  };
+  const [readout, setReadout] = useState<number | null>(null);
   const chartH = H - PAD_T - PAD_B;
   const scale = computeScale(series, thresholds);
   const noData = scale === null;
 
+  // canvasW is measured off the plot wrapper, so it equals the SVG's
+  // rendered px width — tap locationX maps 1:1 to viewBox x.
+  const onPlotLayout = (e: LayoutChangeEvent): void => {
+    const w = Math.max(DEFAULT_W, Math.round(e.nativeEvent.layout.width));
+    if (w !== canvasW) setCanvasW(w);
+  };
+  const onTap = (e: GestureResponderEvent): void => {
+    const first = series[0];
+    if (scale === null || first === undefined) return;
+    const dataX = pxToDataX(scale, canvasW - PAD_L - PAD_R, e.nativeEvent.locationX);
+    const idx = nearestPointIndex(first.points, dataX);
+    setReadout(idx >= 0 ? idx : null);
+  };
+
+  const readoutPoint = readout !== null ? series[0]?.points[readout] : undefined;
+  const readoutRows: ReadoutRow[] =
+    readout === null
+      ? []
+      : series.map((s, i) => ({
+          label: s.label,
+          color: s.color ?? seriesColor(t, i),
+          value: s.points[readout]?.y ?? null,
+        }));
+
   return (
     <View
       dataSet={{ comp: "TimeseriesChart", state: noData ? "no-data" : "ready" }}
-      onLayout={onContainerLayout}
       style={{
         padding: SPACE[3],
         backgroundColor: t.surface,
@@ -96,15 +137,29 @@ export function TimeseriesChart({
         </Text>
       </View>
 
-      <ChartCanvas
-        scale={scale}
-        series={series}
-        thresholds={thresholds}
-        gaps={gaps}
-        canvasW={canvasW}
-        chartH={chartH}
-        height={H}
-      />
+      <Pressable
+        dataSet={{ region: "plot" }}
+        onLayout={onPlotLayout}
+        onPress={onTap}
+        style={{ position: "relative" }}
+      >
+        <ChartCanvas
+          scale={scale}
+          series={series}
+          thresholds={thresholds}
+          gaps={gaps}
+          canvasW={canvasW}
+          chartH={chartH}
+          height={H}
+          readoutIndex={readout}
+        />
+        {readoutPoint !== undefined ? (
+          <ChartReadout
+            xLabel={formatXLabel(readoutPoint.x, xAxis.kind)}
+            rows={readoutRows}
+          />
+        ) : null}
+      </Pressable>
 
       {noData ? (
         <Text

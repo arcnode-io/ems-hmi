@@ -74,6 +74,29 @@ export function projectPoint(
   };
 }
 
+/** Map a tap's canvas-x pixel back to a data-x value. */
+export function pxToDataX(scale: Scale, chartW: number, px: number): number {
+  const xRange = scale.xMax - scale.xMin || 1;
+  return scale.xMin + ((px - PAD_L) / chartW) * xRange;
+}
+
+/** Index of the point nearest `dataX`, or -1 if there are none. */
+export function nearestPointIndex(
+  points: readonly TimeseriesPoint[],
+  dataX: number,
+): number {
+  let best = -1;
+  let bestDist = Number.POSITIVE_INFINITY;
+  points.forEach((p, i) => {
+    const dist = Math.abs(numericX(p.x) - dataX);
+    if (Number.isFinite(dist) && dist < bestDist) {
+      bestDist = dist;
+      best = i;
+    }
+  });
+  return best;
+}
+
 /** Build an SVG polyline `points` string for a series. */
 export function pointsToPolyline(
   points: readonly TimeseriesPoint[],
