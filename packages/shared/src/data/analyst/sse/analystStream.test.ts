@@ -1,4 +1,7 @@
-/** Tests for analystStream — drives canned SSE through an injected transport. */
+/**
+ * Tests for analystStream — drives canned SSE through an injected transport,
+ * using the real server wire format (kind on the `event:` line).
+ */
 
 import { analystStream } from "./analystStream";
 import type { StreamTransport } from "./streamPost.types";
@@ -7,32 +10,43 @@ import type { AnalystStreamEvent } from "../types";
 const REQ = { conversationId: "c-1", message: "show me prices" };
 
 describe("analystStream", () => {
-  it("emits typed events from a streamed SSE response", async () => {
+  it("maps server SSE frames to typed events (message → result)", async () => {
     // Arrange
     const events: AnalystStreamEvent[] = [];
     const transport: StreamTransport = async (_url, _init, onChunk) => {
       onChunk(
-        'data: {"kind":"tool_start","seq":1,"tool":"query_timeseries","label":"Querying historian"}\n\n',
+        'event: tool_start\ndata: {"seq":1,"tool":"get_topology","label":"Reading topology"}\n\n',
       );
       onChunk(
-        'data: {"kind":"tool_end","seq":1,"tool":"query_timeseries","outcome":"ok","ms":820}\n\n',
+        'event: tool_end\ndata: {"seq":1,"tool":"get_topology","label":"x","outcome":"ok","ms":1,"summary":null}\n\n',
       );
-      onChunk('data: {"kind":"done"}\n\n');
+      onChunk(
+        'event: message\ndata: {"role":"assistant","content":[{"type":"text","text":"hi"}]}\n\n',
+      );
+      onChunk('event: done\ndata: {"status":"ok"}\n\n');
     };
 
     // Act
     await analystStream("http://x", REQ, { onEvent: (e) => events.push(e) }, transport);
 
-    // Assert
-    expect(events.map((e) => e.kind)).toEqual(["tool_start", "tool_end", "done"]);
+    // Assert — `message` is re-tagged to the internal `result` kind.
+    expect(events.map((e) => e.kind)).toEqual([
+      "tool_start",
+      "tool_end",
+      "result",
+      "done",
+    ]);
+    const result = events[2];
+    if (result.kind !== "result") throw new Error("expected result event");
+    expect(result.message.content[0]).toEqual({ type: "text", text: "hi" });
   });
 
-  it("reassembles an event split across chunk boundaries", async () => {
+  it("reassembles a frame split across chunk boundaries", async () => {
     // Arrange
     const events: AnalystStreamEvent[] = [];
     const transport: StreamTransport = async (_url, _init, onChunk) => {
-      onChunk('data: {"kind":"too');
-      onChunk('l_end","seq":2,"tool":"x","outcome":"ok","ms":5}\n\n');
+      onChunk('event: tool_start\ndata: {"seq":2,"tool":"q"');
+      onChunk(',"label":"Q"}\n\n');
     };
 
     // Act
@@ -40,7 +54,7 @@ describe("analystStream", () => {
 
     // Assert
     expect(events).toEqual([
-      { kind: "tool_end", seq: 2, tool: "x", outcome: "ok", ms: 5 },
+      { kind: "tool_start", seq: 2, tool: "q", label: "Q" },
     ]);
   });
 

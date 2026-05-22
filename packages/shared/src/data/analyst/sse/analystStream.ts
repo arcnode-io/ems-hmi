@@ -7,19 +7,41 @@
  * and injectable so tests + the dev mock can drive canned streams.
  */
 
-import type { AnalystChatRequest, AnalystStreamEvent } from "../types";
-import { SseParser } from "./parseSse";
+import { match } from "ts-pattern";
+import type {
+  AnalystChatRequest,
+  AnalystMessage,
+  AnalystStreamEvent,
+} from "../types";
+import { SseParser, type SseFrame } from "./parseSse";
 import { streamPost } from "./streamPost";
 import type { StreamTransport } from "./streamPost.types";
 
 const ENDPOINT = "/analyst/chat";
 
-/** Decode one SSE frame's data payload into a typed event. */
-function toEvent(data: string): AnalystStreamEvent | null {
-  // The analyst server's JSON shape is trusted, matching analystChat().
-  const parsed = JSON.parse(data) as { kind?: string };
-  if (typeof parsed.kind !== "string") return null;
-  return parsed as AnalystStreamEvent;
+/**
+ * Map a server SSE frame to a typed event. The kind rides the `event:` line;
+ * `data:` is the payload JSON. The server's `message` event carries the
+ * AnalystMessage directly — re-tagged to the internal `result` kind.
+ * The analyst JSON shape is trusted, matching analystChat().
+ */
+function frameToEvent(frame: SseFrame): AnalystStreamEvent | null {
+  if (frame.event === undefined) return null;
+  const data = JSON.parse(frame.data) as Record<string, unknown>;
+  return match(frame.event)
+    .with(
+      "tool_start",
+      "tool_end",
+      "done",
+      (kind) => ({ kind, ...data }) as AnalystStreamEvent,
+    )
+    .with(
+      "message",
+      () =>
+        ({ kind: "result", message: data as unknown as AnalystMessage }) as
+          AnalystStreamEvent,
+    )
+    .otherwise(() => null);
 }
 
 export interface StreamHandlers {
@@ -50,7 +72,7 @@ export async function analystStream(
     },
     (chunk) => {
       for (const frame of parser.push(chunk)) {
-        const event = toEvent(frame.data);
+        const event = frameToEvent(frame);
         if (event) handlers.onEvent(event);
       }
     },
