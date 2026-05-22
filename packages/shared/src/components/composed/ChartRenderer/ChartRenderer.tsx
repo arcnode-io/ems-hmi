@@ -1,6 +1,7 @@
 /**
  * Render any AnalystArtifact wrapped in `ArtifactCard`. Titles containing
- * "PLACEHOLDER" get a DEMO DATA chip via `detectPlaceholder`.
+ * "PLACEHOLDER" get a DEMO DATA chip via `detectPlaceholder`. Data-bearing
+ * artifacts get an export button; `onDismiss` adds the dismiss action.
  */
 
 import React from "react";
@@ -11,6 +12,7 @@ import { resolveTypeStyle, type Theme } from "../../../theme/tokens";
 import { SPACE } from "../../../theme/tokens/primitives";
 import { TimeseriesChart } from "../TimeseriesChart/TimeseriesChart";
 import type { AnalystArtifact, ToolErrorSpec } from "../../../data/analyst/types";
+import { exportCsv } from "../../../data/analyst/export/exportCsv";
 import { ArtifactCard } from "./ArtifactCard";
 import { detectPlaceholder } from "./helpers";
 import { BarChart } from "./BarChart";
@@ -18,6 +20,8 @@ import { PieChart } from "./PieChart";
 
 export interface ChartRendererProps {
   artifact: AnalystArtifact;
+  /** Wires the card's dismiss button when provided. */
+  onDismiss?: () => void;
 }
 
 function ErrorBody({ spec }: { spec: ToolErrorSpec }): React.ReactElement {
@@ -70,16 +74,23 @@ function TableBody({ spec }: { spec: Extract<AnalystArtifact, { kind: "table" }>
   );
 }
 
-export function ChartRenderer({ artifact }: ChartRendererProps): React.ReactElement {
-  const t = useTheme();
-  const placeholderBadge = (title: string): { badge?: string; badgeColor?: string } =>
-    detectPlaceholder(title)
-      ? { badge: "demo data", badgeColor: t.statusWarn }
-      : {};
+export function ChartRenderer({
+  artifact,
+  onDismiss,
+}: ChartRendererProps): React.ReactElement {
+  const exportThis = (): void => exportCsv(artifact);
 
   return match(artifact)
     .with({ kind: "line" }, ({ spec }) => (
-      <ArtifactCard title={spec.title} dataAsOf={spec.dataAsOf} {...placeholderBadge(spec.title)}>
+      <ArtifactCard
+        kindLabel="Chart"
+        title={spec.title}
+        note={spec.note}
+        dataAsOf={spec.dataAsOf}
+        placeholder={detectPlaceholder(spec.title)}
+        onExport={exportThis}
+        onDismiss={onDismiss}
+      >
         <View style={{ paddingVertical: SPACE[2] }}>
           <TimeseriesChart
             title=""
@@ -92,26 +103,50 @@ export function ChartRenderer({ artifact }: ChartRendererProps): React.ReactElem
       </ArtifactCard>
     ))
     .with({ kind: "bar" }, ({ spec }) => (
-      <ArtifactCard title={spec.title} dataAsOf={spec.dataAsOf} {...placeholderBadge(spec.title)}>
+      <ArtifactCard
+        kindLabel="Chart"
+        title={spec.title}
+        note={spec.note}
+        dataAsOf={spec.dataAsOf}
+        placeholder={detectPlaceholder(spec.title)}
+        onExport={exportThis}
+        onDismiss={onDismiss}
+      >
         <BarChart spec={spec} />
       </ArtifactCard>
     ))
     .with({ kind: "pie" }, ({ spec }) => (
-      <ArtifactCard title={spec.title} dataAsOf={spec.dataAsOf} {...placeholderBadge(spec.title)}>
+      <ArtifactCard
+        kindLabel="Chart"
+        title={spec.title}
+        note={spec.note}
+        dataAsOf={spec.dataAsOf}
+        placeholder={detectPlaceholder(spec.title)}
+        onExport={exportThis}
+        onDismiss={onDismiss}
+      >
         <PieChart spec={spec} />
       </ArtifactCard>
     ))
     .with({ kind: "table" }, ({ spec }) => (
-      <ArtifactCard title={spec.title} dataAsOf={spec.dataAsOf} {...placeholderBadge(spec.title)}>
+      <ArtifactCard
+        kindLabel="Table"
+        title={spec.title}
+        note={spec.note}
+        dataAsOf={spec.dataAsOf}
+        placeholder={detectPlaceholder(spec.title)}
+        onExport={exportThis}
+        onDismiss={onDismiss}
+      >
         <TableBody spec={spec} />
       </ArtifactCard>
     ))
     .with({ kind: "error" }, ({ spec }) => (
       <ArtifactCard
-        title={spec.code.replace("_", " ").toUpperCase()}
+        kindLabel="Error"
+        title={spec.code.replace(/_/g, " ").toUpperCase()}
         dataAsOf={spec.dataAsOf}
-        badge={spec.code}
-        badgeColor={t.statusAlarm}
+        onDismiss={onDismiss}
       >
         <ErrorBody spec={spec} />
       </ArtifactCard>

@@ -1,19 +1,27 @@
 /**
- * Common chrome around every chat artifact: title row + optional badge +
- * body slot + optional "as of …" footer.
+ * Common chrome around every analyst artifact — a kind pill, title, export +
+ * dismiss actions, the body slot, and an optional "Insight" note footer.
  */
 
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../theme/tokens/primitives";
 
 export interface ArtifactCardProps {
+  /** Header pill text — "Chart" / "Table" / "Error". */
+  kindLabel: string;
   title: string;
+  /** Terse one-line insight; renders the footer when present. */
+  note?: string | null;
   dataAsOf?: string;
-  badge?: string;
-  badgeColor?: string;
+  /** Marks a placeholder/demo artifact with a DEMO DATA chip. */
+  placeholder?: boolean;
+  /** Export button shows only when provided. */
+  onExport?: () => void;
+  /** Dismiss button shows only when provided. */
+  onDismiss?: () => void;
   children: React.ReactNode;
 }
 
@@ -24,28 +32,84 @@ function relativeTime(iso: string): string {
   if (seconds < 60) return `${Math.round(seconds)}s ago`;
   const minutes = seconds / 60;
   if (minutes < 90) return `${Math.round(minutes)}m ago`;
-  const hours = Math.floor(minutes / 60);
-  return `${hours}h ago`;
+  return `${Math.floor(minutes / 60)}h ago`;
+}
+
+function Pill({ text, tone }: { text: string; tone: string }): React.ReactElement {
+  const t = useTheme();
+  return (
+    <View
+      style={{
+        paddingVertical: 2,
+        paddingHorizontal: 6,
+        borderRadius: 9999,
+        backgroundColor: `${tone}18`,
+        borderWidth: 1,
+        borderColor: `${tone}55`,
+      }}
+    >
+      <Text
+        style={[
+          resolveTypeStyle(t, "caption"),
+          { fontSize: 8.5, fontWeight: "800", letterSpacing: 0.2, color: tone, textTransform: "uppercase" },
+        ]}
+      >
+        {text}
+      </Text>
+    </View>
+  );
+}
+
+function CardButton({
+  glyph,
+  label,
+  onPress,
+}: {
+  glyph: string;
+  label: string;
+  onPress: () => void;
+}): React.ReactElement {
+  const t = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      dataSet={{ action: label }}
+      onPress={onPress}
+      style={{
+        width: 22,
+        height: 22,
+        borderRadius: RADIUS[1],
+        borderWidth: 1,
+        borderColor: t.borderSoft,
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Text style={{ color: t.textSoft, fontSize: 11 }}>{glyph}</Text>
+    </Pressable>
+  );
 }
 
 export function ArtifactCard({
+  kindLabel,
   title,
+  note,
   dataAsOf,
-  badge,
-  badgeColor,
+  placeholder = false,
+  onExport,
+  onDismiss,
   children,
 }: ArtifactCardProps): React.ReactElement {
   const t = useTheme();
-  const accent = badgeColor ?? t.border;
   return (
     <View
+      dataSet={{ comp: "ArtifactCard" }}
       style={{
         marginHorizontal: SPACE[4],
         backgroundColor: t.surface,
         borderWidth: 1,
         borderColor: t.border,
-        borderLeftWidth: badge ? 3 : 1,
-        borderLeftColor: accent,
         borderRadius: RADIUS[3],
         overflow: "hidden",
       }}
@@ -53,7 +117,7 @@ export function ArtifactCard({
       <View
         style={{
           flexDirection: "row",
-          alignItems: "center",
+          alignItems: "flex-start",
           paddingVertical: SPACE[2],
           paddingHorizontal: SPACE[3],
           gap: SPACE[2],
@@ -61,33 +125,8 @@ export function ArtifactCard({
           borderBottomColor: t.borderSoft,
         }}
       >
-        {badge ? (
-          <View
-            style={{
-              paddingVertical: 2,
-              paddingHorizontal: 6,
-              borderRadius: 2,
-              backgroundColor: `${accent}18`,
-              borderWidth: 1,
-              borderColor: `${accent}55`,
-            }}
-          >
-            <Text
-              style={[
-                resolveTypeStyle(t, "caption"),
-                {
-                  fontSize: 9,
-                  fontWeight: "700",
-                  letterSpacing: 0.18,
-                  color: accent,
-                  textTransform: "uppercase",
-                },
-              ]}
-            >
-              {badge}
-            </Text>
-          </View>
-        ) : null}
+        <Pill text={kindLabel} tone={t.textSoft} />
+        {placeholder ? <Pill text="demo data" tone={t.statusWarn} /> : null}
         <Text
           style={[
             resolveTypeStyle(t, "cardHeading"),
@@ -97,12 +136,40 @@ export function ArtifactCard({
         >
           {title}
         </Text>
+        {onExport ? <CardButton glyph="↓" label="export" onPress={onExport} /> : null}
+        {onDismiss ? <CardButton glyph="✕" label="dismiss" onPress={onDismiss} /> : null}
       </View>
+
       <View>{children}</View>
-      {dataAsOf ? (
+
+      {note ? (
         <View
           style={{
             paddingVertical: SPACE[2],
+            paddingHorizontal: SPACE[3],
+            borderTopWidth: 1,
+            borderTopColor: t.borderSoft,
+            backgroundColor: t.bg,
+          }}
+        >
+          <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.textMid }]}>
+            <Text
+              style={[
+                resolveTypeStyle(t, "caption"),
+                { fontSize: 8.5, fontWeight: "800", letterSpacing: 0.2, color: t.textSoft, textTransform: "uppercase" },
+              ]}
+            >
+              Insight{"  "}
+            </Text>
+            {note}
+          </Text>
+        </View>
+      ) : null}
+
+      {dataAsOf ? (
+        <View
+          style={{
+            paddingVertical: 5,
             paddingHorizontal: SPACE[3],
             borderTopWidth: 1,
             borderTopColor: t.borderSoft,
@@ -111,12 +178,7 @@ export function ArtifactCard({
           <Text
             style={[
               resolveTypeStyle(t, "caption"),
-              {
-                fontSize: 9,
-                letterSpacing: 0.18,
-                color: t.textSoft,
-                textTransform: "uppercase",
-              },
+              { fontSize: 9, letterSpacing: 0.18, color: t.textSoft, textTransform: "uppercase" },
             ]}
           >
             as of {relativeTime(dataAsOf)}
