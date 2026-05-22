@@ -24,15 +24,17 @@ export interface IntelHeadline {
 function classify(
   tool: string,
 ): Omit<IntelHeadline, "headline"> | null {
+  // label = the service, category = the domain — kept distinct so the
+  // "{label} · {category}" tag never reads redundantly.
   if (tool === "get_energy_news") {
-    return { source: "news", label: "Energy News", category: "Energy news" };
+    return { source: "news", label: "Energy News", category: "RSS" };
   }
   if (tool === "get_market_data") {
     return { source: "market", label: "gridstatus.io", category: "Markets" };
   }
   // Reason: the weather tool's exact name isn't pinned — match loosely.
   if (/weather/i.test(tool)) {
-    return { source: "weather", label: "Weather", category: "Weather" };
+    return { source: "weather", label: "OpenWeather", category: "Weather" };
   }
   return null;
 }

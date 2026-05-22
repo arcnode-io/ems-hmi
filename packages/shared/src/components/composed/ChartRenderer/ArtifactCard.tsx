@@ -8,6 +8,7 @@ import { View, Text, Pressable } from "react-native";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../theme/tokens/primitives";
+import { ArtifactKindIcon } from "./ArtifactKindIcon";
 
 export interface ArtifactCardProps {
   /** Header pill text — "Chart" / "Table" / "Error". */
@@ -35,11 +36,23 @@ function relativeTime(iso: string): string {
   return `${Math.floor(minutes / 60)}h ago`;
 }
 
-function Pill({ text, tone }: { text: string; tone: string }): React.ReactElement {
+function Pill({
+  text,
+  tone,
+  glyph,
+}: {
+  text: string;
+  tone: string;
+  /** Pill label that drives the kind glyph; omit for a text-only pill. */
+  glyph?: string;
+}): React.ReactElement {
   const t = useTheme();
   return (
     <View
       style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 3,
         paddingVertical: 2,
         paddingHorizontal: 6,
         borderRadius: 9999,
@@ -48,6 +61,7 @@ function Pill({ text, tone }: { text: string; tone: string }): React.ReactElemen
         borderColor: `${tone}55`,
       }}
     >
+      {glyph !== undefined ? <ArtifactKindIcon kindLabel={glyph} color={tone} /> : null}
       <Text
         style={[
           resolveTypeStyle(t, "caption"),
@@ -125,7 +139,7 @@ export function ArtifactCard({
           borderBottomColor: t.borderSoft,
         }}
       >
-        <Pill text={kindLabel} tone={t.textSoft} />
+        <Pill text={kindLabel} tone={t.textSoft} glyph={kindLabel} />
         {placeholder ? <Pill text="demo data" tone={t.statusWarn} /> : null}
         <Text
           style={[

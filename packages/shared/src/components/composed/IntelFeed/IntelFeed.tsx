@@ -14,6 +14,7 @@ import { useTheme } from "../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../theme/tokens/primitives";
 import type { IntelHeadline } from "../../../data/analyst/intelFeed";
+import { AgentToolIcon } from "./AgentToolIcon";
 
 const CYCLE_MS = 4500;
 
@@ -119,27 +120,45 @@ function AgentToolCard({
       style={{
         flex: 1,
         minWidth: 0,
+        flexDirection: "row",
+        gap: 8,
         padding: SPACE[2],
         backgroundColor: t.surface,
         borderWidth: 1,
         borderColor: t.border,
         borderRadius: RADIUS[2],
-        gap: 3,
       }}
     >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-        <LiveDot />
-        <SourceTag headline={headline} />
-      </View>
-      <Text
-        numberOfLines={2}
-        style={[
-          resolveTypeStyle(t, "bodyDense"),
-          { color: t.text, fontWeight: "500" },
-        ]}
+      <View
+        style={{
+          width: 24,
+          height: 24,
+          borderRadius: RADIUS[1],
+          backgroundColor: t.bg,
+          borderWidth: 1,
+          borderColor: t.borderSoft,
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
       >
-        {headline.headline}
-      </Text>
+        <AgentToolIcon source={headline.source} />
+      </View>
+      <View style={{ flex: 1, minWidth: 0, gap: 3 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+          <LiveDot />
+          <SourceTag headline={headline} />
+        </View>
+        <Text
+          numberOfLines={2}
+          style={[
+            resolveTypeStyle(t, "bodyDense"),
+            { color: t.text, fontWeight: "500" },
+          ]}
+        >
+          {headline.headline}
+        </Text>
+      </View>
     </View>
   );
 }
