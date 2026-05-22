@@ -26,6 +26,8 @@ export interface LineSpec {
   series: LineSpecSeries[];
   /** Null tolerated — the server serializes an absent optional as explicit null. */
   thresholds?: Array<{ label: string; y: number; severity: "warn" | "alarm" }> | null;
+  /** Terse one-line insight, computed server-side. Rendered as the card's Insight footer. */
+  note?: string | null;
   dataAsOf: string;
 }
 
@@ -35,6 +37,8 @@ export interface BarSpec {
   yAxis: { label: string; unit: string };
   series: Array<{ label: string; color?: string; values: number[] }>;
   stacked?: boolean;
+  /** Terse one-line insight, computed server-side. Rendered as the card's Insight footer. */
+  note?: string | null;
   dataAsOf: string;
 }
 
@@ -43,6 +47,8 @@ export interface TableSpec {
   columns: Array<{ key: string; label: string; align?: "left" | "right"; unit?: string }>;
   rows: Array<Record<string, string | number | null>>;
   rowSeverity?: Array<"ok" | "warn" | "alarm" | undefined>;
+  /** Terse one-line insight, computed server-side. Rendered as the card's Insight footer. */
+  note?: string | null;
   dataAsOf: string;
 }
 
@@ -50,6 +56,8 @@ export interface PieSpec {
   title: string;
   unit: string;
   slices: Array<{ label: string; value: number; color?: string }>;
+  /** Terse one-line insight, computed server-side. Rendered as the card's Insight footer. */
+  note?: string | null;
   dataAsOf: string;
 }
 
@@ -80,6 +88,10 @@ export interface AnalystToolCall {
   args: Record<string, unknown>;
   outcome: "ok" | "error";
   ms: number;
+  /** Short human-readable step label, e.g. "Querying site historian". */
+  label?: string | null;
+  /** Trimmed result headline — populated for external tools (news/market/weather). */
+  summary?: string | null;
 }
 
 export interface AnalystMessage {
@@ -105,3 +117,21 @@ export interface AnalystChatRequest {
     focusedDeviceId?: string;
   };
 }
+
+/**
+ * SSE stream events from `POST /analyst/chat` with `Accept: text/event-stream`.
+ * The turn streams `tool_start`/`tool_end` as the agent works, then a single
+ * `result` carrying the full AnalystMessage, then `done`.
+ */
+export type AnalystStreamEvent =
+  | { kind: "tool_start"; seq: number; tool: string; label: string }
+  | {
+      kind: "tool_end";
+      seq: number;
+      tool: string;
+      outcome: "ok" | "error";
+      ms: number;
+      summary?: string | null;
+    }
+  | { kind: "result"; message: AnalystMessage }
+  | { kind: "done" };
