@@ -10,6 +10,7 @@ import { DeploymentIdentityProvider } from "./data/deployment/DeploymentIdentity
 import { TopologyProvider } from "./data/topology/TopologyProvider";
 import { MockMqttProvider } from "./data/mqtt/MockMqttProvider";
 import { AnalystConversationProvider } from "./data/analyst/AnalystConversationProvider";
+import { analystStream } from "./data/analyst/sse/analystStream";
 import { mockAnalystStream } from "./data/analyst/mockAnalystStream";
 import { NavigationRoot } from "./navigation/NavigationRoot";
 
@@ -35,6 +36,16 @@ function topologyUrl(cfg: AppRootCfg): string {
   return `${cfg.deviceApiUri}/topology/view${cfg.mode === "beta" ? "" : ".json"}`;
 }
 
+/**
+ * Live SSE stream by default; `?mock` in the URL swaps in the canned stream
+ * so the Playwright e2e + offline dev get a deterministic, server-free run.
+ */
+function resolveAnalystStream(): typeof analystStream {
+  const search = (globalThis as { location?: { search?: string } }).location
+    ?.search;
+  return search?.includes("mock") ? mockAnalystStream : analystStream;
+}
+
 export function AppRoot({ cfg, errorBoundary: Boundary }: AppRootProps): React.ReactElement {
   const tree = (
     <DeploymentIdentityProvider
@@ -49,9 +60,7 @@ export function AppRoot({ cfg, errorBoundary: Boundary }: AppRootProps): React.R
     >
       <TopologyProvider viewUrl={topologyUrl(cfg)}>
         <MockMqttProvider siteId={cfg.siteId}>
-          {/* Reason: mockAnalystStream until the server ships its
-              text/event-stream endpoint — then swap to analystStream. */}
-          <AnalystConversationProvider stream={mockAnalystStream}>
+          <AnalystConversationProvider stream={resolveAnalystStream()}>
             <NavigationRoot />
           </AnalystConversationProvider>
         </MockMqttProvider>
