@@ -10,7 +10,7 @@
     "start:mock": "RN_MOCKED=true react-native start",
     "depcheck": "depcheck --ignores=@types/*,@babel/*,@react-native/*,@react-native-community/*,@react-native-async-storage/async-storage,@testing-library/*,jest,prettier,typescript,eslint,babel-jest,ts-pattern,winston,yaml,zod,ts-node,tsconfig-paths,react-native-dotenv,metro-config,baseline-browser-mapping,react-native-screens,react-native-safe-area-context,react-native-svg,@react-navigation/native,@react-navigation/native-stack,ip-address,react-native-gifted-charts",
     "format": "prettier --write src",
-    "typecheck": "tsc ; eslint -c eslint-typecheck.config.mjs",
+    "typecheck": "tsc; tc=$?; eslint -c eslint-typecheck.config.mjs; lint=$?; exit $((tc||lint))",
     "audit-src": "eslint -c eslint-security.config.mjs",
     "audit-packages": "npm audit --audit-level=moderate --format=json | grep -qE '\"severity\":\\s*\"(moderate|high|critical)\"' && exit 1 || exit 0",
     "lint": "eslint src --fix",

@@ -12,7 +12,7 @@
     "preview": "vite preview",
     "depcheck": "depcheck --ignores=@types/*,@typescript-eslint/*,@testing-library/*,c8,eslint-plugin-react-hooks,eslint-plugin-react-refresh,identity-obj-proxy,jest-environment-jsdom,jest-transform-stub,jest-transformer-svg,react-native,react-native-web,react-native-svg,ts-jest,ts-node,tsconfig-paths,gifted-charts-core,react-native-web-linear-gradient,buffer,react-native-screens,react-native-safe-area-context,react-router-dom,@react-navigation/native,@react-navigation/native-stack,ip-address,react-native-gifted-charts",
     "format": "prettier --write src",
-    "typecheck": "tsc ; eslint -c eslint-typecheck.config.mjs",
+    "typecheck": "tsc; tc=$?; eslint -c eslint-typecheck.config.mjs; lint=$?; exit $((tc||lint))",
     "audit-src": "eslint -c eslint-security.config.mjs",
     "audit-packages": "npm audit --audit-level=moderate --format=json | grep -qE '\"severity\":\\s*\"(moderate|high|critical)\"' && exit 1 || exit 0",
     "lint": "eslint src --fix",
