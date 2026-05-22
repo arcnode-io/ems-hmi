@@ -78,6 +78,58 @@ describe("TimeseriesChart", () => {
     expect(lines.length).toBe(2);
   });
 
+  it("tolerates null thresholds + gaps (server sends explicit null)", () => {
+    // Arrange + Act — analyst LineSpec serializes absent optionals as null.
+    const { container } = render(
+      withTheme(
+        <TimeseriesChart
+          title="Null optionals"
+          xAxis={{ label: "t", kind: "time" }}
+          yAxis={{ label: "v", unit: "" }}
+          series={[HIST]}
+          thresholds={null}
+          gaps={null}
+        />,
+      ),
+    );
+
+    // Assert — renders, does not throw on `for...of null`.
+    const root = container.querySelector('[data-comp="TimeseriesChart"]');
+    expect(root?.getAttribute("data-state")).toBe("ready");
+  });
+
+  it("plots a series whose x values are ISO timestamp strings", () => {
+    // Arrange + Act — analyst time-axis charts carry ISO-string x values.
+    const { container } = render(
+      withTheme(
+        <TimeseriesChart
+          title="Time series"
+          xAxis={{ label: "Time", kind: "time" }}
+          yAxis={{ label: "price", unit: "usd" }}
+          series={[
+            {
+              label: "market_01",
+              points: [
+                { x: "2026-05-21T13:00:00Z", y: null },
+                { x: "2026-05-21T14:00:00Z", y: 21.24 },
+                { x: "2026-05-21T15:00:00Z", y: 21.97 },
+              ],
+            },
+          ]}
+        />,
+      ),
+    );
+
+    // Assert — scale resolves (not "no-data") and a polyline is drawn.
+    const root = container.querySelector('[data-comp="TimeseriesChart"]');
+    expect(root?.getAttribute("data-state")).toBe("ready");
+    expect(
+      container.querySelectorAll(
+        '[data-comp="TimeseriesChart"] [data-region="series"]',
+      ).length,
+    ).toBe(1);
+  });
+
   it("shows no-data state when every series is empty", () => {
     const { container } = render(
       withTheme(

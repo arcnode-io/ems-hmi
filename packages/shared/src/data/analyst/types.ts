@@ -24,7 +24,8 @@ export interface LineSpec {
   xAxis: { label: string; kind: "time" | "category" | "numeric" };
   yAxis: { label: string; unit: string };
   series: LineSpecSeries[];
-  thresholds?: Array<{ label: string; y: number; severity: "warn" | "alarm" }>;
+  /** Null tolerated — the server serializes an absent optional as explicit null. */
+  thresholds?: Array<{ label: string; y: number; severity: "warn" | "alarm" }> | null;
   dataAsOf: string;
 }
 

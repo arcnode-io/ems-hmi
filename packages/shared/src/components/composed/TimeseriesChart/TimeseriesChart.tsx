@@ -62,9 +62,10 @@ export interface TimeseriesChartProps {
   xAxis: { label: string; kind: "time" | "category" | "numeric" };
   yAxis: { label: string; unit: string };
   series: readonly TimeseriesSeries[];
-  thresholds?: readonly TimeseriesThreshold[];
+  /** Null tolerated — the analyst LineSpec serializes absent optionals as null. */
+  thresholds?: readonly TimeseriesThreshold[] | null;
   /** Time ranges with no/invalid data — rendered as diagonal hatches. */
-  gaps?: readonly TimeseriesGap[];
+  gaps?: readonly TimeseriesGap[] | null;
   /** Hint for the canvas height; clamps to 120..480. */
   height?: number;
   /** ISO timestamp; renders a "as of …" footer when set. */
@@ -87,6 +88,11 @@ interface Scale {
   yMax: number;
 }
 
+/** Coerce a point's x to a number — ISO timestamp strings (time axis) → epoch ms. */
+function numericX(x: number | string): number {
+  return typeof x === "number" ? x : Date.parse(x);
+}
+
 function computeScale(
   series: readonly TimeseriesSeries[],
   thresholds: readonly TimeseriesThreshold[],
@@ -97,7 +103,7 @@ function computeScale(
   let yMax = Number.NEGATIVE_INFINITY;
   for (const s of series) {
     for (const p of s.points) {
-      const x = typeof p.x === "number" ? p.x : NaN;
+      const x = numericX(p.x);
       if (Number.isFinite(x)) {
         if (x < xMin) xMin = x;
         if (x > xMax) xMax = x;
@@ -134,11 +140,11 @@ function pointsToPolyline(
   const parts: string[] = [];
   let prevY: number | null = null;
   for (const p of points) {
-    if (p.y === null) {
+    const x = numericX(p.x);
+    if (p.y === null || !Number.isFinite(x)) {
       prevY = null;
       continue;
     }
-    const x = typeof p.x === "number" ? p.x : 0;
     const { px, py } = project(x, p.y);
     // Reason: step interpolation injects a synthetic point at (current-x,
     // prev-y) before drawing to (current-x, current-y). Produces flat
@@ -166,12 +172,16 @@ export function TimeseriesChart({
   xAxis: _xAxis,
   yAxis,
   series,
-  thresholds = [],
-  gaps = [],
+  thresholds: thresholdsProp,
+  gaps: gapsProp,
   height = 220,
   dataAsOf,
 }: TimeseriesChartProps): React.ReactElement {
   const t = useTheme();
+  // Normalize — the server sends explicit null for absent optionals, and a
+  // `= []` default param only catches undefined.
+  const thresholds = thresholdsProp ?? [];
+  const gaps = gapsProp ?? [];
   const H = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, height));
   const [canvasW, setCanvasW] = useState(DEFAULT_W);
   const onContainerLayout = (e: LayoutChangeEvent): void => {
