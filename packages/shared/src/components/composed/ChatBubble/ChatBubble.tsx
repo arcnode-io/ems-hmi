@@ -144,7 +144,7 @@ export function ChatBubble({
                   { fontSize: 10, color: t.textSoft },
                 ]}
               >
-                still working — Ollama runs can take ~100s; Bedrock is faster.
+                still working — on prem llm runs can take ~100s;
               </Text>
             ) : null}
           </View>

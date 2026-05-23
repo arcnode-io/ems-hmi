@@ -119,15 +119,12 @@ export function AppLayout({
   })();
 
   if (layout === "desktop") {
-    // Desktop chrome reads as denser than its handoff at 100%; bump the root
-    // visual scale so the design lands at the size designer + Joe vetted.
     return (
       <View
         style={{
           flex: 1,
           flexDirection: "row",
           backgroundColor: t.bg,
-          ...({ zoom: 1.2 } as object),
         }}
       >
         <Sidebar
