@@ -4,8 +4,8 @@
  * artifacts get an export button; `onDismiss` adds the dismiss action.
  */
 
-import React from "react";
-import { View, Text } from "react-native";
+import React, { useState } from "react";
+import { View, Text, Pressable } from "react-native";
 import { match } from "ts-pattern";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { resolveTypeStyle, type Theme } from "../../../theme/tokens";
@@ -43,8 +43,15 @@ function severityRailColor(t: Theme, severity?: string): string {
     .otherwise(() => "transparent");
 }
 
+const TABLE_INITIAL_ROWS = 10;
+
 function TableBody({ spec }: { spec: Extract<AnalystArtifact, { kind: "table" }>["spec"] }): React.ReactElement {
   const t = useTheme();
+  const [expanded, setExpanded] = useState(false);
+  const total = spec.rows.length;
+  const overflow = total > TABLE_INITIAL_ROWS;
+  const visibleRows = expanded || !overflow ? spec.rows : spec.rows.slice(0, TABLE_INITIAL_ROWS);
+  const hiddenCount = total - TABLE_INITIAL_ROWS;
   return (
     <View>
       <View style={{ flexDirection: "row", paddingVertical: SPACE[2], paddingHorizontal: SPACE[3], borderBottomWidth: 1, borderBottomColor: t.borderSoft, gap: SPACE[2] }}>
@@ -54,7 +61,7 @@ function TableBody({ spec }: { spec: Extract<AnalystArtifact, { kind: "table" }>
           </Text>
         ))}
       </View>
-      {spec.rows.map((row, ri) => {
+      {visibleRows.map((row, ri) => {
         const sev = spec.rowSeverity?.[ri];
         return (
           <View key={ri} style={{ flexDirection: "row", paddingVertical: SPACE[2], paddingHorizontal: SPACE[3], borderTopWidth: ri > 0 ? 1 : 0, borderTopColor: t.borderSoft, borderLeftWidth: 3, borderLeftColor: severityRailColor(t, sev), gap: SPACE[2] }}>
@@ -69,6 +76,13 @@ function TableBody({ spec }: { spec: Extract<AnalystArtifact, { kind: "table" }>
           </View>
         );
       })}
+      {overflow ? (
+        <Pressable onPress={() => setExpanded((e) => !e)} style={{ paddingVertical: SPACE[2], paddingHorizontal: SPACE[3], borderTopWidth: 1, borderTopColor: t.borderSoft }}>
+          <Text style={[resolveTypeStyle(t, "caption"), { fontSize: 10, fontWeight: "700", letterSpacing: 0.18, color: t.accent, textTransform: "uppercase" }]}>
+            {expanded ? "Show less" : `Show ${hiddenCount} more`}
+          </Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
