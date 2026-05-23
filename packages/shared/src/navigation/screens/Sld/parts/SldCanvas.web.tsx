@@ -68,10 +68,10 @@ export function SldCanvas({ onSelectDevice }: SldCanvasProps = {}): React.ReactE
       ref={containerRef}
       data-comp="SldCanvas"
       onWheel={panZoom.onWheel}
-      onMouseDown={panZoom.onMouseDown}
-      onMouseMove={panZoom.onMouseMove}
-      onMouseUp={panZoom.onMouseUp}
-      onMouseLeave={panZoom.onMouseUp}
+      onPointerDown={panZoom.onPointerDown}
+      onPointerMove={panZoom.onPointerMove}
+      onPointerUp={panZoom.onPointerUp}
+      onPointerCancel={panZoom.onPointerUp}
       onDoubleClick={panZoom.reset}
       style={{
         position: "relative",
