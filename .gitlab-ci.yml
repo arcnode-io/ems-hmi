@@ -10,7 +10,7 @@ check-web:
     - npx playwright install --with-deps chromium
     - npm run checks -w packages/web
     - npm run cover -w packages/web
-    - npm run build -w packages/web
+    - VITE_ENV=demo npm run build -w packages/web
   coverage: '/All files\s*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*(\d+(?:\.\d+)?)/'
   artifacts:
     when: always
@@ -35,6 +35,19 @@ build-web:
     - docker push public.ecr.aws/y1d2j6a8/ems-hmi
   dependencies:
     - check-web
+
+deploy-s3:
+  stage: publish
+  image:
+    name: amazon/aws-cli:latest
+    entrypoint: [""]
+  script:
+    - aws s3 sync packages/web/dist/ s3://ems-hmi --delete
+    - aws cloudfront create-invalidation --distribution-id E21B2WFRU2XXK9 --paths "/*"
+  dependencies:
+    - check-web
+  only:
+    - main
 
 mirror:
   stage: mirror
