@@ -26,4 +26,4 @@ demo:
   siteId: "demo-site"
   mqttUri: ""
   deviceApiUri: "/api"
-  chatApiUri: "https://sandbox-analyst.arcnode.io"
+  chatApiUri: "https://analyst.arcnode.io"
