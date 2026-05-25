@@ -218,7 +218,7 @@ export function StrandedCapacity(): React.ReactElement {
       <Text
         style={[
           resolveTypeStyle(t, "bodyDense"),
-          { color: t.textSoft, marginTop: SPACE[3], lineHeight: 1.4 },
+          { color: t.textSoft, marginTop: SPACE[3] },
         ]}
       >
         Power and runway have headroom; cooling is the closest constraint (s04
