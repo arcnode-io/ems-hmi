@@ -18,6 +18,7 @@ import React from "react";
 import { Pressable, View, Text, ScrollView } from "react-native";
 import { Svg, Path } from "react-native-svg";
 import { useTheme } from "../../../theme/ThemeProvider";
+import { useDeploymentIdentity } from "../../../data/deployment/useDeploymentIdentity";
 import { usePulseOpacity } from "../../../hooks/usePulseOpacity";
 import type { Theme } from "../../../theme/tokens";
 import {
@@ -64,6 +65,8 @@ interface NavItem {
   route: SidebarRoute;
   label: string;
   Icon: IconComp;
+  /** Optional pill rendered next to the label (e.g. "NEW" for demo focus). */
+  chip?: string;
 }
 
 const OPERATE_NAV: readonly NavItem[] = [
@@ -72,7 +75,7 @@ const OPERATE_NAV: readonly NavItem[] = [
   { route: "/modules/sld", label: "SLD", Icon: IconGrid },
   { route: "/energy", label: "Energy", Icon: IconEnergy },
   { route: "/compute", label: "Compute", Icon: IconCompute },
-  { route: "/analyst", label: "Analyst", Icon: IconAnalyst },
+  { route: "/analyst", label: "AI Analyst", Icon: IconAnalyst },
 ] as const;
 
 /**
@@ -314,6 +317,30 @@ function NavRow({
             >
               {item.label}
             </Text>
+            {item.chip ? (
+              <View
+                dataSet={{ region: "nav-chip" }}
+                style={{
+                  paddingHorizontal: 6,
+                  paddingVertical: 1,
+                  borderRadius: 4,
+                  backgroundColor: t.accent,
+                }}
+              >
+                <Text
+                  style={{
+                    color: "#fff",
+                    fontFamily: t.fontLabel,
+                    fontSize: 8,
+                    fontWeight: "700",
+                    letterSpacing: 0.4,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {item.chip}
+                </Text>
+              </View>
+            ) : null}
             {badge > 0 && (
               <View
                 dataSet={{ region: "badge" }}
@@ -462,6 +489,10 @@ export function Sidebar({
   onNavigate,
 }: SidebarProps): React.ReactElement {
   const t = useTheme();
+  const identity = useDeploymentIdentity();
+  const nav = identity.mode === "demo"
+    ? OPERATE_NAV.map((it) => (it.route === "/analyst" ? { ...it, chip: "NEW" } : it))
+    : OPERATE_NAV;
   return (
     <View
       dataSet={{ comp: "Sidebar", collapsed: collapsed ? "true" : "false" }}
@@ -487,7 +518,7 @@ export function Sidebar({
         {!collapsed && (
           <SectionLabel t={t} label="Operate" spaceTop={t.space[2]} />
         )}
-        {OPERATE_NAV.map((item) => (
+        {nav.map((item) => (
           <NavRow
             key={item.route}
             t={t}
