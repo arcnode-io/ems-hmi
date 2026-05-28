@@ -9,8 +9,8 @@
  * See updated-handoff/02-components/Histogram.md.
  */
 
-import React from "react";
-import { View, Text } from "react-native";
+import React, { useState } from "react";
+import { View, Text, type LayoutChangeEvent } from "react-native";
 import { Svg, Line, Rect, Text as SvgText } from "react-native-svg";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { resolveTypeStyle, type Theme } from "../../../theme/tokens";
@@ -27,7 +27,7 @@ export interface HistogramProps {
   height?: number;
 }
 
-const W = 320;
+const W_FALLBACK = 320;
 const PAD_L = 30;
 const PAD_R = 10;
 const PAD_T = 12;
@@ -112,6 +112,16 @@ export function Histogram({
   height = DEFAULT_HEIGHT,
 }: HistogramProps): React.ReactElement {
   const t = useTheme();
+  // Reason: SVG viewBox must equal rendered px width so text stays unstretched.
+  // preserveAspectRatio="none" + a fixed viewBox would scale glyphs with the
+  // container — fixed earlier on TimeseriesChart, same idea here.
+  const [measuredW, setMeasuredW] = useState<number | null>(null);
+  const onLayout = (e: LayoutChangeEvent): void => {
+    // Inner width = outer minus left+right padding (SPACE[3] each).
+    const next = Math.round(e.nativeEvent.layout.width) - SPACE[3] * 2;
+    if (next > 0 && next !== measuredW) setMeasuredW(next);
+  };
+  const W = measuredW ?? W_FALLBACK;
   const H = Math.max(120, Math.min(400, height));
   const chartW = W - PAD_L - PAD_R;
   const chartH = H - PAD_T - PAD_B;
@@ -121,6 +131,7 @@ export function Histogram({
 
   return (
     <View
+      onLayout={onLayout}
       dataSet={{ comp: "Histogram", state: noData ? "no-data" : "ready" }}
       style={{
         padding: SPACE[3],
@@ -130,7 +141,7 @@ export function Histogram({
         borderRadius: RADIUS[3],
       }}
     >
-      <Svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
+      <Svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
         {/* grid baseline */}
         <Line
           x1={PAD_L}
