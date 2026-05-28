@@ -4,7 +4,7 @@
  *   import { useTheme } from '@ems-hmi/shared/theme/useTheme';
  *   import { SOVEREIGN, type Theme, resolveTypeStyle, SPACE, RADIUS } from '@ems-hmi/shared/theme/tokens';
  *
- * Sourced from handoff/01-tokens/tokens.ts (designer-authored, single source
+ * Sourced from design-handoff/01-tokens/tokens.ts (designer-authored, single source
  * of truth). Split across ./tokens/* modules to honor the 200-line cap.
  *
  * Generated artifacts (tokens.dtcg.json, tokens.css) are emitted from this

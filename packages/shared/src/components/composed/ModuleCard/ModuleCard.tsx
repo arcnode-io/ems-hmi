@@ -3,7 +3,7 @@
  * Header (icon · name+sub · StatusBadge) over a 3-column measurement grid.
  * Tap-target is the whole card.
  *
- * See updated-handoff/02-components/ModuleCard.md.
+ * See design-handoff/02-components/ModuleCard.md.
  */
 
 import React from "react";

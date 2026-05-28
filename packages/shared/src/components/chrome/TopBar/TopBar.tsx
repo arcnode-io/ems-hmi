@@ -5,8 +5,8 @@
  *  - Phone: deployment name + sub-label + SIM/LIVE pill + alarm bell + avatar (compact).
  *  - Desktop: breadcrumb + global search + clock + SIM/LIVE pill + alarm bell (room to breathe).
  *
- * Mirrors `TopBar` (phone) in updated-handoff/03-screens/overview-screen.jsx
- * and `DesktopTopBar` in updated-handoff/03-screens/desktop-chrome.jsx.
+ * Mirrors `TopBar` (phone) in design-handoff/03-screens/overview-screen.jsx
+ * and `DesktopTopBar` in design-handoff/03-screens/desktop-chrome.jsx.
  */
 
 import React from "react";

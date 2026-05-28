@@ -2,7 +2,7 @@
  * Theme type contract — the Theme interface every component consumes via
  * useTheme(). Defines the SHAPE; SOVEREIGN + SOLARPUNK provide values.
  *
- * Naming follows handoff/00-constitution.md §1: status colors RESERVED,
+ * Naming follows design-handoff/00-constitution.md §1: status colors RESERVED,
  * domain colors for measurement display only, accent for interactivity.
  */
 

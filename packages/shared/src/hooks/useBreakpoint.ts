@@ -1,7 +1,7 @@
 /**
  * useBreakpoint — returns the current responsive breakpoint based on viewport width.
  *
- * Mirrors handoff/01-tokens/tokens.ts BREAKPOINTS:
+ * Mirrors design-handoff/01-tokens/tokens.ts BREAKPOINTS:
  *   xs: < 480   (phone)
  *   sm: 480-1023 (tablet)
  *   lg: 1024-1599 (desktop)

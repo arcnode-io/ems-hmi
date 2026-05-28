@@ -2,7 +2,7 @@
  * AlarmRow — single row in active-alarm panel + history table.
  * Severity drives color + icon; unacknowledged adds left-border + pulse dot.
  * Per Rules 3.1 + 3.3: row bg never flashes; only the dot pulses.
- * See updated-handoff/02-components/AlarmRow.md.
+ * See design-handoff/02-components/AlarmRow.md.
  */
 
 import React from "react";

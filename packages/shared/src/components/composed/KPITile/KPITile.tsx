@@ -2,7 +2,7 @@
  * KPITile — Tier-1 compact metric for the Overview status strip + KPI panel.
  * Value + unit + label + optional trend + sublabel.
  * Per Rule 1: `colorToken` is a domain color, never a status color.
- * See updated-handoff/02-components/KPITile.md.
+ * See design-handoff/02-components/KPITile.md.
  */
 
 import React from "react";

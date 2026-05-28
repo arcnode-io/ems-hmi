@@ -1,6 +1,6 @@
 // =============================================================================
 //  ThemeProvider — vanilla React Context. Drop-in replacement for Tamagui's
-//  TamaguiThemeProvider. Mirrors handoff/01-tokens/ThemeProvider.tsx.
+//  TamaguiThemeProvider. Mirrors design-handoff/01-tokens/ThemeProvider.tsx.
 // =============================================================================
 
 import * as React from "react";

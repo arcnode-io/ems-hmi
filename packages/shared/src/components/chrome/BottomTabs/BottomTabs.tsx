@@ -1,6 +1,6 @@
 /**
  * BottomTabs — phone nav at the bottom of every screen. Five tabs.
- * Mirrors `BottomTabs` in updated-handoff/03-screens/overview-screen.jsx.
+ * Mirrors `BottomTabs` in design-handoff/03-screens/overview-screen.jsx.
  *
  * Active tab marked by accent-color top bar + accent label/icon. Inactive
  * tabs use textSoft. Badge appears on tabs with outstanding work (e.g.

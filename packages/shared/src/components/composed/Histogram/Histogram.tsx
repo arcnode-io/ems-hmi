@@ -6,7 +6,7 @@
  * threshold) use statusAlarm — the population's heterogeneity IS the
  * alarm signal. Rule 1 exception explicitly allowed by the contract.
  *
- * See updated-handoff/02-components/Histogram.md.
+ * See design-handoff/02-components/Histogram.md.
  */
 
 import React, { useState } from "react";

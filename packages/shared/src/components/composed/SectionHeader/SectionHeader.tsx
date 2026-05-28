@@ -1,7 +1,7 @@
 /**
  * SectionHeader — Tier-1 structural label for card-groups + panels.
  * Anatomy: label chip (left) · heading + optional sub (mid) · optional action (right).
- * See updated-handoff/02-components/SectionHeader.md.
+ * See design-handoff/02-components/SectionHeader.md.
  */
 
 import React from "react";

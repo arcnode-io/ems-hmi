@@ -1,6 +1,6 @@
 /**
  * Gauge — circular arc primitive. Tier-0. SoC %, chiller capacity, PUE.
- * See handoff/02-components/Gauge.md.
+ * See design-handoff/02-components/Gauge.md.
  *
  * Fill = domain color (NEVER status — high util is desired). Empty track when no data.
  */

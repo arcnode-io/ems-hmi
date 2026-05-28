@@ -1,5 +1,5 @@
 /**
- * Icon barrel. Mirrors handoff/03-screens/icons.jsx.
+ * Icon barrel. Mirrors design-handoff/03-screens/icons.jsx.
  *
  * Three families:
  *  - Alarm severity (filled, NOT stroked): IconWarning, IconAlarm, IconFire

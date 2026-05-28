@@ -4,7 +4,7 @@
  * Unacknowledged warn/alarm + always-on fire breathe per rule 3.2 via
  * [[usePulseOpacity]] (0.7↔1.0 over 800ms, ease-in-out).
  *
- * See updated-handoff/02-components/StatusBadge.md.
+ * See design-handoff/02-components/StatusBadge.md.
  */
 
 import React from "react";

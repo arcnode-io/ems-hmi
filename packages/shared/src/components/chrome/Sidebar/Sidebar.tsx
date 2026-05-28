@@ -1,6 +1,6 @@
 /**
  * Sidebar — desktop nav rail. 220px expanded, 56px collapsed.
- * Mirrors `Sidebar` in updated-handoff/03-screens/desktop-chrome.jsx.
+ * Mirrors `Sidebar` in design-handoff/03-screens/desktop-chrome.jsx.
  *
  * Structure:
  *   - Logo lockup (ARCNODE + EMS · v0.7) — always visible.

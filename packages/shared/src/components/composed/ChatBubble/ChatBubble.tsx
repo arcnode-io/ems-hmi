@@ -4,7 +4,7 @@
  * below the bubble via ChartRenderer (the chart is the canonical signal,
  * the bubble is just the explanation — per ChatBubble.md anti-rule).
  *
- * See updated-handoff/02-components/ChatBubble.md.
+ * See design-handoff/02-components/ChatBubble.md.
  */
 
 import React from "react";

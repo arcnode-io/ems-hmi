@@ -1,6 +1,6 @@
 /**
  * Reading — numeric float measurement with unit suffix. Tier-0 primitive.
- * Maps AsyncAPI `type: float`. See handoff/02-components/Reading.md.
+ * Maps AsyncAPI `type: float`. See design-handoff/02-components/Reading.md.
  *
  * Behavior:
  *  - `value === null` renders `"—"` in textMid (Rule 3.4 — never "0").

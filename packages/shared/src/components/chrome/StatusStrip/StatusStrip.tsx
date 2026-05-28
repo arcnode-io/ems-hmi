@@ -7,8 +7,8 @@
  *  - Desktop: 6 segments (+ PUE 24h, CLOCK) at 44px height, each with
  *    optional sub-line ("6.2 h runway", "↓ 0.03", etc.).
  *
- * Mirrors `StatusStrip` in updated-handoff/03-screens/overview-screen.jsx
- * and `DesktopStatusStrip` in updated-handoff/03-screens/desktop-chrome.jsx.
+ * Mirrors `StatusStrip` in design-handoff/03-screens/overview-screen.jsx
+ * and `DesktopStatusStrip` in design-handoff/03-screens/desktop-chrome.jsx.
  *
  * Constitution rule 3.5 — every label that's a fleet-level aggregate carries
  * the FLEET / GPU UTIL / GRID qualifier. The strip is the canonical home of

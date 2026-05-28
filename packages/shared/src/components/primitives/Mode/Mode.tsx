@@ -1,6 +1,6 @@
 /**
  * Mode — dot + humanized enum label. Tier-0 primitive. Maps AsyncAPI `type: enum`.
- * See handoff/02-components/Mode.md.
+ * See design-handoff/02-components/Mode.md.
  *
  * Severity drives dot color (from class YAML x-severity). Label is the
  * humanized enum value (canonical name → title case, acronyms preserved).

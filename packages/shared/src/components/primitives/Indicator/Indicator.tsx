@@ -1,6 +1,6 @@
 /**
  * Indicator — colored dot for binary state. Tier-0 primitive. Maps AsyncAPI `type: bool`.
- * See handoff/02-components/Indicator.md.
+ * See design-handoff/02-components/Indicator.md.
  *
  * Color IS the entire signal — no label. For a label + dot, use Mode.
  */

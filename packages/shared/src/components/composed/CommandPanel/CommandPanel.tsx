@@ -7,7 +7,7 @@
  * console; phones are read-only (constitution Rule 3.1). While a dispatch
  * runs, the controls give way to a live status card.
  *
- * See handoff/02-components/CommandPanel.md.
+ * See design-handoff/02-components/CommandPanel.md.
  */
 
 import React, { useState } from "react";

@@ -6,7 +6,7 @@
  * The only SIM affordance here is the SIMULATED band (amendment locked
  * 2026-05-16) — the Send button never changes color or label in sim mode.
  *
- * See handoff/02-components/ConfirmationModal.md.
+ * See design-handoff/02-components/ConfirmationModal.md.
  */
 
 import React, { useEffect, useRef } from "react";

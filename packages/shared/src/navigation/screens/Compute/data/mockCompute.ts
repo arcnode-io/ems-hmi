@@ -1,7 +1,7 @@
 /**
  * Mock data for Compute screen. Replaced once per-server measurements
  * land in the topology + a historian backs draw-cap utilization windows.
- * Mirrors updated-handoff/03-screens/compute-detail-screen.jsx fixture.
+ * Mirrors design-handoff/03-screens/compute-detail-screen.jsx fixture.
  */
 
 /** 32 servers · per-server [utilPct, drawWatts]. */

@@ -1,7 +1,7 @@
 /**
  * RangeIndicator — horizontal bar showing position in operating range. Tier-0.
  * Used in measurement rows + per-server table cells where vertical space is the constraint.
- * See handoff/02-components/RangeIndicator.md.
+ * See design-handoff/02-components/RangeIndicator.md.
  *
  * Fill color = domain color (NEVER status — high util is desired, not alarm).
  */

@@ -1,6 +1,6 @@
 /**
  * Primitive scales — shared across themes. Spacing, radius, motion, z-index,
- * breakpoints, fixed-size shell elements. See handoff/01-tokens for design intent.
+ * breakpoints, fixed-size shell elements. See design-handoff/01-tokens for design intent.
  *
  * Components consume via `t.space[n]`, `t.radius[n]`, `MOTION.duration.fast`, etc.
  * Never use raw px values in component code.

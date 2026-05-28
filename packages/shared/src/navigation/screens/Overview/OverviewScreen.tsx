@@ -1,6 +1,6 @@
 /**
  * OverviewScreen — Tier 8 composition.
- * Layout follows updated-handoff/03-screens/overview-screen.jsx (phone) and
+ * Layout follows design-handoff/03-screens/overview-screen.jsx (phone) and
  * overview-desktop.jsx (lg+) which renders the same parts in a 3-column
  * scaffold. Phone-first: scrolls vertically, all parts stack.
  *
