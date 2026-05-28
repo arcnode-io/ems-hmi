@@ -66,7 +66,7 @@ test.describe("desktop smoke", () => {
     await page.goto("/");
     await page.waitForLoadState("networkidle");
 
-    for (const tab of ["Overview", "Modules", "SLD", "Energy", "Compute", "Analyst"]) {
+    for (const tab of ["Overview", "Modules", "SLD", "Energy", "Compute", "AI Analyst"]) {
       await page.locator(`[aria-label="${tab}"]`).first().click();
       await page.waitForTimeout(300);
     }
