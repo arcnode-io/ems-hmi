@@ -41,26 +41,51 @@ const ConfigMap = z.object({
   demo: Config,
 });
 
+/** Path the deployed nginx serves the per-deployment runtime overlay from. */
+const OVERLAY_URL = "/cfg.customer.yml";
+
 /**
- * Loads configuration from cfg.yml based on the active environment.
- * Reads `VITE_ENV` (Vite build-time substitution); defaults to `local`.
- * Attaches the env name as `mode` so downstream code can branch on
- * deployment identity without reading the env var again.
- * @returns Active environment's config object with `mode` attached
- * @throws Error if cfg.yml cannot be parsed or schema-validated
+ * Fetch + parse the runtime overlay. Returns a partial config object, or null
+ * when the overlay is absent (404), unreachable (offline/dev), or not an
+ * object — every one of which means "use the baked block".
+ * @returns parsed overlay object, or null to signal "use baked"
  */
-export function loadConfig(): ConfigType {
+async function fetchOverlay(): Promise<Record<string, unknown> | null> {
+  try {
+    const res = await fetch(OVERLAY_URL);
+    if (!res.ok) return null;
+    const parsed: unknown = parse(await res.text());
+    return typeof parsed === "object" && parsed !== null
+      ? (parsed as Record<string, unknown>)
+      : null;
+  } catch {
+    return null; // offline / dev server without the overlay route
+  }
+}
+
+/**
+ * Loads configuration from cfg.yml based on `VITE_ENV` (defaults to `local`),
+ * then overlays the deployed `/cfg.customer.yml` on top so the running HMI
+ * learns its real siteId + same-origin URLs at runtime. Falls back to the baked
+ * block when the overlay is absent (demo/local/offline).
+ * @returns Active config with `mode` attached
+ * @throws if cfg.yml is unparseable or the merged config fails validation
+ */
+export async function loadConfig(): Promise<ConfigType> {
   const configYaml: unknown = parse(configYamlRaw);
-  const config = ConfigMap.parse(configYaml);
+  const map = ConfigMap.parse(configYaml);
   const environment: Mode = match<string | undefined, Mode>(
     import.meta.env.VITE_ENV,
   )
     .with("beta", () => "beta")
     .with("demo", () => "demo")
     .otherwise(() => "local");
-  const block = match(environment)
-    .with("beta", () => config.beta)
-    .with("demo", () => config.demo)
-    .otherwise(() => config.local);
+  const baked = match(environment)
+    .with("beta", () => map.beta)
+    .with("demo", () => map.demo)
+    .otherwise(() => map.local);
+
+  const overlay = await fetchOverlay();
+  const block = overlay ? Config.parse({ ...baked, ...overlay }) : baked;
   return { ...block, mode: environment };
 }

@@ -18,16 +18,17 @@ Object.assign(globalThis, {
 });
 
 jest.mock("./config", () => ({
-  loadConfig: (): Record<string, unknown> => ({
-    logLevel: "DEBUG",
-    e2e: false,
-    deploymentName: "Test Site",
-    deploymentHost: "test.local",
-    mqttUri: "",
-    deviceApiUri: "/api",
-    chatApiUri: "http://localhost:3000",
-    mode: "demo",
-  }),
+  loadConfig: (): Promise<Record<string, unknown>> =>
+    Promise.resolve({
+      logLevel: "DEBUG",
+      e2e: false,
+      deploymentName: "Test Site",
+      deploymentHost: "test.local",
+      mqttUri: "",
+      deviceApiUri: "/api",
+      chatApiUri: "http://localhost:3000",
+      mode: "demo",
+    }),
 }));
 
 const svgMock = (tag: string): React.ComponentType<Record<string, unknown>> => {
