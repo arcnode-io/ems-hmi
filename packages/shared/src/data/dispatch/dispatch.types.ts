@@ -8,8 +8,17 @@
  * [[project-sim-affordance-amendment]] for the SIM cue rules.
  */
 
-/** Lifecycle phase. `proposed` is the resting state — autopilot standing by. */
-export type DispatchPhase = "proposed" | "pending" | "executing" | "settled";
+/**
+ * Lifecycle phase. `proposed` is the resting state — autopilot standing by.
+ * `failed` is reached only on the real path (gateway rejects / faults / times
+ * out); the demo simulator never fails.
+ */
+export type DispatchPhase =
+  | "proposed"
+  | "pending"
+  | "executing"
+  | "settled"
+  | "failed";
 
 /** A standing dispatch suggestion from the autopilot, or an operator override. */
 export interface DispatchProposal {
@@ -36,4 +45,6 @@ export interface DispatchState {
   executingStartedAt: number | null;
   /** Wall-clock ms the executing window closes. */
   executingEndsAt: number | null;
+  /** Failure reason from the gateway, verbatim. Set only when phase is `failed`. */
+  reason: string | null;
 }

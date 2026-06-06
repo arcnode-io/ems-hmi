@@ -38,6 +38,7 @@ export function DispatchBanner(): React.ReactElement | null {
       "settled",
       () => `Dispatch settled — earned ${formatUsd(tel.revenueUsd)}`,
     )
+    .with("failed", () => `Dispatch failed — ${state.reason ?? "see log"}`)
     .exhaustive();
 
   return (

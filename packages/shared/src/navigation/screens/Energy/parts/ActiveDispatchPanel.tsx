@@ -79,6 +79,7 @@ export function ActiveDispatchPanel(): React.ReactElement {
     .with("pending", () => "PENDING")
     .with("executing", () => "LIVE")
     .with("settled", () => "SETTLED")
+    .with("failed", () => "FAILED")
     .exhaustive();
 
   const status = match(state.phase)
@@ -86,6 +87,7 @@ export function ActiveDispatchPanel(): React.ReactElement {
     .with("pending", () => "awaiting ack")
     .with("executing", () => `settles ${formatCountdown(tel.secondsRemaining)}`)
     .with("settled", () => "settled")
+    .with("failed", () => state.reason ?? "failed")
     .exhaustive();
 
   const chipBg = alphaHex(t.colorBess, "14");

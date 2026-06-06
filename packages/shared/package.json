@@ -15,5 +15,8 @@
   },
   "devDependencies": {
     "tsx": "^4.7.0"
+  },
+  "dependencies": {
+    "mqtt": "^5.15.1"
   }
 }

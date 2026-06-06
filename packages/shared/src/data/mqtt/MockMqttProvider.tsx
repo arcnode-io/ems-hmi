@@ -88,6 +88,7 @@ const INITIAL_DISPATCH: DispatchState = {
   proposal: null,
   executingStartedAt: null,
   executingEndsAt: null,
+  reason: null,
 };
 
 /** Mirror the simulator's slow-changing state for the context. */
@@ -98,6 +99,7 @@ function snapshot(sim: DispatchSimulator): DispatchState {
     proposal: sim.proposal(),
     executingStartedAt: w?.startedAt ?? null,
     executingEndsAt: w?.endsAt ?? null,
+    reason: null, // the demo simulator never fails
   };
 }
 

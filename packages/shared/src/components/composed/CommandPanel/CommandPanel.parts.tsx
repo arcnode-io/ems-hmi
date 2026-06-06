@@ -191,6 +191,12 @@ export function DispatchStatusCard(): React.ReactElement {
             color={t.statusOk}
           />
         ))
+        .with("failed", () => (
+          <StatusLine
+            text={`Dispatch failed · ${state.reason ?? "no reason given"}`}
+            color={t.statusAlarm}
+          />
+        ))
         .with("proposed", () => <StatusLine text="Idle" color={t.textSoft} />)
         .exhaustive()}
     </View>

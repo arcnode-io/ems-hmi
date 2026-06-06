@@ -8,6 +8,14 @@
  */
 
 import React from "react";
+import { TextEncoder, TextDecoder } from "util";
+
+// jsdom omits TextEncoder/TextDecoder; the real browser + RN runtimes provide
+// them. RealMqttClient decodes wire payloads with TextDecoder.
+Object.assign(globalThis, {
+  TextEncoder: globalThis.TextEncoder ?? TextEncoder,
+  TextDecoder: globalThis.TextDecoder ?? TextDecoder,
+});
 
 jest.mock("./config", () => ({
   loadConfig: (): Record<string, unknown> => ({

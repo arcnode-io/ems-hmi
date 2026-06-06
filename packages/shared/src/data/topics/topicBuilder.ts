@@ -77,6 +77,18 @@ export function commandTopic(
 }
 
 /**
+ * Build the dispatch-feedback topic for a device. The gateway publishes
+ * lifecycle events ({ ts, command_id, phase, reason? }) here per the dispatch
+ * contract (events namespace, discrete state changes).
+ * @param siteId snake_case site slug
+ * @param deviceId snake_case device slug
+ * @returns `sites/{site}/devices/{device}/events/dispatch_state`
+ */
+export function dispatchStateTopic(siteId: string, deviceId: string): string {
+  return `sites/${siteId}/devices/${deviceId}/events/dispatch_state`;
+}
+
+/**
  * Build the system topic for a broker-internal event type.
  * @param eventType Event slug, e.g. "topology_changed"
  * @returns Two-segment topic string

@@ -15,6 +15,7 @@ import { AuthProvider } from "./data/auth/AuthProvider";
 import { useAuth } from "./data/auth/useAuth";
 import { TopologyProvider } from "./data/topology/TopologyProvider";
 import { MockMqttProvider } from "./data/mqtt/MockMqttProvider";
+import { RealMqttProvider } from "./data/mqtt/RealMqttProvider";
 import { AnalystConversationProvider } from "./data/analyst/AnalystConversationProvider";
 import { analystStream } from "./data/analyst/sse/analystStream";
 import { mockAnalystStream } from "./data/analyst/mockAnalystStream";
@@ -53,15 +54,23 @@ function resolveAnalystStream(): typeof analystStream {
   return search?.includes("mock") ? mockAnalystStream : analystStream;
 }
 
-/** The authenticated app: topology + MQTT + analyst + navigation. */
+/**
+ * The authenticated app: topology + MQTT + analyst + navigation. Real broker in
+ * beta (the gateway publishes live telemetry); deterministic Mock in demo/local.
+ */
 function AppShell({ cfg }: { cfg: AppRootCfg }): React.ReactElement {
+  const inner = (
+    <AnalystConversationProvider stream={resolveAnalystStream()}>
+      <NavigationRoot />
+    </AnalystConversationProvider>
+  );
   return (
     <TopologyProvider viewUrl={topologyUrl(cfg)}>
-      <MockMqttProvider siteId={cfg.siteId}>
-        <AnalystConversationProvider stream={resolveAnalystStream()}>
-          <NavigationRoot />
-        </AnalystConversationProvider>
-      </MockMqttProvider>
+      {cfg.mode === "beta" ? (
+        <RealMqttProvider>{inner}</RealMqttProvider>
+      ) : (
+        <MockMqttProvider siteId={cfg.siteId}>{inner}</MockMqttProvider>
+      )}
     </TopologyProvider>
   );
 }

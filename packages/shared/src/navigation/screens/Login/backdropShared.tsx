@@ -19,7 +19,7 @@ export const Defs = RawDefs as unknown as React.ComponentType<{
 export const BACKDROP_W = 800;
 export const BACKDROP_H = 460;
 export const HORIZON_Y = BACKDROP_H * 0.62;
-export const PULSE_DUR = "4.6s";
+export const PULSE_DUR = "7s";
 
 /** Deterministic PRNG so stars / sketch marks don't reshuffle each render. */
 export function makeRng(seed: number): () => number {
