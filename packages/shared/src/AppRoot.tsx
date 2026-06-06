@@ -1,18 +1,25 @@
 /**
- * Cross-platform app entry. Mounts the same provider tree + NavigationRoot
- * on web and native; each platform's `main` feeds it cfg loaded from its
- * own cfg.yml.
+ * Cross-platform app entry. Mounts the same provider tree + NavigationRoot on
+ * web and native; each platform's `main` feeds it cfg loaded from its own
+ * cfg.yml.
+ *
+ * Real-broker modes (beta) gate the shell behind AuthProvider + a login screen;
+ * demo/local bypass auth entirely (offline, deterministic — the appliance demo
+ * and the Playwright specs depend on instant entry).
  */
 
 import React from "react";
 import { ThemeProvider } from "./theme/ThemeProvider";
 import { DeploymentIdentityProvider } from "./data/deployment/DeploymentIdentityProvider";
+import { AuthProvider } from "./data/auth/AuthProvider";
+import { useAuth } from "./data/auth/useAuth";
 import { TopologyProvider } from "./data/topology/TopologyProvider";
 import { MockMqttProvider } from "./data/mqtt/MockMqttProvider";
 import { AnalystConversationProvider } from "./data/analyst/AnalystConversationProvider";
 import { analystStream } from "./data/analyst/sse/analystStream";
 import { mockAnalystStream } from "./data/analyst/mockAnalystStream";
 import { NavigationRoot } from "./navigation/NavigationRoot";
+import { LoginScreen } from "./navigation/screens/Login/LoginScreen";
 
 export interface AppRootCfg {
   deploymentName: string;
@@ -46,7 +53,37 @@ function resolveAnalystStream(): typeof analystStream {
   return search?.includes("mock") ? mockAnalystStream : analystStream;
 }
 
+/** The authenticated app: topology + MQTT + analyst + navigation. */
+function AppShell({ cfg }: { cfg: AppRootCfg }): React.ReactElement {
+  return (
+    <TopologyProvider viewUrl={topologyUrl(cfg)}>
+      <MockMqttProvider siteId={cfg.siteId}>
+        <AnalystConversationProvider stream={resolveAnalystStream()}>
+          <NavigationRoot />
+        </AnalystConversationProvider>
+      </MockMqttProvider>
+    </TopologyProvider>
+  );
+}
+
+/** Login gate — render the shell only once a session token exists. */
+function AuthGate({ cfg }: { cfg: AppRootCfg }): React.ReactElement | null {
+  const { status } = useAuth();
+  if (status === "loading") return null; // brief; avoids a gate flash on reload
+  if (status !== "authenticated") return <LoginScreen />;
+  return <AppShell cfg={cfg} />;
+}
+
 export function AppRoot({ cfg, errorBoundary: Boundary }: AppRootProps): React.ReactElement {
+  // Real-broker modes require a human login; demo/local enter straight in.
+  const requiresAuth = cfg.mode === "beta";
+  const inner = requiresAuth ? (
+    <AuthProvider>
+      <AuthGate cfg={cfg} />
+    </AuthProvider>
+  ) : (
+    <AppShell cfg={cfg} />
+  );
   const tree = (
     <DeploymentIdentityProvider
       base={{
@@ -58,18 +95,8 @@ export function AppRoot({ cfg, errorBoundary: Boundary }: AppRootProps): React.R
         deviceApiUri: cfg.deviceApiUri,
       }}
     >
-      <TopologyProvider viewUrl={topologyUrl(cfg)}>
-        <MockMqttProvider siteId={cfg.siteId}>
-          <AnalystConversationProvider stream={resolveAnalystStream()}>
-            <NavigationRoot />
-          </AnalystConversationProvider>
-        </MockMqttProvider>
-      </TopologyProvider>
+      {inner}
     </DeploymentIdentityProvider>
   );
-  return (
-    <ThemeProvider>
-      {Boundary ? <Boundary>{tree}</Boundary> : tree}
-    </ThemeProvider>
-  );
+  return <ThemeProvider>{Boundary ? <Boundary>{tree}</Boundary> : tree}</ThemeProvider>;
 }
