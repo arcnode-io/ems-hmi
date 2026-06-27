@@ -121,6 +121,7 @@ export function LoginCard({ label, fluid }: LoginCardProps): React.ReactElement 
 
       <LoginField
         label="Username"
+        testID="login-username"
         value={username}
         onChangeText={setUsername}
         placeholder="operator"
@@ -130,6 +131,7 @@ export function LoginCard({ label, fluid }: LoginCardProps): React.ReactElement 
       />
       <LoginField
         label="Password"
+        testID="login-password"
         value={password}
         onChangeText={setPassword}
         placeholder="Your password"
@@ -141,6 +143,7 @@ export function LoginCard({ label, fluid }: LoginCardProps): React.ReactElement 
       <Pressable
         accessibilityRole="button"
         accessibilityLabel="Sign in"
+        testID="login-submit"
         disabled={submitting}
         onPress={submit}
         style={{

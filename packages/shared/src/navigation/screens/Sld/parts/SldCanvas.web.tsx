@@ -67,6 +67,7 @@ export function SldCanvas({ onSelectDevice }: SldCanvasProps = {}): React.ReactE
     <div
       ref={containerRef}
       data-comp="SldCanvas"
+      data-testid="sld-canvas"
       onWheel={panZoom.onWheel}
       onPointerDown={panZoom.onPointerDown}
       onPointerMove={panZoom.onPointerMove}

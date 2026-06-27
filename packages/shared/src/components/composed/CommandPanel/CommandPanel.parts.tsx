@@ -139,7 +139,8 @@ export function DispatchStatusCard(): React.ReactElement {
 
   return (
     <View
-      dataSet={{ comp: "DispatchStatusCard" }}
+      testID="dispatch-status"
+      dataSet={{ comp: "DispatchStatusCard", phase: state.phase }}
       style={{
         backgroundColor: t.sunken,
         borderWidth: 1,

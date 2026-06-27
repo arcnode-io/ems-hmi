@@ -18,6 +18,8 @@ interface LoginFieldProps {
   error?: string;
   autoFocus?: boolean;
   onSubmitEditing?: () => void;
+  /** Maps to data-testid for e2e selectors. */
+  testID?: string;
 }
 
 export function LoginField({
@@ -29,6 +31,7 @@ export function LoginField({
   error,
   autoFocus,
   onSubmitEditing,
+  testID,
 }: LoginFieldProps): React.ReactElement {
   const t = useTheme();
   const [focused, setFocused] = useState(false);
@@ -61,6 +64,7 @@ export function LoginField({
         }}
       >
         <TextInput
+          testID={testID}
           value={value}
           onChangeText={onChangeText}
           onFocus={() => setFocused(true)}

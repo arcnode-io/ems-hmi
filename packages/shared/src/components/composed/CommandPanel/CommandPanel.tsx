@@ -114,6 +114,7 @@ export function CommandPanel({
                 accessibilityRole="button"
                 accessibilityState={{ disabled: setpointKw === 0 }}
                 dataSet={{ action: "apply" }}
+                testID="dispatch-apply"
                 disabled={setpointKw === 0}
                 onPress={() => setModalOpen(true)}
                 style={{
