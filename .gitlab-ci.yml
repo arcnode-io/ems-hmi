@@ -29,12 +29,18 @@ check-mobile:
 
 build-web:
   stage: publish
+  # The DOCKER image ships to cloud + appliance stacks, which run the real
+  # broker (File RBAC) — so it must be the beta build (RealMqttProvider +
+  # login + same-origin URIs), NOT the demo build check-web produces for the
+  # public S3 demo site. Build our own beta dist here; don't inherit the
+  # demo artifact.
   script:
+    - npm ci --legacy-peer-deps
+    - VITE_ENV=beta npm run build -w packages/web
     - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
     - docker build -t public.ecr.aws/y1d2j6a8/ems-hmi packages/web
     - docker push public.ecr.aws/y1d2j6a8/ems-hmi
-  dependencies:
-    - check-web
+  dependencies: []
 
 deploy-s3:
   stage: publish
