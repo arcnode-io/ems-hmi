@@ -11,7 +11,10 @@ import { commandTopic, dispatchStateTopic } from "../topics/topicBuilder";
 import { correlationId } from "./correlationId";
 import { parseDispatchEvent, applyDispatchEvent } from "./dispatchEvents";
 import type { DispatchControls } from "../dispatch/DispatchContext";
-import type { DispatchProposal, DispatchState } from "../dispatch/dispatch.types";
+import type {
+  DispatchProposal,
+  DispatchState,
+} from "../dispatch/dispatch.types";
 
 const RESTING: DispatchState = {
   phase: "proposed",
@@ -22,7 +25,10 @@ const RESTING: DispatchState = {
 };
 
 /** Publish a raw command frame (carries command_id, so not an MqttMessage). */
-export type PublishFrame = (topic: string, frame: Record<string, string | number>) => void;
+export type PublishFrame = (
+  topic: string,
+  frame: Record<string, string | number>,
+) => void;
 
 export function useRealDispatch(
   client: MqttClient | null,
@@ -49,7 +55,11 @@ export function useRealDispatch(
       activeCmd.current = cmdId;
       publishFrame(
         commandTopic(siteId, proposal.deviceId, "set", "active_power", "watts"),
-        { ts: new Date().toISOString(), value: proposal.setpointKw * 1000, command_id: cmdId },
+        {
+          ts: new Date().toISOString(),
+          value: proposal.setpointKw * 1000,
+          command_id: cmdId,
+        },
       );
       offEvents.current = client.subscribe(
         dispatchStateTopic(siteId, proposal.deviceId),
@@ -58,8 +68,13 @@ export function useRealDispatch(
           if (!event) return;
           const transition = applyDispatchEvent(event, activeCmd.current);
           if (!transition) return;
-          setState((s) => ({ ...s, phase: transition.phase, reason: transition.reason }));
-          if (transition.phase === "settled" || transition.phase === "failed") teardown();
+          setState((s) => ({
+            ...s,
+            phase: transition.phase,
+            reason: transition.reason,
+          }));
+          if (transition.phase === "settled" || transition.phase === "failed")
+            teardown();
         },
       );
       setState({ ...RESTING, phase: "pending", proposal });
@@ -72,5 +87,13 @@ export function useRealDispatch(
     setState(RESTING);
   }, [teardown]);
 
-  return { state, confirm, cancel };
+  // Real deployments: the EMS optimizer drives auto-dispatch server-side, so
+  // there is no client-side autopilot to toggle. Kept for context symmetry.
+  return {
+    state,
+    confirm,
+    cancel,
+    autopilotOn: false,
+    setAutopilot: (): void => undefined,
+  };
 }

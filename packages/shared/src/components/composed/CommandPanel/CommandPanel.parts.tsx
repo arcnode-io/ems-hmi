@@ -9,15 +9,71 @@ import { SPACE, RADIUS } from "../../../theme/tokens/primitives";
 import { useDispatch } from "../../../data/dispatch/useDispatch";
 import { useDispatchTelemetry } from "../../../data/dispatch/useDispatchTelemetry";
 import {
+  MIN_SETPOINT_KW,
+  MAX_SETPOINT_KW,
+} from "../../../data/dispatch/constants";
+import {
   formatSetpoint,
   formatUsd,
   formatCountdown,
 } from "../../../data/dispatch/format";
 
-/** Setpoint bounds — the BESS active-power warn band, kW. */
-export const MIN_SETPOINT_KW = -1800;
-export const MAX_SETPOINT_KW = 1800;
 const STEP_KW = 100;
+
+/**
+ * AutopilotToggle — turns on auto-confirm of the standing proposal. A
+ * control (desk console only, constitution 3.1). SIM affordances stay:
+ * every auto-dispatch still runs through the simulated lifecycle + banner.
+ */
+export function AutopilotToggle(): React.ReactElement {
+  const t = useTheme();
+  const { autopilotOn, setAutopilot } = useDispatch();
+  return (
+    <Pressable
+      accessibilityRole="switch"
+      accessibilityState={{ checked: autopilotOn }}
+      accessibilityLabel="Autopilot"
+      testID="autopilot-toggle"
+      dataSet={{ action: "autopilot", on: String(autopilotOn) }}
+      onPress={() => setAutopilot(!autopilotOn)}
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: SPACE[2],
+        alignSelf: "flex-start",
+        paddingVertical: 5,
+        paddingHorizontal: 9,
+        borderRadius: RADIUS[2],
+        borderWidth: 1,
+        borderColor: autopilotOn ? t.colorBess : t.border,
+        backgroundColor: autopilotOn ? `${t.colorBess}18` : "transparent",
+      }}
+    >
+      <View
+        style={{
+          width: 7,
+          height: 7,
+          borderRadius: 999,
+          backgroundColor: autopilotOn ? t.colorBess : t.textFaint,
+        }}
+      />
+      <Text
+        style={[
+          resolveTypeStyle(t, "label"),
+          {
+            fontSize: 10,
+            fontWeight: "700",
+            letterSpacing: 0.2,
+            textTransform: "uppercase",
+            color: autopilotOn ? t.colorBess : t.textMid,
+          },
+        ]}
+      >
+        Autopilot {autopilotOn ? "On" : "Off"}
+      </Text>
+    </Pressable>
+  );
+}
 
 function StepButton({
   label,

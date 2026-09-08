@@ -33,6 +33,11 @@ import {
   DispatchContext,
   type DispatchControls,
 } from "../dispatch/DispatchContext";
+import {
+  autopilotProposal,
+  shouldRearm,
+  DEMO_DISPATCH_DEVICE_ID,
+} from "../dispatch/autopilot";
 import type {
   DispatchProposal,
   DispatchState,
@@ -129,6 +134,17 @@ export function MockMqttProvider({
   const [dispatchState, setDispatchState] =
     useState<DispatchState>(INITIAL_DISPATCH);
 
+  // Autopilot — read from a ref inside the rAF loop (which doesn't re-close
+  // over state); the setter keeps both in sync. `restingSinceRef` stamps the
+  // moment the lifecycle enters `proposed` so the re-arm beat can elapse.
+  const [autopilotOn, setAutopilotState] = useState(false);
+  const autopilotOnRef = useRef(false);
+  const restingSinceRef = useRef<number | null>(null);
+  const setAutopilot = useCallback((on: boolean): void => {
+    autopilotOnRef.current = on;
+    setAutopilotState(on);
+  }, []);
+
   const confirm = useCallback(
     (proposal: DispatchProposal, socStartPct: number): void => {
       simRef.current.confirm(proposal, socStartPct, performance.now());
@@ -141,6 +157,17 @@ export function MockMqttProvider({
     setDispatchState(snapshot(simRef.current));
   }, []);
 
+  /** Current SoC of the demo BESS from its live ticker, or a nominal fallback. */
+  const demoBessSoc = useCallback((): number => {
+    const tk = tickersRef.current.find(
+      (x) =>
+        x.kind === "float" &&
+        x.deviceId === DEMO_DISPATCH_DEVICE_ID &&
+        x.measurement === "state_of_charge",
+    );
+    return tk && tk.kind === "float" ? tk.current : 60;
+  }, []);
+
   useEffect(() => {
     if (status !== "ready" || !view) return;
     tickersRef.current = buildTickerPlan(view, siteId);
@@ -150,6 +177,22 @@ export function MockMqttProvider({
       const now = performance.now();
       const sim = simRef.current;
       if (sim.tick(now)) setDispatchState(snapshot(sim));
+
+      // Autopilot — re-confirm the standing proposal after each resting beat.
+      if (sim.phase() === "proposed") {
+        if (restingSinceRef.current === null) restingSinceRef.current = now;
+        if (
+          autopilotOnRef.current &&
+          shouldRearm(restingSinceRef.current, now)
+        ) {
+          restingSinceRef.current = null;
+          const soc = demoBessSoc();
+          confirm(autopilotProposal(DEMO_DISPATCH_DEVICE_ID, soc), soc);
+        }
+      } else {
+        restingSinceRef.current = null;
+      }
+
       for (const t of tickersRef.current) {
         if (now < t.nextDueAt) continue;
         t.nextDueAt = now + t.intervalMs;
@@ -180,11 +223,17 @@ export function MockMqttProvider({
       rafRef.current = null;
       tickersRef.current = [];
     };
-  }, [status, view, siteId, client, demoAlarms]);
+  }, [status, view, siteId, client, demoAlarms, confirm, demoBessSoc]);
 
   const controls = useMemo<DispatchControls>(
-    () => ({ state: dispatchState, confirm, cancel }),
-    [dispatchState, confirm, cancel],
+    () => ({
+      state: dispatchState,
+      confirm,
+      cancel,
+      autopilotOn,
+      setAutopilot,
+    }),
+    [dispatchState, confirm, cancel, autopilotOn, setAutopilot],
   );
 
   return (

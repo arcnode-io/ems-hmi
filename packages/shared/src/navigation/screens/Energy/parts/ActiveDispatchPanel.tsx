@@ -14,12 +14,12 @@ import { useTheme } from "../../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../../theme/tokens";
 import { SPACE } from "../../../../theme/tokens/primitives";
 import { EDPanel } from "./EDPanel";
+import { DecisionRecord } from "../../../../components/composed/DecisionRecord/DecisionRecord";
 import { useDispatch } from "../../../../data/dispatch/useDispatch";
 import { useDispatchTelemetry } from "../../../../data/dispatch/useDispatchTelemetry";
-import {
-  autopilotProposal,
-  DEMO_DISPATCH_DEVICE_ID,
-} from "../../../../data/dispatch/autopilot";
+import { useAskAnalyst } from "../../../../data/analyst/useAskAnalyst";
+import { useAutopilotProposal } from "../../../../data/dispatch/useAutopilotProposal";
+import { DEMO_DISPATCH_DEVICE_ID } from "../../../../data/dispatch/autopilot";
 import {
   formatSetpoint,
   formatUsd,
@@ -69,10 +69,12 @@ function alphaHex(hex: string, alpha: string): string {
 
 export function ActiveDispatchPanel(): React.ReactElement {
   const t = useTheme();
-  const { state } = useDispatch();
+  const { state, autopilotOn } = useDispatch();
   const tel = useDispatchTelemetry();
+  const askAnalyst = useAskAnalyst();
   // Resting → show the autopilot's standing proposal; otherwise the live one.
-  const proposal = state.proposal ?? autopilotProposal(DEMO_DISPATCH_DEVICE_ID);
+  const standing = useAutopilotProposal(DEMO_DISPATCH_DEVICE_ID);
+  const proposal = state.proposal ?? standing;
 
   const tag = match(state.phase)
     .with("proposed", () => "AUTO")
@@ -121,7 +123,7 @@ export function ActiveDispatchPanel(): React.ReactElement {
                 },
               ]}
             >
-              {tag}
+              {autopilotOn ? `${tag} · AUTOPILOT` : tag}
             </Text>
             <Text
               style={[
@@ -176,8 +178,26 @@ export function ActiveDispatchPanel(): React.ReactElement {
             flexWrap: "wrap",
           }}
         >
-          <Kv label="revenue" value={formatUsd(tel.revenueUsd)} color={t.colorBess} />
+          <Kv
+            label="revenue"
+            value={formatUsd(tel.revenueUsd)}
+            color={t.colorBess}
+          />
           <Kv label="price" value={`$${proposal.priceUsdPerMwh}/MWh`} />
+        </View>
+
+        {/* Row 4: the deterministic "why" + Analyst hand-off */}
+        <View
+          style={{
+            paddingTop: 8,
+            borderTopWidth: 1,
+            borderTopColor: t.borderSoft,
+          }}
+        >
+          <DecisionRecord
+            deviceId={DEMO_DISPATCH_DEVICE_ID}
+            onAskAnalyst={() => askAnalyst(DEMO_DISPATCH_DEVICE_ID)}
+          />
         </View>
       </View>
     </EDPanel>

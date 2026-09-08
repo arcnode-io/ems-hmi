@@ -13,8 +13,12 @@ export interface AnalystConversation {
   pending: PendingTurn | null;
   status: "idle" | "streaming" | "error";
   error: string | null;
-  /** Send a user message and stream the turn. No-op while already streaming. */
-  send: (text: string) => void;
+  /**
+   * Send a user message and stream the turn. No-op while already streaming.
+   * `opts.focusedDeviceId` rides along as `context.focusedDeviceId` so the
+   * agent knows which device an unqualified "the battery" refers to.
+   */
+  send: (text: string, opts?: { focusedDeviceId?: string }) => void;
   /** Remove a stream item (message or artifact) by id. */
   dismiss: (id: string) => void;
 }

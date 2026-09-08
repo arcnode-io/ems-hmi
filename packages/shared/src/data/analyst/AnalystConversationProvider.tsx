@@ -21,7 +21,10 @@ import { useDeploymentIdentity } from "../deployment/useDeploymentIdentity";
 
 /** Mint a conversation id — UUID where available, else a local fallback. */
 function freshConversationId(): string {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
     return crypto.randomUUID();
   }
   return `local-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
@@ -43,7 +46,10 @@ export function AnalystConversationProvider({
   );
 
   const send = useCallback(
-    async (text: string): Promise<void> => {
+    async (
+      text: string,
+      opts?: { focusedDeviceId?: string },
+    ): Promise<void> => {
       const trimmed = text.trim();
       if (trimmed === "" || state.status === "streaming") return;
       dispatch({
@@ -58,7 +64,12 @@ export function AnalystConversationProvider({
           {
             conversationId: state.conversationId,
             message: trimmed,
-            context: { siteId: identity.siteId },
+            context: {
+              siteId: identity.siteId,
+              ...(opts?.focusedDeviceId
+                ? { focusedDeviceId: opts.focusedDeviceId }
+                : {}),
+            },
           },
           {
             onEvent: (event) =>
@@ -81,7 +92,13 @@ export function AnalystConversationProvider({
         });
       }
     },
-    [stream, identity.chatApiUri, identity.siteId, state.conversationId, state.status],
+    [
+      stream,
+      identity.chatApiUri,
+      identity.siteId,
+      state.conversationId,
+      state.status,
+    ],
   );
 
   const dismiss = useCallback(

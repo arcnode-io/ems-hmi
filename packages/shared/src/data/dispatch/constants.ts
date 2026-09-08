@@ -13,3 +13,7 @@ export const TIME_COMPRESSION = 60;
 /** Sim-hours the window represents, for revenue accrual. */
 export const SETTLE_WINDOW_HOURS =
   ((SETTLE_WINDOW_MS / 1000) * TIME_COMPRESSION) / 3600;
+
+/** Signed setpoint bounds — the BESS active-power warn band, kW. */
+export const MIN_SETPOINT_KW = -1800;
+export const MAX_SETPOINT_KW = 1800;
