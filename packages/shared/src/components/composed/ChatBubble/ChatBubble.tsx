@@ -12,6 +12,7 @@ import { View, Text } from "react-native";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../theme/tokens/primitives";
+import { plainProse } from "./plainProse";
 
 export type ChatRole = "user" | "assistant" | "loading";
 
@@ -35,7 +36,10 @@ function alphaHex(hex: string, alpha: string): string {
 function fmtClock(iso: string): string {
   const d = new Date(iso);
   if (!Number.isFinite(d.getTime())) return iso;
-  return d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 const SOFT_WARN_AFTER_SEC = 30;
@@ -49,6 +53,9 @@ export function ChatBubble({
   const t = useTheme();
   const isUser = role === "user";
   const isLoading = role === "loading";
+  // Assistant prose can carry light Markdown from the live LLM; the bubble
+  // renders plain <Text>, so flatten it. User text is left verbatim.
+  const body = isUser ? (text ?? "") : plainProse(text ?? "");
 
   const bubbleBg = isUser ? alphaHex(t.accent, "20") : t.surface;
   const bubbleBorder = isUser ? t.accentBorder : t.borderSoft;
@@ -155,7 +162,7 @@ export function ChatBubble({
               { color: textColor, fontSize: 12, lineHeight: 17 },
             ]}
           >
-            {text ?? ""}
+            {body}
           </Text>
         )}
       </View>

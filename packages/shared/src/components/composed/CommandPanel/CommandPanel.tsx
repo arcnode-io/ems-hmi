@@ -10,7 +10,7 @@
  * See design-handoff/02-components/CommandPanel.md.
  */
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../theme/tokens";
@@ -21,10 +21,16 @@ import { useDeploymentIdentity } from "../../../data/deployment/useDeploymentIde
 import { useSubscription } from "../../../data/mqtt/useSubscription";
 import { measurementTopic } from "../../../data/topics/topicBuilder";
 import { useDispatch } from "../../../data/dispatch/useDispatch";
-import { autopilotProposal } from "../../../data/dispatch/autopilot";
+import { useAutopilotProposal } from "../../../data/dispatch/useAutopilotProposal";
 import { formatSetpoint } from "../../../data/dispatch/format";
+import { useAskAnalyst } from "../../../data/analyst/useAskAnalyst";
 import { ConfirmationModal } from "../ConfirmationModal/ConfirmationModal";
-import { SetpointStepper, DispatchStatusCard } from "./CommandPanel.parts";
+import { DecisionRecord } from "../DecisionRecord/DecisionRecord";
+import {
+  SetpointStepper,
+  DispatchStatusCard,
+  AutopilotToggle,
+} from "./CommandPanel.parts";
 
 export interface CommandPanelProps {
   deviceId: string;
@@ -44,10 +50,19 @@ export function CommandPanel({
   const { view } = useTopologyView();
   const simMode = view?.ems_mode === "sim";
   const { state, confirm } = useDispatch();
+  const askAnalyst = useAskAnalyst();
 
-  const auto = autopilotProposal(deviceId);
-  const [setpointKw, setSetpointKw] = useState(auto.setpointKw);
+  // The autopilot's standing action follows the live SoC (discharge high,
+  // charge low). `override` is the operator's manual setpoint, or null to
+  // track autopilot; it's cleared each time a new dispatch starts.
+  const auto = useAutopilotProposal(deviceId);
+  const [override, setOverride] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const setpointKw = override ?? auto.setpointKw;
+
+  useEffect(() => {
+    if (state.phase !== "proposed") setOverride(null);
+  }, [state.phase]);
 
   const socTopic = measurementTopic(
     identity.siteId,
@@ -59,8 +74,9 @@ export function CommandPanel({
   const socPct = typeof socMsg?.value === "number" ? socMsg.value : NOMINAL_SOC;
 
   const resting = state.phase === "proposed";
-  const reason =
-    setpointKw === auto.setpointKw ? auto.reason : "Operator override";
+  const reason = override === null ? auto.reason : "Operator override";
+  // Show the active dispatch while one runs; the standing proposal while resting.
+  const shown = state.proposal ?? auto;
 
   const onConfirm = (): void => {
     confirm(
@@ -100,16 +116,23 @@ export function CommandPanel({
       </View>
 
       <View style={{ padding: SPACE[3], gap: SPACE[3] }}>
-        {/* Autopilot's standing proposal */}
+        {isDesktop ? <AutopilotToggle /> : null}
+
+        {/* Active dispatch while one runs; the standing proposal while resting. */}
         <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.textMid }]}>
           <Text style={{ color: t.colorBess, fontWeight: "700" }}>AUTO </Text>
-          {formatSetpoint(auto.setpointKw)} — {auto.reason}
+          {formatSetpoint(shown.setpointKw)} — {shown.reason}
         </Text>
+
+        <DecisionRecord
+          deviceId={deviceId}
+          onAskAnalyst={() => askAnalyst(deviceId)}
+        />
 
         {resting ? (
           isDesktop ? (
             <>
-              <SetpointStepper valueKw={setpointKw} onChange={setSetpointKw} />
+              <SetpointStepper valueKw={setpointKw} onChange={setOverride} />
               <Pressable
                 accessibilityRole="button"
                 accessibilityState={{ disabled: setpointKw === 0 }}

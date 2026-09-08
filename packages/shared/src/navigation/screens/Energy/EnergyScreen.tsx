@@ -120,7 +120,7 @@ export function EnergyScreen(): React.ReactElement {
       <EDSectionHead title="Active dispatch" meta="autopilot" />
       <ActiveDispatchPanel />
 
-      <EDSectionHead title="Forecast" meta="next 60 min" />
+      <EDSectionHead title="Planned dispatch" meta="next 60 min" />
       <ForecastTrace />
 
       <EDSectionHead title="Markets" />

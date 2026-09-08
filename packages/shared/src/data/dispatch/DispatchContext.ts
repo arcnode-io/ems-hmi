@@ -15,6 +15,13 @@ export interface DispatchControls {
   confirm: (proposal: DispatchProposal, socStartPct: number) => void;
   /** Abort a dispatch that has not begun executing. */
   cancel: () => void;
+  /**
+   * Autopilot — when on, the standing proposal auto-confirms each time the
+   * lifecycle rests, no operator step. Demo-only (a real EMS optimizer
+   * drives this server-side).
+   */
+  autopilotOn: boolean;
+  setAutopilot: (on: boolean) => void;
 }
 
 export const DispatchContext = createContext<DispatchControls | null>(null);

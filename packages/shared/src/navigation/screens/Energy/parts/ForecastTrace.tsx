@@ -1,12 +1,12 @@
 /**
- * ForecastTrace — 60-min forward look at price + planned BESS dispatch.
- * Uses canonical TimeseriesChart with two series:
- *   - price (solid, colorGrid) — $/MWh
- *   - planned BESS kW (dashed, colorBess) — operator intent
+ * ForecastTrace — 60-min forward look at the optimizer's planned BESS
+ * setpoint. Single series (kW, + = discharge) on the canonical
+ * TimeseriesChart.
  *
- * Per UTILITY-FEEDS §4, the active DOE import/export limits render as
- * horizontal `alarm`-severity threshold lines so operators see the
- * envelope ceiling the planned dispatch must respect.
+ * Price isn't plotted here — it lives on a different scale ($/MWh vs kW)
+ * and the peak-window context is in the caption + the Decision Record.
+ * A proper dual-axis overlay is a post-demo change (see
+ * /tmp/HANDOFF-dual-axis-linespec-2026-09-07.md).
  */
 
 import React from "react";
@@ -17,54 +17,28 @@ import { SPACE } from "../../../../theme/tokens/primitives";
 import {
   TimeseriesChart,
   type TimeseriesSeries,
-  type TimeseriesThreshold,
 } from "../../../../components/composed/TimeseriesChart/TimeseriesChart";
-import { useOperatingEnvelope } from "../../../../data/envelope/useOperatingEnvelope";
 import { MOCK_ENERGY } from "../data/mockEnergy";
 
 export function ForecastTrace(): React.ReactElement {
   const t = useTheme();
-  const envelope = useOperatingEnvelope();
 
-  const priceSeries: TimeseriesSeries = {
-    label: "Price ($/MWh)",
-    color: t.colorGrid,
-    points: MOCK_ENERGY.forecast.map(([min, , price]) => ({ x: min, y: price })),
-  };
   const bessSeries: TimeseriesSeries = {
     label: "Planned BESS (kW)",
     color: t.colorBess,
-    style: "dashed",
-    points: MOCK_ENERGY.forecast.map(([min, , , bess]) => ({ x: min, y: bess })),
+    points: MOCK_ENERGY.forecast.map(([min, , , bess]) => ({
+      x: min,
+      y: bess,
+    })),
   };
-
-  // Reason: DOE limits arrive as kW from useOperatingEnvelope. exportLimitKw
-  // is already signed-positive (the magnitude); negate it so the line lands
-  // on the export side of the y-axis. ISLAND returns null → no lines.
-  const thresholds: TimeseriesThreshold[] = [];
-  if (envelope.importLimitKw !== null) {
-    thresholds.push({
-      label: `DOE IMP LIMIT ${envelope.importLimitKw.toFixed(0)} kW`,
-      y: envelope.importLimitKw,
-      severity: "alarm",
-    });
-  }
-  if (envelope.exportLimitKw !== null && envelope.exportLimitKw > 0) {
-    thresholds.push({
-      label: `DOE EXP LIMIT ${envelope.exportLimitKw.toFixed(0)} kW`,
-      y: -envelope.exportLimitKw,
-      severity: "alarm",
-    });
-  }
 
   return (
     <View style={{ marginHorizontal: SPACE[4], gap: SPACE[2] }}>
       <TimeseriesChart
-        title="Forecast — next 60 min"
+        title="Planned dispatch — next 60 min"
         xAxis={{ label: "min from now", kind: "numeric" }}
-        yAxis={{ label: "price / dispatch", unit: "mixed" }}
-        series={[priceSeries, bessSeries]}
-        thresholds={thresholds}
+        yAxis={{ label: "Planned setpoint", unit: "kW" }}
+        series={[bessSeries]}
         height={180}
       />
       <Text
