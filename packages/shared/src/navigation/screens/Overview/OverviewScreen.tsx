@@ -19,6 +19,7 @@ import { GpuClusterStrip } from "./parts/GpuClusterStrip";
 import { StrandedCapacity } from "./parts/StrandedCapacity";
 import { KpiStrip } from "./parts/KpiStrip";
 import { AlarmsPanel } from "./parts/AlarmsPanel";
+import { DerEventAlert } from "./parts/DerEventAlert";
 import { EnergyChart } from "./parts/EnergyChart";
 
 export function OverviewScreen(): React.ReactElement {
@@ -55,6 +56,7 @@ export function OverviewScreen(): React.ReactElement {
         <GpuClusterStrip />
         <StrandedCapacity />
         <KpiStrip />
+        <DerEventAlert />
         <AlarmsPanel />
         <EnergyChart />
       </View>

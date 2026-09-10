@@ -7,7 +7,10 @@ import { SOLARPUNK } from "../../../../theme/tokens";
 import type { ActiveAlarm } from "../../../../data/alarms/useAlarms";
 import type { OperatingEnvelope } from "../../../../data/envelope/useOperatingEnvelope";
 
-function alarm(deviceId: string, severity: ActiveAlarm["severity"]): ActiveAlarm {
+function alarm(
+  deviceId: string,
+  severity: ActiveAlarm["severity"],
+): ActiveAlarm {
   return {
     deviceId,
     deviceDisplayName: deviceId,
@@ -56,25 +59,49 @@ describe("buildPoiOverlay", () => {
     settlement: "+142 kW IMPORT",
     importLimitKw: 5000,
     exportLimitKw: 0,
+    netActivePowerW: 142_000,
   };
 
   it("renders the settlement string straight through", () => {
-    expect(buildPoiOverlay(baseEnvelope, SOLARPUNK).settlement).toBe("+142 kW IMPORT");
+    expect(buildPoiOverlay(baseEnvelope, SOLARPUNK).settlement).toBe(
+      "+142 kW IMPORT",
+    );
   });
 
   it("uses textSoft for ok + island states", () => {
-    expect(buildPoiOverlay({ ...baseEnvelope, doeState: "ok" }, SOLARPUNK).stateColor).toBe(SOLARPUNK.textSoft);
-    expect(buildPoiOverlay({ ...baseEnvelope, doeState: "island" }, SOLARPUNK).stateColor).toBe(SOLARPUNK.textSoft);
+    expect(
+      buildPoiOverlay({ ...baseEnvelope, doeState: "ok" }, SOLARPUNK)
+        .stateColor,
+    ).toBe(SOLARPUNK.textSoft);
+    expect(
+      buildPoiOverlay({ ...baseEnvelope, doeState: "island" }, SOLARPUNK)
+        .stateColor,
+    ).toBe(SOLARPUNK.textSoft);
   });
 
   it("elevates stale to statusWarn and invalid/comm-fail to statusAlarm", () => {
-    expect(buildPoiOverlay({ ...baseEnvelope, doeState: "stale" }, SOLARPUNK).stateColor).toBe(SOLARPUNK.statusWarn);
-    expect(buildPoiOverlay({ ...baseEnvelope, doeState: "invalid" }, SOLARPUNK).stateColor).toBe(SOLARPUNK.statusAlarm);
-    expect(buildPoiOverlay({ ...baseEnvelope, doeState: "comm-fail" }, SOLARPUNK).stateColor).toBe(SOLARPUNK.statusAlarm);
+    expect(
+      buildPoiOverlay({ ...baseEnvelope, doeState: "stale" }, SOLARPUNK)
+        .stateColor,
+    ).toBe(SOLARPUNK.statusWarn);
+    expect(
+      buildPoiOverlay({ ...baseEnvelope, doeState: "invalid" }, SOLARPUNK)
+        .stateColor,
+    ).toBe(SOLARPUNK.statusAlarm);
+    expect(
+      buildPoiOverlay({ ...baseEnvelope, doeState: "comm-fail" }, SOLARPUNK)
+        .stateColor,
+    ).toBe(SOLARPUNK.statusAlarm);
   });
 
   it("maps doeState to the uppercase token label", () => {
-    expect(buildPoiOverlay({ ...baseEnvelope, doeState: "comm-fail" }, SOLARPUNK).stateToken).toBe("COMM FAIL");
-    expect(buildPoiOverlay({ ...baseEnvelope, doeState: "island" }, SOLARPUNK).stateToken).toBe("ISLAND");
+    expect(
+      buildPoiOverlay({ ...baseEnvelope, doeState: "comm-fail" }, SOLARPUNK)
+        .stateToken,
+    ).toBe("COMM FAIL");
+    expect(
+      buildPoiOverlay({ ...baseEnvelope, doeState: "island" }, SOLARPUNK)
+        .stateToken,
+    ).toBe("ISLAND");
   });
 });
