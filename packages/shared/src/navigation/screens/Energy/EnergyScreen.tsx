@@ -15,6 +15,7 @@ import { SPACE } from "../../../theme/tokens/primitives";
 import { EDSectionHead } from "./parts/EDPanel";
 import { MoneyStrip } from "./parts/MoneyStrip";
 import { ActiveDispatchPanel } from "./parts/ActiveDispatchPanel";
+import { DerControlPanel } from "./parts/DerControlPanel";
 import { EnergyFlowDiagram } from "./parts/EnergyFlowDiagram";
 import { ForecastTrace } from "./parts/ForecastTrace";
 import { MarketsList } from "./parts/MarketsList";
@@ -119,6 +120,9 @@ export function EnergyScreen(): React.ReactElement {
 
       <EDSectionHead title="Active dispatch" meta="autopilot" />
       <ActiveDispatchPanel />
+
+      <EDSectionHead title="Grid events" meta="DER control" />
+      <DerControlPanel />
 
       <EDSectionHead title="Planned dispatch" meta="next 60 min" />
       <ForecastTrace />

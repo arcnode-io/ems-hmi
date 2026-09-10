@@ -15,6 +15,7 @@ import { AuthProvider } from "./data/auth/AuthProvider";
 import { useAuth } from "./data/auth/useAuth";
 import { TopologyProvider } from "./data/topology/TopologyProvider";
 import { MockMqttProvider } from "./data/mqtt/MockMqttProvider";
+import { MockDerEventProvider } from "./data/der/MockDerEventProvider";
 import { RealMqttProvider } from "./data/mqtt/RealMqttProvider";
 import { AnalystConversationProvider } from "./data/analyst/AnalystConversationProvider";
 import { analystStream } from "./data/analyst/sse/analystStream";
@@ -69,7 +70,11 @@ function AppShell({ cfg }: { cfg: AppRootCfg }): React.ReactElement {
       {cfg.mode === "beta" ? (
         <RealMqttProvider>{inner}</RealMqttProvider>
       ) : (
-        <MockMqttProvider siteId={cfg.siteId}>{inner}</MockMqttProvider>
+        <MockMqttProvider siteId={cfg.siteId}>
+          {/* Demo-only DER curtailment mock — deleted once der_dispatch
+              lands in the AsyncAPI spec; see data/der/derEvent.types.ts. */}
+          <MockDerEventProvider>{inner}</MockDerEventProvider>
+        </MockMqttProvider>
       )}
     </TopologyProvider>
   );
@@ -83,7 +88,10 @@ function AuthGate({ cfg }: { cfg: AppRootCfg }): React.ReactElement | null {
   return <AppShell cfg={cfg} />;
 }
 
-export function AppRoot({ cfg, errorBoundary: Boundary }: AppRootProps): React.ReactElement {
+export function AppRoot({
+  cfg,
+  errorBoundary: Boundary,
+}: AppRootProps): React.ReactElement {
   // Real-broker modes require a human login; demo/local enter straight in.
   const requiresAuth = cfg.mode === "beta";
   const inner = requiresAuth ? (
@@ -107,5 +115,9 @@ export function AppRoot({ cfg, errorBoundary: Boundary }: AppRootProps): React.R
       {inner}
     </DeploymentIdentityProvider>
   );
-  return <ThemeProvider>{Boundary ? <Boundary>{tree}</Boundary> : tree}</ThemeProvider>;
+  return (
+    <ThemeProvider>
+      {Boundary ? <Boundary>{tree}</Boundary> : tree}
+    </ThemeProvider>
+  );
 }

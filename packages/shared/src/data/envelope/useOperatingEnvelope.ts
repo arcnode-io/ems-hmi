@@ -44,6 +44,8 @@ export interface OperatingEnvelope {
   importLimitKw: number | null;
   /** Raw export_limit in kW (negative = export ceiling). */
   exportLimitKw: number | null;
+  /** Raw grid_module net_active_power in watts, signed (+import/−export). */
+  netActivePowerW: number | null;
 }
 
 const DEFAULT_ENVELOPE: OperatingEnvelope = {
@@ -56,6 +58,7 @@ const DEFAULT_ENVELOPE: OperatingEnvelope = {
   settlement: "",
   importLimitKw: null,
   exportLimitKw: null,
+  netActivePowerW: null,
 };
 
 /**
@@ -98,18 +101,32 @@ export function useOperatingEnvelope(): OperatingEnvelope {
       if (device.template === "operating_envelope") {
         for (const meas of ["import_limit", "export_limit", "status"]) {
           const m = tpl.measurements[meas];
-          if (m) list.push(measurementTopic(siteId, deviceId, meas, m.unit as TopicUnit));
+          if (m)
+            list.push(
+              measurementTopic(siteId, deviceId, meas, m.unit as TopicUnit),
+            );
         }
       }
       if (device.template === "grid_module") {
         for (const meas of ["mode", "net_active_power"]) {
           const m = tpl.measurements[meas];
-          if (m) list.push(measurementTopic(siteId, deviceId, meas, m.unit as TopicUnit));
+          if (m)
+            list.push(
+              measurementTopic(siteId, deviceId, meas, m.unit as TopicUnit),
+            );
         }
       }
       if (device.template === "revenue_meter") {
         const m = tpl.measurements["settlement_power"];
-        if (m) list.push(measurementTopic(siteId, deviceId, "settlement_power", m.unit as TopicUnit));
+        if (m)
+          list.push(
+            measurementTopic(
+              siteId,
+              deviceId,
+              "settlement_power",
+              m.unit as TopicUnit,
+            ),
+          );
       }
     }
     return list;
@@ -132,15 +149,30 @@ export function useOperatingEnvelope(): OperatingEnvelope {
       if (!msg) continue;
       if (topic.includes("/grid_module") && topic.endsWith("/mode/none")) {
         mode = msg.value === "ISLAND" ? "ISLAND" : "GRID";
-      } else if (topic.includes("/grid_module") && topic.endsWith("/net_active_power/watts")) {
+      } else if (
+        topic.includes("/grid_module") &&
+        topic.endsWith("/net_active_power/watts")
+      ) {
         if (typeof msg.value === "number") netPower = msg.value;
-      } else if (topic.includes("/operating_envelope") && topic.endsWith("/status/none")) {
+      } else if (
+        topic.includes("/operating_envelope") &&
+        topic.endsWith("/status/none")
+      ) {
         if (typeof msg.value === "string") doeStatusRaw = msg.value;
-      } else if (topic.includes("/operating_envelope") && topic.endsWith("/import_limit/watts")) {
+      } else if (
+        topic.includes("/operating_envelope") &&
+        topic.endsWith("/import_limit/watts")
+      ) {
         if (typeof msg.value === "number") importLimit = msg.value;
-      } else if (topic.includes("/operating_envelope") && topic.endsWith("/export_limit/watts")) {
+      } else if (
+        topic.includes("/operating_envelope") &&
+        topic.endsWith("/export_limit/watts")
+      ) {
         if (typeof msg.value === "number") exportLimit = msg.value;
-      } else if (topic.includes("/revenue_meter") && topic.endsWith("/settlement_power/watts")) {
+      } else if (
+        topic.includes("/revenue_meter") &&
+        topic.endsWith("/settlement_power/watts")
+      ) {
         if (typeof msg.value === "number") settlementW = msg.value;
       }
     }
@@ -158,7 +190,8 @@ export function useOperatingEnvelope(): OperatingEnvelope {
       return `${sign}${magnitude} ${direction}`;
     })();
 
-    const doeState: DOEState = mode === "ISLAND" ? "island" : asDoeState(doeStatusRaw);
+    const doeState: DOEState =
+      mode === "ISLAND" ? "island" : asDoeState(doeStatusRaw);
 
     const importLimitKw = importLimit === null ? null : importLimit / 1000;
     const exportLimitKw = exportLimit === null ? null : -exportLimit / 1000;
@@ -174,6 +207,7 @@ export function useOperatingEnvelope(): OperatingEnvelope {
         settlement,
         importLimitKw,
         exportLimitKw,
+        netActivePowerW: netPower,
       };
     }
 
@@ -212,6 +246,7 @@ export function useOperatingEnvelope(): OperatingEnvelope {
       settlement,
       importLimitKw,
       exportLimitKw,
+      netActivePowerW: netPower,
     };
   }, [view, topics, messages]);
 }
