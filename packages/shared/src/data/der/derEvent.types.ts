@@ -21,3 +21,19 @@ export interface DerEventState {
   /** `energize_enabled`. */
   energizeEnabled: boolean;
 }
+
+/**
+ * Second grid-event type — a local distribution-circuit export limit (an
+ * interconnection-agreement constraint, not a utility DERControl dispatch).
+ * Fictional/demo-only, no real backend behind it — exists so "Grid Events"
+ * reads as a genuine multi-type feed rather than DER Control under a second
+ * label. See design-brief thread 2026-09-10.
+ */
+export interface CircuitLimitState {
+  /** A circuit export-limit event is in progress. */
+  eventActive: boolean;
+  /** Wall-clock ms (performance.now basis) the event began; null while quiet. */
+  activeSinceMs: number | null;
+  /** Commanded export ceiling, watts. 0 while inactive (no cap in effect). */
+  exportCapW: number;
+}

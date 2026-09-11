@@ -1,19 +1,21 @@
 /**
- * Tests for DerEventSimulator — the mocked utility DER-curtailment cycle.
- * Deterministic: every transition is driven by an explicit `now` argument.
+ * Tests for DerEventSimulator — manually-fired utility DER-curtailment
+ * event. Deterministic: every transition is driven by an explicit `now`.
  */
 
-import { DerEventSimulator, QUIET_MS, ACTIVE_MS } from "./DerEventSimulator";
+import { DerEventSimulator, ACTIVE_MS } from "./DerEventSimulator";
 
 describe("DerEventSimulator — resting state", () => {
-  it("starts quiet with no commanded target", () => {
+  it("starts quiet with no commanded target, and stays quiet if never fired", () => {
     // Arrange
     const sim = new DerEventSimulator();
 
     // Act
+    const unchanged = sim.tick(999_999);
     const state = sim.state();
 
     // Assert
+    expect(unchanged).toBe(false);
     expect(state.eventActive).toBe(false);
     expect(state.activeSinceMs).toBeNull();
     expect(state.targetActivePowerW).toBe(0);
@@ -21,53 +23,52 @@ describe("DerEventSimulator — resting state", () => {
   });
 });
 
-describe("DerEventSimulator — quiet -> active -> quiet cycle", () => {
-  it("stays quiet until QUIET_MS elapses from the first tick", () => {
+describe("DerEventSimulator — fire()", () => {
+  it("goes active immediately with a signed curtailment target", () => {
     // Arrange
     const sim = new DerEventSimulator();
-
-    // Act + Assert — first tick just sets the baseline, no flip
-    expect(sim.tick(0)).toBe(false);
-    expect(sim.state().eventActive).toBe(false);
-
-    expect(sim.tick(QUIET_MS - 1)).toBe(false);
-    expect(sim.state().eventActive).toBe(false);
-  });
-
-  it("flips active at QUIET_MS, with a signed curtailment target", () => {
-    // Arrange
-    const sim = new DerEventSimulator();
-    sim.tick(0);
 
     // Act
-    const flipped = sim.tick(QUIET_MS);
+    sim.fire(1000);
     const state = sim.state();
 
     // Assert
-    expect(flipped).toBe(true);
     expect(state.eventActive).toBe(true);
-    expect(state.activeSinceMs).toBe(QUIET_MS);
+    expect(state.activeSinceMs).toBe(1000);
     expect(state.targetActivePowerW).toBeLessThan(0); // curtailment = absorb
   });
 
-  it("flips back to quiet after ACTIVE_MS, clearing activeSinceMs + target", () => {
+  it("auto-clears back to quiet once ACTIVE_MS elapses", () => {
     // Arrange
     const sim = new DerEventSimulator();
-    sim.tick(0);
-    sim.tick(QUIET_MS); // -> active
+    sim.fire(1000);
 
     // Act + Assert — still active mid-window
-    expect(sim.tick(QUIET_MS + ACTIVE_MS - 1)).toBe(false);
+    expect(sim.tick(1000 + ACTIVE_MS - 1)).toBe(false);
     expect(sim.state().eventActive).toBe(true);
 
     // Act — window closes
-    const flipped = sim.tick(QUIET_MS + ACTIVE_MS);
+    const cleared = sim.tick(1000 + ACTIVE_MS);
     const state = sim.state();
 
     // Assert
-    expect(flipped).toBe(true);
+    expect(cleared).toBe(true);
     expect(state.eventActive).toBe(false);
     expect(state.activeSinceMs).toBeNull();
     expect(state.targetActivePowerW).toBe(0);
+  });
+
+  it("re-firing while active restarts the window", () => {
+    // Arrange
+    const sim = new DerEventSimulator();
+    sim.fire(1000);
+
+    // Act — refire partway through the first window
+    sim.fire(1000 + ACTIVE_MS - 1);
+
+    // Assert — the old window would have closed by now, but the refire reset it
+    expect(sim.tick(1000 + ACTIVE_MS)).toBe(false);
+    expect(sim.state().eventActive).toBe(true);
+    expect(sim.state().activeSinceMs).toBe(1000 + ACTIVE_MS - 1);
   });
 });

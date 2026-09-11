@@ -1,6 +1,6 @@
 /** Tests for DER format helpers. AAA. */
 
-import { formatDerTarget, isTrackingCommand } from "./format";
+import { formatDerTarget, formatExportCap, isTrackingCommand } from "./format";
 
 describe("formatDerTarget", () => {
   it("labels a negative target as absorb", () => {
@@ -13,6 +13,12 @@ describe("formatDerTarget", () => {
 
   it("renders zero plainly", () => {
     expect(formatDerTarget(0)).toBe("0 kW");
+  });
+});
+
+describe("formatExportCap", () => {
+  it("renders a magnitude with no sign or direction word", () => {
+    expect(formatExportCap(300_000)).toBe("300 kW");
   });
 });
 

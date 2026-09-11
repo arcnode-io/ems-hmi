@@ -1,18 +1,18 @@
 /**
- * DerEventSimulator — the mocked utility DER-curtailment event. Manually
- * fired (not a random cycle — a live recorded take can't rely on a
- * randomizer happening to land in frame); auto-clears back to quiet after
- * ACTIVE_MS, same shape as DispatchSimulator's confirm()/tick() pattern.
+ * CircuitLimitSimulator — the mocked distribution-circuit export-limit
+ * event (second Grid Events feed, alongside DerEventSimulator). Same
+ * manual-fire / auto-clear shape. Demo-only — no real backend, exists so
+ * "Grid Events" reads as a genuine multi-type feed. See derEvent.types.ts.
  */
 
-import type { DerEventState } from "./derEvent.types";
+import type { CircuitLimitState } from "./derEvent.types";
 
-/** How long a curtailment event holds once fired. */
+/** How long an export-limit event holds once fired. */
 export const ACTIVE_MS = 30_000;
-/** Commanded target during an event — absorb 1.2 MW. */
-const CURTAIL_TARGET_W = -1_200_000;
+/** Commanded export ceiling during an event — cap at 300 kW. */
+const EXPORT_CAP_W = 300_000;
 
-export class DerEventSimulator {
+export class CircuitLimitSimulator {
   private active = false;
   private activeSinceMs: number | null = null;
   private activeUntilMs: number | null = null;
@@ -34,12 +34,11 @@ export class DerEventSimulator {
     return true;
   }
 
-  state(): DerEventState {
+  state(): CircuitLimitState {
     return {
       eventActive: this.active,
       activeSinceMs: this.activeSinceMs,
-      targetActivePowerW: this.active ? CURTAIL_TARGET_W : 0,
-      energizeEnabled: true,
+      exportCapW: this.active ? EXPORT_CAP_W : 0,
     };
   }
 }
