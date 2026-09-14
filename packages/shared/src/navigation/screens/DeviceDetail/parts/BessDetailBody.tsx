@@ -15,6 +15,9 @@
  *     / set_reactive_power commands exist, which CommandPanel already covers
  *   - 24h SoC history — no historical-telemetry source exists anywhere in
  *     this app yet; shows a real session-scoped trend instead (BessSocTrend)
+ *
+ * ReserveFloorPanel sits above Controls, matching bess-detail-screen.jsx —
+ * real data via sizing_params (power-engineer, 2026-09-14).
  */
 
 import React from "react";
@@ -26,6 +29,7 @@ import { BessHeroPanel } from "./BessHeroPanel";
 import { BessSocTrend } from "./BessSocTrend";
 import { BessRacksPanel } from "./BessRacksPanel";
 import { BessAlarmsPanel } from "./BessAlarmsPanel";
+import { ReserveFloorPanel } from "./ReserveFloorPanel";
 
 interface BessDetailBodyProps {
   deviceId: string;
@@ -44,6 +48,7 @@ export function BessDetailBody({ deviceId, deviceDisplayName }: BessDetailBodyPr
       <BessSocTrend samples={socHistory} />
       <BessRacksPanel racks={racks} />
       <BessAlarmsPanel deviceIds={alarmDeviceIds} />
+      <ReserveFloorPanel />
       <CommandPanel deviceId={deviceId} deviceDisplayName={deviceDisplayName} />
     </>
   );
