@@ -14,6 +14,7 @@ import { SPACE } from "../../../theme/tokens/primitives";
 import type { RootStackParamList } from "../../routes";
 import { ModuleCard, type ModuleType } from "../../../components/composed/ModuleCard/ModuleCard";
 import { SldCta } from "./parts/SldCta";
+import { GridCta } from "./parts/GridCta";
 import { FilterRow, type FilterOption } from "./parts/FilterRow";
 import { useModuleRows } from "./useModuleRows";
 
@@ -52,6 +53,7 @@ export function ModulesScreen(): React.ReactElement {
       contentContainerStyle={{ paddingBottom: SPACE[3] }}
     >
       <SldCta onPress={(): void => nav.navigate("Sld")} />
+      <GridCta onPress={(): void => nav.navigate("Grid")} />
       <FilterRow
         options={filterOptions}
         activeId={activeFilter}

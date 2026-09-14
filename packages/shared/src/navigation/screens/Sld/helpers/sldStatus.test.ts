@@ -51,6 +51,7 @@ describe("statusColorsFromTheme", () => {
 describe("buildPoiOverlay", () => {
   const baseEnvelope: OperatingEnvelope = {
     mode: "GRID",
+    islandQualifier: null,
     doeState: "ok",
     direction: "IMP",
     headroom: "3.2 MW",

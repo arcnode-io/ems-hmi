@@ -15,8 +15,6 @@ import { SPACE } from "../../../theme/tokens/primitives";
 import { EDSectionHead } from "./parts/EDPanel";
 import { MoneyStrip } from "./parts/MoneyStrip";
 import { ActiveDispatchPanel } from "./parts/ActiveDispatchPanel";
-import { DerControlPanel } from "./parts/DerControlPanel";
-import { CircuitLimitPanel } from "./parts/CircuitLimitPanel";
 import { EnergyFlowDiagram } from "./parts/EnergyFlowDiagram";
 import { ForecastTrace } from "./parts/ForecastTrace";
 import { MarketsList } from "./parts/MarketsList";
@@ -127,12 +125,6 @@ export function EnergyScreen(): React.ReactElement {
 
       <EDSectionHead title="Markets" />
       <MarketsList />
-
-      <EDSectionHead title="Grid events" meta="2 feeds" />
-      <View style={{ gap: SPACE[3] }}>
-        <DerControlPanel />
-        <CircuitLimitPanel />
-      </View>
     </ScrollView>
   );
 }

@@ -3,8 +3,12 @@
  * the chrome + Overview surfaces. Subscribes to:
  *
  *   - `operating_envelope_*.import_limit` / `export_limit` / `status`
- *   - `grid_module_*.mode`  (GRID vs ISLAND)
- *   - `grid_module_*.net_active_power` (for headroom delta vs import_limit)
+ *   - `grid_module_*.interconnect_state` (breaker position — GRID/ISLAND is
+ *     derived from this; the real device catalog has no separate mode
+ *     enum, confirmed against edp-api 2026-09-13)
+ *   - `grid_module_*.net_active_power` (headroom delta vs import_limit, and
+ *     the net-at-meter reading — revenue_meter has no instantaneous power
+ *     field, only cumulative energy, so this is the real source)
  *
  * Output is the shape the new DOEHeadroomRow + Stranded Capacity Grid row
  * + Status Strip GRID segment consume. Per constitution 3.11 ISLAND
@@ -20,10 +24,17 @@ import { measurementTopic, type TopicUnit } from "../topics/topicBuilder";
 import type { DOEState } from "../../components/composed/DOEHeadroomRow/DOEHeadroomRow";
 
 export type GridMode = "GRID" | "ISLAND";
+/** Only meaningful when mode === "ISLAND". Handoff rule: ISLAND always
+ * carries a qualifier, never rendered bare. */
+export type IslandQualifier = "planned" | "fault";
 
 export interface OperatingEnvelope {
-  /** Site mode — GRID (utility-tied) vs ISLAND (utility severed). */
+  /** Site mode — GRID (utility-tied) vs ISLAND (utility severed). Derived
+   * from grid_module.interconnect_state (breaker position); the real
+   * device catalog has no separate mode enum. */
   mode: GridMode | null;
+  /** Planned (breaker OPEN, ride-through) vs fault (TRIPPED). Null unless islanded. */
+  islandQualifier: IslandQualifier | null;
   /** DOE state — collapses the enum into the DOEHeadroomRow domain. */
   doeState: DOEState;
   /** Currently active flow direction. null when net-zero or unknown. */
@@ -35,9 +46,9 @@ export interface OperatingEnvelope {
   /** Fraction of import_limit consumed, [0..1]. Null when n/a. */
   usedFraction: number | null;
   /**
-   * Pre-formatted settlement reading at the POI revenue meter, e.g.
-   * "+142 kW IMPORT". Empty string when no revenue_meter subscription.
-   * Used by the SLD POI node primary-value slot.
+   * Pre-formatted net-at-meter reading, e.g. "+142 kW IMPORT". Empty
+   * string when net power isn't yet wired. Used by the SLD POI node
+   * primary-value slot. Derived from grid_module.net_active_power.
    */
   settlement: string;
   /** Raw import_limit in kW. Used as a chart threshold by Energy. */
@@ -50,6 +61,7 @@ export interface OperatingEnvelope {
 
 const DEFAULT_ENVELOPE: OperatingEnvelope = {
   mode: null,
+  islandQualifier: null,
   doeState: "ok",
   direction: null,
   headroom: "—",
@@ -72,6 +84,21 @@ function asDoeState(raw: string | undefined): DOEState {
 }
 
 /**
+ * Derive site GRID/ISLAND mode + qualifier from the PCC breaker position.
+ * OPEN is an operator/utility-initiated island (ride-through); TRIPPED is
+ * an unplanned fault island. Neither maps to a "mode" enum on the real
+ * device catalog — interconnect_state is the only real source.
+ */
+function fromInterconnectState(
+  raw: string | undefined,
+): { mode: GridMode; islandQualifier: IslandQualifier | null } | null {
+  if (raw === "CLOSED") return { mode: "GRID", islandQualifier: null };
+  if (raw === "OPEN") return { mode: "ISLAND", islandQualifier: "planned" };
+  if (raw === "TRIPPED") return { mode: "ISLAND", islandQualifier: "fault" };
+  return null;
+}
+
+/**
  * Format watts to either MW (>=1MW) or kW (smaller) with 1 decimal.
  */
 function fmtPower(watts: number | null): string {
@@ -90,8 +117,8 @@ export function useOperatingEnvelope(): OperatingEnvelope {
   const { siteId } = useDeploymentIdentity();
 
   // Build topic list — operating_envelope (import/export/status), grid_module
-  // (mode + net_active_power). Topics deduplicated by Set then sorted for
-  // stable subscription identity.
+  // (interconnect_state + net_active_power). Topics deduplicated by Set then
+  // sorted for stable subscription identity.
   const topics = useMemo(() => {
     if (!view) return [];
     const list: string[] = [];
@@ -108,25 +135,13 @@ export function useOperatingEnvelope(): OperatingEnvelope {
         }
       }
       if (device.template === "grid_module") {
-        for (const meas of ["mode", "net_active_power"]) {
+        for (const meas of ["interconnect_state", "net_active_power"]) {
           const m = tpl.measurements[meas];
           if (m)
             list.push(
               measurementTopic(siteId, deviceId, meas, m.unit as TopicUnit),
             );
         }
-      }
-      if (device.template === "revenue_meter") {
-        const m = tpl.measurements["settlement_power"];
-        if (m)
-          list.push(
-            measurementTopic(
-              siteId,
-              deviceId,
-              "settlement_power",
-              m.unit as TopicUnit,
-            ),
-          );
       }
     }
     return list;
@@ -138,17 +153,19 @@ export function useOperatingEnvelope(): OperatingEnvelope {
     if (!view || topics.length === 0) return DEFAULT_ENVELOPE;
 
     // Resolve mode + DOE state + active power from the first matching topic.
-    let mode: GridMode | null = null;
+    let interconnectRaw: string | undefined;
     let doeStatusRaw: string | undefined;
     let netPower: number | null = null;
     let importLimit: number | null = null;
     let exportLimit: number | null = null;
-    let settlementW: number | null = null;
     for (const topic of topics) {
       const msg = messages[topic];
       if (!msg) continue;
-      if (topic.includes("/grid_module") && topic.endsWith("/mode/none")) {
-        mode = msg.value === "ISLAND" ? "ISLAND" : "GRID";
+      if (
+        topic.includes("/grid_module") &&
+        topic.endsWith("/interconnect_state/none")
+      ) {
+        if (typeof msg.value === "string") interconnectRaw = msg.value;
       } else if (
         topic.includes("/grid_module") &&
         topic.endsWith("/net_active_power/watts")
@@ -169,20 +186,18 @@ export function useOperatingEnvelope(): OperatingEnvelope {
         topic.endsWith("/export_limit/watts")
       ) {
         if (typeof msg.value === "number") exportLimit = msg.value;
-      } else if (
-        topic.includes("/revenue_meter") &&
-        topic.endsWith("/settlement_power/watts")
-      ) {
-        if (typeof msg.value === "number") settlementW = msg.value;
       }
     }
 
-    // Settlement string: signed kW or MW + direction word.
+    const interconnect = fromInterconnectState(interconnectRaw);
+    const mode = interconnect?.mode ?? null;
+
+    // Net-at-meter string: signed kW or MW + direction word.
     const settlement = (() => {
-      if (settlementW === null) return "";
-      const direction = settlementW >= 0 ? "IMPORT" : "EXPORT";
-      const sign = settlementW >= 0 ? "+" : "−";
-      const abs = Math.abs(settlementW);
+      if (netPower === null) return "";
+      const direction = netPower >= 0 ? "IMPORT" : "EXPORT";
+      const sign = netPower >= 0 ? "+" : "−";
+      const abs = Math.abs(netPower);
       const magnitude =
         abs >= 1_000_000
           ? `${(abs / 1_000_000).toFixed(1)} MW`
@@ -199,6 +214,7 @@ export function useOperatingEnvelope(): OperatingEnvelope {
     if (doeState === "island") {
       return {
         mode: "ISLAND",
+        islandQualifier: interconnect?.islandQualifier ?? "fault",
         doeState,
         direction: null,
         headroom: "—",
@@ -238,6 +254,7 @@ export function useOperatingEnvelope(): OperatingEnvelope {
 
     return {
       mode: mode ?? "GRID",
+      islandQualifier: null,
       doeState,
       direction,
       headroom: fmtPower(headroomW),

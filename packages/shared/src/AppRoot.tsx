@@ -15,7 +15,6 @@ import { AuthProvider } from "./data/auth/AuthProvider";
 import { useAuth } from "./data/auth/useAuth";
 import { TopologyProvider } from "./data/topology/TopologyProvider";
 import { MockMqttProvider } from "./data/mqtt/MockMqttProvider";
-import { MockDerEventProvider } from "./data/der/MockDerEventProvider";
 import { RealMqttProvider } from "./data/mqtt/RealMqttProvider";
 import { AnalystConversationProvider } from "./data/analyst/AnalystConversationProvider";
 import { analystStream } from "./data/analyst/sse/analystStream";
@@ -70,11 +69,7 @@ function AppShell({ cfg }: { cfg: AppRootCfg }): React.ReactElement {
       {cfg.mode === "beta" ? (
         <RealMqttProvider>{inner}</RealMqttProvider>
       ) : (
-        <MockMqttProvider siteId={cfg.siteId}>
-          {/* Demo-only DER curtailment mock — deleted once der_dispatch
-              lands in the AsyncAPI spec; see data/der/derEvent.types.ts. */}
-          <MockDerEventProvider>{inner}</MockDerEventProvider>
-        </MockMqttProvider>
+        <MockMqttProvider siteId={cfg.siteId}>{inner}</MockMqttProvider>
       )}
     </TopologyProvider>
   );

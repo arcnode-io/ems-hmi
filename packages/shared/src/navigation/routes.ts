@@ -14,6 +14,7 @@ export type RootStackParamList = {
   Overview: undefined;
   Modules: undefined;
   Sld: undefined;
+  Grid: undefined;
   DeviceDetail: { deviceId: string };
   Energy: undefined;
   Compute: undefined;
@@ -41,6 +42,7 @@ export const ROUTES: readonly RouteSpec[] = [
   { name: "Overview", path: "", sidebar: "/overview", bottomTab: "overview" },
   { name: "Modules", path: "modules", sidebar: "/modules", bottomTab: "modules" },
   { name: "Sld", path: "modules/sld", sidebar: "/modules/sld", bottomTab: "modules" },
+  { name: "Grid", path: "modules/grid", sidebar: "/modules", bottomTab: "modules" },
   { name: "DeviceDetail", path: "devices/:deviceId", sidebar: "/modules", bottomTab: "modules" },
   { name: "Energy", path: "energy", sidebar: "/energy", bottomTab: "energy" },
   { name: "Compute", path: "compute", sidebar: "/compute", bottomTab: "compute" },

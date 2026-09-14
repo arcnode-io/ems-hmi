@@ -10,6 +10,7 @@ import {
   OverviewScreen,
   ModulesScreen,
   SldScreen,
+  GridScreen,
   EnergyScreen,
   ComputeScreen,
   AnalystScreen,
@@ -33,6 +34,7 @@ export function Navigator(): React.ReactElement {
       <Stack.Screen name="Overview" component={OverviewScreen} />
       <Stack.Screen name="Modules" component={ModulesScreen} />
       <Stack.Screen name="Sld" component={SldScreen} />
+      <Stack.Screen name="Grid" component={GridScreen} />
       <Stack.Screen name="DeviceDetail" component={DeviceDetailScreen} />
       <Stack.Screen name="Energy" component={EnergyScreen} />
       <Stack.Screen name="Compute" component={ComputeScreen} />

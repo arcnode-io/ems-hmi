@@ -11,6 +11,7 @@ import { OverviewScreen as RealOverviewScreen } from "./Overview/OverviewScreen"
 import { DeviceDetailScreen as RealDeviceDetailScreen } from "./DeviceDetail/DeviceDetailScreen";
 import { ModulesScreen as RealModulesScreen } from "./Modules/ModulesScreen";
 import { SldScreen as RealSldScreen } from "./Sld/SldScreen";
+import { GridScreen as RealGridScreen } from "./Grid/GridScreen";
 import { EnergyScreen as RealEnergyScreen } from "./Energy/EnergyScreen";
 import { AnalystScreen as RealAnalystScreen } from "./Analyst/AnalystScreen";
 import { ComputeScreen as RealComputeScreen } from "./Compute/ComputeScreen";
@@ -26,6 +27,10 @@ export function ModulesScreen(): ReactElement {
 
 export function SldScreen(): ReactElement {
   return <RealSldScreen />;
+}
+
+export function GridScreen(): ReactElement {
+  return <RealGridScreen />;
 }
 
 export function EnergyScreen(): ReactElement {
