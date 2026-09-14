@@ -8,6 +8,9 @@
  *  - Owns the dispatch lifecycle (DispatchSimulator). The rAF loop advances
  *    it and, while a dispatch is executing, lets the simulator override the
  *    dispatched device's active_power + state_of_charge tickers.
+ *  - Alt+Shift+D forces a der_dispatch curtailment event on/off on demand
+ *    (see ./demoCurtailmentToggle) — for camera takes, since the random
+ *    walk can't be relied on to fire within a single take.
  *
  * NEVER alarms — random walks stay inside [warn_min, warn_max] by clamp.
  */
@@ -42,6 +45,10 @@ import type {
   DispatchProposal,
   DispatchState,
 } from "../dispatch/dispatch.types";
+import {
+  useDemoCurtailmentToggle,
+  DEMO_CURTAILMENT_CAP_W,
+} from "./demoCurtailmentToggle";
 
 /** A concrete MqttClient that talks to local listeners only. */
 class MockMqttClientImpl implements MqttClient {
@@ -145,6 +152,15 @@ export function MockMqttProvider({
     setAutopilotState(on);
   }, []);
 
+  // Alt+Shift+D demo-only curtailment override — see demoCurtailmentToggle's
+  // doc comment. Mirrored into a ref (not the tick effect's deps) so
+  // toggling it doesn't rebuild the ticker plan and reset every random walk.
+  const curtailmentOverride = useDemoCurtailmentToggle();
+  const curtailmentOverrideRef = useRef(false);
+  useEffect(() => {
+    curtailmentOverrideRef.current = curtailmentOverride;
+  }, [curtailmentOverride]);
+
   const confirm = useCallback(
     (proposal: DispatchProposal, socStartPct: number): void => {
       simRef.current.confirm(proposal, socStartPct, performance.now());
@@ -198,15 +214,25 @@ export function MockMqttProvider({
         t.nextDueAt = now + t.intervalMs;
         let value: unknown;
         if (t.kind === "float") {
-          // Priority: dispatch override > demo alarm injection > random walk.
+          // Priority: dispatch override > demo alarm injection >
+          // demo curtailment override > random walk.
           const override = sim.overrideFor(t.deviceId, t.measurement, now);
           const stuck = demoAlarms ? demoInjectionFor(t.topic) : null;
+          const curtailed =
+            curtailmentOverrideRef.current && t.topic.endsWith("/target_active_power/watts")
+              ? DEMO_CURTAILMENT_CAP_W
+              : null;
           if (override !== null) t.current = override;
           else if (stuck !== null) t.current = stuck;
+          else if (curtailed !== null) t.current = curtailed;
           else t.current = nextFloatValue(t);
           value = t.current;
         } else if (t.kind === "bool") {
-          if (Math.random() < 0.01) t.current = !t.current;
+          if (curtailmentOverrideRef.current && t.topic.endsWith("/event_active/none")) {
+            t.current = true;
+          } else if (Math.random() < 0.01) {
+            t.current = !t.current;
+          }
           value = t.current;
         } else {
           if (Math.random() < 0.05) t.index = (t.index + 1) % t.values.length;
