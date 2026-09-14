@@ -23,6 +23,8 @@ const fixtureView: TopologyViewType = {
     P_compute_total_kW: 100,
     E_BESS_total_kWh: 200,
     T_coolant_setpoint_C: 18,
+    ride_through_hours: 0,
+    bess_reserve_floor_mwh: 0,
   },
   devices: {
     bess_01: {

@@ -76,6 +76,10 @@ const SizingParams = z.object({
   P_compute_total_kW: z.number(),
   E_BESS_total_kWh: z.number(),
   T_coolant_setpoint_C: z.number(),
+  // Engineering-set at order/preview time, pushed via a new DTM — not a
+  // live measurement or an operator control (power-engineer, 2026-09-14).
+  ride_through_hours: z.number(),
+  bess_reserve_floor_mwh: z.number(),
 });
 
 export const TopologyView = z.object({

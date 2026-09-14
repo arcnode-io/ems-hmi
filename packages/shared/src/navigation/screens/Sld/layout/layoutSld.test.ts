@@ -22,7 +22,13 @@ function makeTopology(): TopologyViewType {
     deployment_uuid: "00000000-0000-0000-0000-000000000001",
     ems_mode: "sim",
     sizing_ref: null,
-    sizing_params: { P_compute_total_kW: 0, E_BESS_total_kWh: 0, T_coolant_setpoint_C: 0 },
+    sizing_params: {
+      P_compute_total_kW: 0,
+      E_BESS_total_kWh: 0,
+      T_coolant_setpoint_C: 0,
+      ride_through_hours: 0,
+      bess_reserve_floor_mwh: 0,
+    },
     devices: {
       bess_module_01: { device_id: "bess_module_01", template: "bess_module", parent: null, display_name: "BESS-01", blocking: [], extra_measurements: null },
       bess_module_02: { device_id: "bess_module_02", template: "bess_module", parent: null, display_name: "BESS-02", blocking: [], extra_measurements: null },
