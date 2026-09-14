@@ -17,10 +17,13 @@ import { useAggregateMeasurements } from "../../../data/mqtt/useAggregateMeasure
 import { measurementTopic, type TopicUnit } from "../../../data/topics/topicBuilder";
 import { useDeploymentIdentity } from "../../../data/deployment/useDeploymentIdentity";
 import { CommandPanel } from "../../../components/composed/CommandPanel/CommandPanel";
+import { BessDetailBody } from "./parts/BessDetailBody";
 import type { RootStackParamList } from "../../routes";
 
 /** Template that exposes operator dispatch control. */
 const DISPATCHABLE_TEMPLATE = "bess_module";
+/** Template with a real, dedicated detail body — see BessDetailBody's doc comment. */
+const RICH_DETAIL_TEMPLATE = "bess_module";
 
 interface DeviceDetailScreenProps {
   route: { params: { deviceId: string } };
@@ -79,46 +82,55 @@ export function DeviceDetailScreen({ route }: DeviceDetailScreenProps): React.Re
         ) : null}
       </View>
 
-      <View style={{ backgroundColor: t.surface, borderWidth: 1, borderColor: t.border, borderRadius: RADIUS[3], overflow: "hidden" }}>
-        <View style={{ paddingVertical: SPACE[2], paddingHorizontal: SPACE[3], borderBottomWidth: 1, borderBottomColor: t.borderSoft }}>
-          <Text style={[resolveTypeStyle(t, "cardHeading"), { color: t.text, fontSize: 13 }]}>
-            Measurements
-          </Text>
-        </View>
-        {measurementEntries.length === 0 ? (
-          <View style={{ padding: SPACE[3] }}>
-            <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.textSoft }]}>No measurements declared.</Text>
-          </View>
-        ) : (
-          measurementEntries.map(([name, m], i) => {
-            const topic = measurementTopic(identity.siteId, device.device_id, name, m.unit as TopicUnit);
-            const msg = messages[topic];
-            const value = msg ? (typeof msg.value === "number" ? msg.value.toFixed(2) : msg.value) : "—";
-            return (
-              <View key={name} style={{ flexDirection: "row", paddingVertical: SPACE[2], paddingHorizontal: SPACE[3], borderTopWidth: i > 0 ? 1 : 0, borderTopColor: t.borderSoft, gap: SPACE[2] }}>
-                <View style={{ flex: 1, minWidth: 0 }}>
-                  <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.text }]} numberOfLines={1}>
-                    {m.display_name_default ?? name}
-                  </Text>
-                  <Text style={[resolveTypeStyle(t, "caption"), { fontSize: 9, color: t.textSoft, letterSpacing: 0.15, textTransform: "uppercase" }]} numberOfLines={1}>
-                    {name} · {m.unit}
-                  </Text>
-                </View>
-                <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.text, fontVariant: ["tabular-nums"] }]}>
-                  {value} {typeof msg?.value === "number" ? m.unit : ""}
-                </Text>
-              </View>
-            );
-          })
-        )}
-      </View>
-
-      {device.template === DISPATCHABLE_TEMPLATE ? (
-        <CommandPanel
+      {device.template === RICH_DETAIL_TEMPLATE ? (
+        <BessDetailBody
           deviceId={device.device_id}
           deviceDisplayName={device.display_name ?? device.device_id}
         />
-      ) : null}
+      ) : (
+        <>
+          <View style={{ backgroundColor: t.surface, borderWidth: 1, borderColor: t.border, borderRadius: RADIUS[3], overflow: "hidden" }}>
+            <View style={{ paddingVertical: SPACE[2], paddingHorizontal: SPACE[3], borderBottomWidth: 1, borderBottomColor: t.borderSoft }}>
+              <Text style={[resolveTypeStyle(t, "cardHeading"), { color: t.text, fontSize: 13 }]}>
+                Measurements
+              </Text>
+            </View>
+            {measurementEntries.length === 0 ? (
+              <View style={{ padding: SPACE[3] }}>
+                <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.textSoft }]}>No measurements declared.</Text>
+              </View>
+            ) : (
+              measurementEntries.map(([name, m], i) => {
+                const topic = measurementTopic(identity.siteId, device.device_id, name, m.unit as TopicUnit);
+                const msg = messages[topic];
+                const value = msg ? (typeof msg.value === "number" ? msg.value.toFixed(2) : msg.value) : "—";
+                return (
+                  <View key={name} style={{ flexDirection: "row", paddingVertical: SPACE[2], paddingHorizontal: SPACE[3], borderTopWidth: i > 0 ? 1 : 0, borderTopColor: t.borderSoft, gap: SPACE[2] }}>
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.text }]} numberOfLines={1}>
+                        {m.display_name_default ?? name}
+                      </Text>
+                      <Text style={[resolveTypeStyle(t, "caption"), { fontSize: 9, color: t.textSoft, letterSpacing: 0.15, textTransform: "uppercase" }]} numberOfLines={1}>
+                        {name} · {m.unit}
+                      </Text>
+                    </View>
+                    <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.text, fontVariant: ["tabular-nums"] }]}>
+                      {value} {typeof msg?.value === "number" ? m.unit : ""}
+                    </Text>
+                  </View>
+                );
+              })
+            )}
+          </View>
+
+          {device.template === DISPATCHABLE_TEMPLATE ? (
+            <CommandPanel
+              deviceId={device.device_id}
+              deviceDisplayName={device.display_name ?? device.device_id}
+            />
+          ) : null}
+        </>
+      )}
     </ScrollView>
   );
 }
