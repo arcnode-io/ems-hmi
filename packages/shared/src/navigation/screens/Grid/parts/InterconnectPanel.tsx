@@ -1,8 +1,8 @@
 /**
- * InterconnectPanel — PCC breaker + site mode + net-at-meter + frequency.
- * Mirrors grid-detail-desktop.jsx PcsPanel, minus the PV/load/BESS
- * breakdown rows (no PV device template exists yet — see useGridState's
- * doc comment for the full list of what's deferred and why).
+ * InterconnectPanel — PCC breaker + site mode + net-at-meter + PV output.
+ * Frequency moved to FrequencyVoltagePanel (power-quality concern).
+ * Mirrors grid-detail-desktop.jsx PcsPanel, minus site load + BESS — see
+ * useGridState's doc comment for why those two stay deferred.
  */
 
 import React from "react";
@@ -82,12 +82,13 @@ export function InterconnectPanel({ state }: InterconnectPanelProps): React.Reac
               : "exporting"
         }
       />
-      <GridRow
-        k="Frequency"
-        v={state.frequencyHz === null ? "—" : state.frequencyHz.toFixed(2)}
-        u="Hz"
-        tone={islanded ? "warn" : "ok"}
-      />
+      {state.pvOutputW !== null ? (
+        <GridRow
+          k="PV output"
+          v={(state.pvOutputW / 1_000_000).toFixed(2)}
+          u="MW"
+        />
+      ) : null}
     </GridPanel>
   );
 }

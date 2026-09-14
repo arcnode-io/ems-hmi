@@ -17,9 +17,13 @@ import { useTheme } from "../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../theme/tokens";
 import { SPACE } from "../../../theme/tokens/primitives";
 import { useGridState } from "../../../data/grid/useGridState";
+import { useGridPowerQuality } from "../../../data/grid/useGridPowerQuality";
+import { useGridProtection } from "../../../data/grid/useGridProtection";
 import { CurtailmentBanner } from "./parts/CurtailmentBanner";
 import { InterconnectPanel } from "./parts/InterconnectPanel";
 import { UtilityLimitsPanel } from "./parts/UtilityLimitsPanel";
+import { FrequencyVoltagePanel } from "./parts/FrequencyVoltagePanel";
+import { ProtectionPanel } from "./parts/ProtectionPanel";
 import { IslandNote } from "./parts/IslandNote";
 import { GridModulesPanel } from "./parts/GridModulesPanel";
 
@@ -39,6 +43,8 @@ export function GridScreen(): React.ReactElement {
   const t = useTheme();
   const isSov = t.name === "sovereign";
   const state = useGridState();
+  const pq = useGridPowerQuality();
+  const protection = useGridProtection();
   const status = headerStatus(state);
   const statusColor = status.color(t);
 
@@ -105,6 +111,8 @@ export function GridScreen(): React.ReactElement {
       {state.mode === "ISLAND" ? <IslandNote state={state} /> : null}
       <InterconnectPanel state={state} />
       <UtilityLimitsPanel state={state} />
+      <FrequencyVoltagePanel state={state} pq={pq} />
+      <ProtectionPanel state={state} protection={protection} />
       <GridModulesPanel />
     </ScrollView>
   );

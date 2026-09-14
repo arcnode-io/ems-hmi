@@ -18,13 +18,21 @@ export function UtilityLimitsPanel({ state }: { state: GridState }): React.React
     <GridPanel title="Utility limits">
       <GridRow
         k="Import limit"
-        v={islanded || state.importLimitKw === null ? "—" : state.importLimitKw.toFixed(1)}
+        v={
+          islanded || state.importLimitKw === null
+            ? "—"
+            : (state.importLimitKw / 1000).toFixed(1)
+        }
         u={islanded ? "" : "MW"}
         tone={islanded ? "soft" : "default"}
       />
       <GridRow
         k="Export limit"
-        v={islanded || state.exportLimitKw === null ? "—" : state.exportLimitKw.toFixed(1)}
+        v={
+          islanded || state.exportLimitKw === null
+            ? "—"
+            : (Math.abs(state.exportLimitKw) / 1000).toFixed(1)
+        }
         u={islanded ? "" : "MW"}
         tone={islanded ? "soft" : "default"}
       />

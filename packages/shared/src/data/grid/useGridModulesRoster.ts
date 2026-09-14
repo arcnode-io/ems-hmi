@@ -7,9 +7,11 @@
  * walking `device.parent`. Built from an explicit template-name allowlist
  * instead, each with one representative reading.
  *
- * PV inverters and a transformer, once they exist as templates, would
- * follow grid_module.contains like switchgear does — add them here once
- * they land rather than guessing a shape now.
+ * pv_inverter landed 2026-09-14 (power-engineer) and follows
+ * grid_module.contains like switchgear does, but real sites won't have an
+ * instance registered until a separate per-site PV-count/sizing feature
+ * lands — the demo fixture wires two instances so it's exercised here.
+ * A transformer template, once it exists, would follow the same pattern.
  */
 
 import { useMemo } from "react";
@@ -49,6 +51,11 @@ const ROSTER_SPEC: Record<
     role: "Utility DER dispatch feed",
     measurement: "target_active_power",
     format: (w) => ({ v: `${(Math.abs(w) / 1_000_000).toFixed(2)} MW`, l: "target" }),
+  },
+  pv_inverter: {
+    role: "PV string inverter",
+    measurement: "active_power",
+    format: (w) => ({ v: `${(w / 1_000_000).toFixed(2)} MW`, l: "output" }),
   },
 };
 

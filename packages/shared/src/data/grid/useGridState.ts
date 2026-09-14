@@ -1,8 +1,10 @@
 /**
  * useGridState — real data for the Grid screen (`/modules/grid`, site/PCC
- * scope). Composes useOperatingEnvelope (mode, island qualifier, import/
- * export limit, net-at-meter) with the additional feeds the Grid page
- * needs on top:
+ * scope). Interconnect + utility-limits + curtailment concerns; power
+ * quality lives in useGridPowerQuality and protection state in
+ * useGridProtection (panel-shaped hooks, kept separate to stay under the
+ * 200-line budget). Composes useOperatingEnvelope (mode, island qualifier,
+ * import/export limit, net-at-meter) with:
  *
  *   - `grid_module_*.grid_frequency`
  *   - `line_rating_*.dynamic_line_rating` / `status` (the DLR feed — the
@@ -11,13 +13,14 @@
  *   - `der_dispatch_*.target_active_power` / `event_active` (utility
  *     curtailment: the event-scoped cap and whether one is active —
  *     confirmed against backend-engineer 2026-09-13, no new channel)
- *   - `revenue_meter_*.thd_voltage_a/b/c` (averaged for display)
+ *   - `pv_inverter_*.active_power` (summed — generation is never signed,
+ *     so no sign-convention risk the way BESS/site-load would carry)
  *
- * Fields with no real source yet (PV, site load, MV/LV bus voltage,
- * voltage unbalance, protection/anti-islanding state, reserve floor) are
- * intentionally absent here — they're pending edp-api template work
- * tracked outside this hook. Callers render those rows conditionally
- * absent, never with invented placeholder values.
+ * Site load and BESS aren't included: deriving load algebraically
+ * (load = net − bess + pv) needs bess_module.active_power's charge/
+ * discharge sign convention, which isn't documented anywhere in this
+ * codebase — guessing it wrong would silently show a plausible-looking
+ * but backwards number, so it's deferred rather than risked.
  */
 
 import { useMemo } from "react";
@@ -58,8 +61,8 @@ export interface GridState {
   /** Utility curtailment: active flag + the event-scoped cap (watts). */
   curtailmentActive: boolean | null;
   curtailmentCapW: number | null;
-  /** Average per-phase voltage THD at the revenue meter, percent. */
-  thdVPercent: number | null;
+  /** Summed pv_inverter active_power, watts. Null when no PV is registered. */
+  pvOutputW: number | null;
 }
 
 function asFeedStatus(raw: string | undefined): FeedStatus {
@@ -112,11 +115,7 @@ export function useGridState(): GridState {
         "target_active_power",
         "event_active",
       ]),
-      ...topicsFor(view, siteId, "revenue_meter", [
-        "thd_voltage_a",
-        "thd_voltage_b",
-        "thd_voltage_c",
-      ]),
+      ...topicsFor(view, siteId, "pv_inverter", ["active_power"]),
     ];
   }, [view, siteId]);
 
@@ -129,7 +128,7 @@ export function useGridState(): GridState {
     let dlrStatusRaw: string | undefined;
     let curtailmentActive: boolean | null = null;
     let curtailmentCapW: number | null = null;
-    const thdPhases: number[] = [];
+    let pvOutputW: number | null = null;
 
     for (const topic of topics) {
       const msg = messages[topic];
@@ -152,18 +151,12 @@ export function useGridState(): GridState {
       } else if (topic.endsWith("/event_active/none")) {
         if (typeof msg.value === "boolean") curtailmentActive = msg.value;
       } else if (
-        topic.endsWith("/thd_voltage_a/percent") ||
-        topic.endsWith("/thd_voltage_b/percent") ||
-        topic.endsWith("/thd_voltage_c/percent")
+        topic.includes("/pv_inverter") &&
+        topic.endsWith("/active_power/watts")
       ) {
-        if (typeof msg.value === "number") thdPhases.push(msg.value);
+        if (typeof msg.value === "number") pvOutputW = (pvOutputW ?? 0) + msg.value;
       }
     }
-
-    const thdVPercent =
-      thdPhases.length > 0
-        ? thdPhases.reduce((sum, v) => sum + v, 0) / thdPhases.length
-        : null;
 
     return {
       mode: envelope.mode,
@@ -177,7 +170,7 @@ export function useGridState(): GridState {
       dlrStatus: asFeedStatus(dlrStatusRaw),
       curtailmentActive,
       curtailmentCapW: curtailmentActive ? curtailmentCapW : null,
-      thdVPercent,
+      pvOutputW,
     };
   }, [envelope, topics, messages]);
 }

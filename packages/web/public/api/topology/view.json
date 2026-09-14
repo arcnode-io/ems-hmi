@@ -89,6 +89,38 @@
       "display_name": "DER Dispatch Feed",
       "blocking": [],
       "extra_measurements": null
+    },
+    "switchgear_01": {
+      "device_id": "switchgear_01",
+      "template": "switchgear",
+      "parent": "grid_module_01",
+      "display_name": "Switchgear",
+      "blocking": [],
+      "extra_measurements": null
+    },
+    "protective_relay_01": {
+      "device_id": "protective_relay_01",
+      "template": "protective_relay",
+      "parent": "grid_module_01",
+      "display_name": "Protective Relay",
+      "blocking": [],
+      "extra_measurements": null
+    },
+    "pv_inverter_01": {
+      "device_id": "pv_inverter_01",
+      "template": "pv_inverter",
+      "parent": "grid_module_01",
+      "display_name": "PV Inverter 1",
+      "blocking": [],
+      "extra_measurements": null
+    },
+    "pv_inverter_02": {
+      "device_id": "pv_inverter_02",
+      "template": "pv_inverter",
+      "parent": "grid_module_01",
+      "display_name": "PV Inverter 2",
+      "blocking": [],
+      "extra_measurements": null
     }
   },
   "buses": [
@@ -593,6 +625,200 @@
           "display_name_default": "Energize Enabled",
           "iec_61850_ref": null,
           "bounds": null,
+          "thresholds": null,
+          "values": null
+        }
+      },
+      "commands": {}
+    },
+    "switchgear": {
+      "template": "switchgear",
+      "kind": "leaf",
+      "equipment_id": "GRD-SWG-001",
+      "vendor": "ABB",
+      "model": "SafeGear 15kV",
+      "description": "MV switchgear \u2014 bus voltage/current + unbalance",
+      "measurements": {
+        "bus_voltage_a": {
+          "unit": "volts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Bus Voltage Phase A",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 11500,
+            "max": 13500,
+            "nominal": 12470
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "bus_voltage_b": {
+          "unit": "volts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Bus Voltage Phase B",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 11500,
+            "max": 13500,
+            "nominal": 12470
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "bus_voltage_c": {
+          "unit": "volts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Bus Voltage Phase C",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 11500,
+            "max": 13500,
+            "nominal": 12470
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "bus_current_a": {
+          "unit": "amps",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Bus Current Phase A",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 2000,
+            "nominal": 400
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "bus_current_b": {
+          "unit": "amps",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Bus Current Phase B",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 2000,
+            "nominal": 400
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "bus_current_c": {
+          "unit": "amps",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Bus Current Phase C",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 2000,
+            "nominal": 400
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "voltage_unbalance_pct": {
+          "unit": "percent",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Voltage Unbalance",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 3,
+            "nominal": 0.6
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "breaker_state": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "Breaker State",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "OPEN",
+            "1": "CLOSED",
+            "2": "TRIPPED",
+            "3": "UNKNOWN"
+          }
+        }
+      },
+      "commands": {}
+    },
+    "protective_relay": {
+      "template": "protective_relay",
+      "kind": "leaf",
+      "equipment_id": "GRD-REL-001",
+      "vendor": "SEL",
+      "model": "SEL-351-7",
+      "description": "Protective relay \u2014 anti-islanding + ride-through",
+      "measurements": {
+        "anti_islanding_armed": {
+          "unit": "none",
+          "type": "bool",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "Anti-Islanding Armed",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "ride_through_enabled": {
+          "unit": "none",
+          "type": "bool",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "Ride-Through Enabled",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "reconnect_delay_s": {
+          "unit": "none",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "Reconnect Delay",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 600,
+            "nominal": 300
+          },
+          "thresholds": null,
+          "values": null
+        }
+      },
+      "commands": {}
+    },
+    "pv_inverter": {
+      "template": "pv_inverter",
+      "kind": "leaf",
+      "equipment_id": "GRD-PVI-001",
+      "vendor": "Sungrow",
+      "model": "SG3125HV-MV",
+      "description": "PV string inverter \u2014 active power output",
+      "measurements": {
+        "active_power": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Active Power",
+          "iec_61850_ref": "MMXU.W",
+          "bounds": {
+            "min": 0,
+            "max": 3125000,
+            "nominal": 2300000
+          },
           "thresholds": null,
           "values": null
         }
