@@ -201,6 +201,16 @@ export function MockMqttProvider({
   useEffect(() => {
     if (status !== "ready" || !view) return;
     tickersRef.current = buildTickerPlan(view, siteId);
+    // Reason: buildTicker's generic bool default (current: true) is a
+    // reasonable resting state for most bools (energize_enabled,
+    // anti_islanding_armed, ride_through_enabled), but wrong for
+    // event_active specifically — a fresh demo session should start with
+    // no curtailment event, not one already firing (and, since the ADR-002
+    // §16 lockout, permanently hiding the dispatch Apply button).
+    const eventActiveTk = tickersRef.current.find(
+      (x) => x.kind === "bool" && x.topic.endsWith("/event_active/none"),
+    );
+    if (eventActiveTk && eventActiveTk.kind === "bool") eventActiveTk.current = false;
     force((n) => n + 1);
 
     const tick = (): void => {
