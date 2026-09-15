@@ -184,6 +184,20 @@ export function MockMqttProvider({
     return tk && tk.kind === "float" ? tk.current : 60;
   }, []);
 
+  /**
+   * ADR-002 §16: real mode has no client-side autopilot (the EMS optimizer
+   * drives it server-side — see useRealDispatch's doc comment), so this
+   * guard only needs to exist here. Reads the live der_dispatch.event_active
+   * ticker directly (the override-forced value included) rather than a
+   * separate subscription, since the provider already owns that state.
+   */
+  const demoDerEventActive = useCallback((): boolean => {
+    const tk = tickersRef.current.find(
+      (x) => x.kind === "bool" && x.topic.endsWith("/event_active/none"),
+    );
+    return tk && tk.kind === "bool" ? tk.current : false;
+  }, []);
+
   useEffect(() => {
     if (status !== "ready" || !view) return;
     tickersRef.current = buildTickerPlan(view, siteId);
@@ -199,7 +213,8 @@ export function MockMqttProvider({
         if (restingSinceRef.current === null) restingSinceRef.current = now;
         if (
           autopilotOnRef.current &&
-          shouldRearm(restingSinceRef.current, now)
+          shouldRearm(restingSinceRef.current, now) &&
+          !demoDerEventActive()
         ) {
           restingSinceRef.current = null;
           const soc = demoBessSoc();
