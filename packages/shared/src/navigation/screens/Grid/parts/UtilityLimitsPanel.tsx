@@ -43,6 +43,19 @@ export function UtilityLimitsPanel({ state }: { state: GridState }): React.React
         tone={state.dlrStatus === "ok" ? "default" : "warn"}
         hint={state.dlrStatus !== "ok" ? state.dlrStatus : undefined}
       />
+      <GridRow
+        k="DER dispatch state"
+        v={state.derDispatchState ?? "—"}
+        tone={
+          state.derDispatchState === "ACTIVE"
+            ? "warn"
+            : state.derDispatchState === "REJECTED"
+              ? "alarm"
+              : state.derDispatchState === "PENDING" || state.derDispatchState === "ARMED"
+                ? "warn"
+                : "default"
+        }
+      />
       {state.curtailmentActive ? (
         <GridRow
           k="Curtailment cap"

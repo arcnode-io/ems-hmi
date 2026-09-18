@@ -36,6 +36,16 @@ import type {
 
 export type FeedStatus = "ok" | "stale" | "invalid" | "comm-fail";
 export type BreakerState = "OPEN" | "CLOSED" | "TRIPPED";
+/** der_dispatch's real dispatch_state enum (confirmed live 2026-09-18). */
+export type DerDispatchState = "IDLE" | "PENDING" | "ARMED" | "ACTIVE" | "REJECTED";
+
+const DER_DISPATCH_STATES: readonly DerDispatchState[] = [
+  "IDLE",
+  "PENDING",
+  "ARMED",
+  "ACTIVE",
+  "REJECTED",
+];
 
 export interface GridState {
   /** GRID vs ISLAND, and planned/fault qualifier — from useOperatingEnvelope. */
@@ -61,6 +71,8 @@ export interface GridState {
   /** Utility curtailment: active flag + the event-scoped cap (watts). */
   curtailmentActive: boolean | null;
   curtailmentCapW: number | null;
+  /** der_dispatch's real dispatch_state enum. Null until a value arrives. */
+  derDispatchState: DerDispatchState | null;
   /** Summed pv_inverter active_power, watts. Null when no PV is registered. */
   pvOutputW: number | null;
 }
@@ -114,6 +126,7 @@ export function useGridState(): GridState {
       ...topicsFor(view, siteId, "der_dispatch", [
         "target_active_power",
         "event_active",
+        "dispatch_state",
       ]),
       ...topicsFor(view, siteId, "pv_inverter", ["active_power"]),
     ];
@@ -129,6 +142,7 @@ export function useGridState(): GridState {
     let curtailmentActive: boolean | null = null;
     let curtailmentCapW: number | null = null;
     let pvOutputW: number | null = null;
+    let derDispatchState: DerDispatchState | null = null;
 
     for (const topic of topics) {
       const msg = messages[topic];
@@ -150,6 +164,9 @@ export function useGridState(): GridState {
         if (typeof msg.value === "number") curtailmentCapW = msg.value;
       } else if (topic.endsWith("/event_active/none")) {
         if (typeof msg.value === "boolean") curtailmentActive = msg.value;
+      } else if (topic.endsWith("/dispatch_state/none")) {
+        const match = DER_DISPATCH_STATES.find((s) => s === msg.value);
+        if (match) derDispatchState = match;
       } else if (
         topic.includes("/pv_inverter") &&
         topic.endsWith("/active_power/watts")
@@ -171,6 +188,7 @@ export function useGridState(): GridState {
       curtailmentActive,
       curtailmentCapW: curtailmentActive ? curtailmentCapW : null,
       pvOutputW,
+      derDispatchState,
     };
   }, [envelope, topics, messages]);
 }
