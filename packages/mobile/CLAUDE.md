@@ -255,3 +255,10 @@ components/
 - **Tests (`.test.tsx`)**: Colocated with component, tests both presenter and container
 
 
+## Commits & CI
+
+- **Use emoji conventional commits:** `<emoji> <type>: <description>`. Pick whatever emoji fits the change — the `type` must stay a standard conventional-commit type (`feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `perf`, etc.) so changelog generation and version bumping can parse it later.
+- **After every push, check CI with `glab`** (`glab ci status` / `glab ci view`) before calling the task done.
+- **The repo is never red.** Done means pushed AND CI is green — not just pushed. Fix failures before moving on.
+
+
