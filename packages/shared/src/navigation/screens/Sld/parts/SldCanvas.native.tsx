@@ -8,6 +8,7 @@ import { View, Text, type View as ViewType } from "react-native";
 import { match, P } from "ts-pattern";
 import { useTheme } from "../../../../theme/ThemeProvider";
 import { useOperatingEnvelope } from "../../../../data/envelope/useOperatingEnvelope";
+import { useDerEventActive } from "../../../../data/grid/useDerEventActive";
 import { useTopologyView } from "../../../../data/topology/useTopologyView";
 import { useAlarms } from "../../../../data/alarms/useAlarms";
 import { layoutSld } from "../layout/layoutSld";
@@ -51,6 +52,7 @@ export function SldCanvas({ onSelectDevice }: SldCanvasProps = {}): React.ReactE
   const t = useTheme();
   const { status, view, error } = useTopologyView();
   const envelope = useOperatingEnvelope();
+  const derCurtailed = useDerEventActive();
   const alarms = useAlarms();
   const containerRef = useRef<ViewType | null>(null);
 
@@ -60,7 +62,10 @@ export function SldCanvas({ onSelectDevice }: SldCanvasProps = {}): React.ReactE
   const sldTheme = useMemo(() => sldThemeFrom(t), [t]);
   const statusByDevice = useMemo(() => foldAlarmsToStatus(alarms), [alarms]);
   const statusColors = useMemo(() => statusColorsFromTheme(t), [t]);
-  const poiOverlay = useMemo(() => buildPoiOverlay(envelope, t), [envelope, t]);
+  const poiOverlay = useMemo(
+    () => buildPoiOverlay(envelope, t, derCurtailed),
+    [envelope, t, derCurtailed],
+  );
 
   const overlayLabel = statusOverlayLabel({ status, error, hasView: view !== null });
   const tx = panZoom.transform;

@@ -20,6 +20,7 @@ import { useTopologyView } from "../data/topology/useTopologyView";
 import { useFleetKpis } from "../data/kpis/useFleetKpis";
 import { useAlarmCount } from "../data/alarms/useAlarmCount";
 import { useOperatingEnvelope } from "../data/envelope/useOperatingEnvelope";
+import { useDerEventActive } from "../data/grid/useDerEventActive";
 import { TopBar } from "../components/chrome/TopBar/TopBar";
 import { StatusStrip } from "../components/chrome/StatusStrip/StatusStrip";
 import { BottomTabs } from "../components/chrome/BottomTabs/BottomTabs";
@@ -60,6 +61,7 @@ export function AppLayout({
   const alarmCount = useAlarmCount();
   const kpis = useFleetKpis();
   const envelope = useOperatingEnvelope();
+  const derCurtailed = useDerEventActive();
 
   const fmtPct = (v: number | null): string =>
     v === null ? "—" : `${Math.round(v)}%`;
@@ -84,26 +86,30 @@ export function AppLayout({
       value: fmtPct(kpis.gpuUtil.value),
       color: t.colorCompute,
     },
-    // Reason: per UTILITY-FEEDS.md §1, the GRID strip segment renders
-    // direction + headroom. ISLAND collapses to "ISLAND" only (no headroom
-    // number). Non-OK DOE status doesn't crowd the strip — last known
-    // headroom keeps showing, status routes to alarm panel only.
+    // Reason: 2026-09-22 — operating_envelope (DOE/headroom-against-a-limit)
+    // is permanently dead on the real system (der-control-api's
+    // EventOrchestrator.dispatch() always sends opModImpLimW/opModExpLimW
+    // null; dlr-rtu-firmware's real DOE derivation goes to DNP3, never
+    // MQTT — see handoff-replace-doe-with-der-2026-09-22.md). ISLAND still
+    // comes from grid_module.interconnect_state (real, unchanged).
+    // Otherwise: der_dispatch.event_active (real) for curtailment, else
+    // the live net-power reading (real, unrelated to the dead DOE limit).
     {
       label: "GRID",
       value:
         envelope.mode === "ISLAND"
           ? "ISLAND"
-          : envelope.direction === null
-            ? kpis.grid.label ?? "—"
-            : `${envelope.direction === "IMP" ? "+" : "−"}${envelope.headroom}`,
+          : derCurtailed
+            ? "CURTAILED"
+            : kpis.grid.powerKw === null
+              ? (kpis.grid.label ?? "—")
+              : `${kpis.grid.label === "Export" ? "−" : "+"}${Math.abs(kpis.grid.powerKw).toFixed(0)} kW`,
       color: t.colorGrid,
       sub:
         envelope.mode === "ISLAND"
           ? "no utility coordination"
-          : envelope.direction
-            ? envelope.direction === "IMP"
-              ? "Import headroom"
-              : "Export headroom"
+          : derCurtailed
+            ? "Utility event active"
             : fmtFreq(kpis.grid.frequencyHz),
     },
     // TODO: PUE · 24h needs timeseries history hook

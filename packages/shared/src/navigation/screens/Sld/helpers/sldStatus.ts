@@ -57,10 +57,32 @@ function stateTokenColor(state: DOEState, t: Theme): string {
     .exhaustive();
 }
 
-export function buildPoiOverlay(envelope: OperatingEnvelope, t: Theme): PoiOverlay {
+/**
+ * @param curtailed der_dispatch.event_active — real (see useDerEventActive).
+ *   Takes priority over the plain OK token, since it's the more actionable
+ *   fact; ISLAND still wins over both (operating_envelope.status, the old
+ *   STALE/INVALID/COMM_FAIL source, is permanently dead — see
+ *   handoff-replace-doe-with-der-2026-09-22.md — so doeState is only ever
+ *   "island" or "ok" in practice now).
+ */
+export function buildPoiOverlay(
+  envelope: OperatingEnvelope,
+  t: Theme,
+  curtailed: boolean,
+): PoiOverlay {
+  const stateToken =
+    envelope.doeState === "island"
+      ? stateTokenLabel(envelope.doeState)
+      : curtailed
+        ? "CURTAILED"
+        : stateTokenLabel(envelope.doeState);
+  const stateColor =
+    envelope.doeState !== "island" && curtailed
+      ? t.statusWarn
+      : stateTokenColor(envelope.doeState, t);
   return {
     settlement: envelope.settlement,
-    stateToken: stateTokenLabel(envelope.doeState),
-    stateColor: stateTokenColor(envelope.doeState, t),
+    stateToken,
+    stateColor,
   };
 }

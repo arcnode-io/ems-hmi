@@ -64,45 +64,65 @@ describe("buildPoiOverlay", () => {
   };
 
   it("renders the settlement string straight through", () => {
-    expect(buildPoiOverlay(baseEnvelope, SOLARPUNK).settlement).toBe(
+    expect(buildPoiOverlay(baseEnvelope, SOLARPUNK, false).settlement).toBe(
       "+142 kW IMPORT",
     );
   });
 
   it("uses textSoft for ok + island states", () => {
     expect(
-      buildPoiOverlay({ ...baseEnvelope, doeState: "ok" }, SOLARPUNK)
+      buildPoiOverlay({ ...baseEnvelope, doeState: "ok" }, SOLARPUNK, false)
         .stateColor,
     ).toBe(SOLARPUNK.textSoft);
     expect(
-      buildPoiOverlay({ ...baseEnvelope, doeState: "island" }, SOLARPUNK)
+      buildPoiOverlay({ ...baseEnvelope, doeState: "island" }, SOLARPUNK, false)
         .stateColor,
     ).toBe(SOLARPUNK.textSoft);
   });
 
   it("elevates stale to statusWarn and invalid/comm-fail to statusAlarm", () => {
     expect(
-      buildPoiOverlay({ ...baseEnvelope, doeState: "stale" }, SOLARPUNK)
+      buildPoiOverlay({ ...baseEnvelope, doeState: "stale" }, SOLARPUNK, false)
         .stateColor,
     ).toBe(SOLARPUNK.statusWarn);
     expect(
-      buildPoiOverlay({ ...baseEnvelope, doeState: "invalid" }, SOLARPUNK)
+      buildPoiOverlay({ ...baseEnvelope, doeState: "invalid" }, SOLARPUNK, false)
         .stateColor,
     ).toBe(SOLARPUNK.statusAlarm);
     expect(
-      buildPoiOverlay({ ...baseEnvelope, doeState: "comm-fail" }, SOLARPUNK)
+      buildPoiOverlay({ ...baseEnvelope, doeState: "comm-fail" }, SOLARPUNK, false)
         .stateColor,
     ).toBe(SOLARPUNK.statusAlarm);
   });
 
   it("maps doeState to the uppercase token label", () => {
     expect(
-      buildPoiOverlay({ ...baseEnvelope, doeState: "comm-fail" }, SOLARPUNK)
+      buildPoiOverlay({ ...baseEnvelope, doeState: "comm-fail" }, SOLARPUNK, false)
         .stateToken,
     ).toBe("COMM FAIL");
     expect(
-      buildPoiOverlay({ ...baseEnvelope, doeState: "island" }, SOLARPUNK)
+      buildPoiOverlay({ ...baseEnvelope, doeState: "island" }, SOLARPUNK, false)
         .stateToken,
     ).toBe("ISLAND");
+  });
+
+  it("shows CURTAILED in statusWarn when a DER event is active and not islanded", () => {
+    const overlay = buildPoiOverlay(
+      { ...baseEnvelope, doeState: "ok" },
+      SOLARPUNK,
+      true,
+    );
+    expect(overlay.stateToken).toBe("CURTAILED");
+    expect(overlay.stateColor).toBe(SOLARPUNK.statusWarn);
+  });
+
+  it("ISLAND still wins over CURTAILED when both are true", () => {
+    const overlay = buildPoiOverlay(
+      { ...baseEnvelope, doeState: "island" },
+      SOLARPUNK,
+      true,
+    );
+    expect(overlay.stateToken).toBe("ISLAND");
+    expect(overlay.stateColor).toBe(SOLARPUNK.textSoft);
   });
 });
