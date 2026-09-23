@@ -11,7 +11,7 @@ const TEMPLATES: TopologyViewType["templates_used"] = {
   bess_module: { template: "bess_module", kind: "module", equipment_id: null, vendor: null, model: null, description: "", measurements: {}, commands: {} },
   compute_module: { template: "compute_module", kind: "module", equipment_id: null, vendor: null, model: null, description: "", measurements: {}, commands: {} },
   grid_module: { template: "grid_module", kind: "module", equipment_id: null, vendor: null, model: null, description: "", measurements: {}, commands: {} },
-  revenue_meter: { template: "revenue_meter", kind: "leaf", equipment_id: null, vendor: null, model: null, description: "", measurements: {}, commands: {} },
+  poi_meter: { template: "poi_meter", kind: "leaf", equipment_id: null, vendor: null, model: null, description: "", measurements: {}, commands: {} },
   cdu: { template: "cdu", kind: "leaf", equipment_id: null, vendor: null, model: null, description: "", measurements: {}, commands: {} },
 };
 
@@ -32,7 +32,7 @@ function makeTopology(): TopologyViewType {
       bess_module_02: { device_id: "bess_module_02", template: "bess_module", parent: null, display_name: "BESS-02", blocking: [], extra_measurements: null },
       compute_module_01: { device_id: "compute_module_01", template: "compute_module", parent: null, display_name: "ARC-COMPUTE-01", blocking: [], extra_measurements: null },
       grid_module_01: { device_id: "grid_module_01", template: "grid_module", parent: null, display_name: "Grid Module", blocking: [], extra_measurements: null },
-      revenue_meter_01: { device_id: "revenue_meter_01", template: "revenue_meter", parent: "grid_module_01", display_name: "GRD-RM-001", blocking: [], extra_measurements: null },
+      poi_meter_01: { device_id: "poi_meter_01", template: "poi_meter", parent: "grid_module_01", display_name: "GRD-MTR-001", blocking: [], extra_measurements: null },
       cdu_01: { device_id: "cdu_01", template: "cdu", parent: "compute_module_01", display_name: "CDU-01", blocking: [], extra_measurements: null },
     },
     buses: [
@@ -44,7 +44,7 @@ function makeTopology(): TopologyViewType {
 }
 
 describe("layoutSld", () => {
-  it("places POI revenue meter above the AC bus", () => {
+  it("places the POI meter above the AC bus", () => {
     const layout = layoutSld(makeTopology());
     const poi = layout.nodes.find((n) => n.role === "poi");
     const acBusConductor = layout.conductors.find((c) => c.id === "ac_bus_1");

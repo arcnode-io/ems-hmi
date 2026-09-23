@@ -41,7 +41,7 @@ export const DC_RIGHT_MARGIN = 80;
 export const DC_LEFT_OFFSET_FROM_GRID = COLUMN_PITCH * 0.5;
 
 /** Template-based classification. */
-export const POI_TEMPLATE = "revenue_meter";
+export const POI_TEMPLATE = "poi_meter";
 export const GRID_MODULE_TEMPLATE = "grid_module";
 export const COMPUTE_MODULE_TEMPLATE = "compute_module";
 export const CDU_TEMPLATE = "cdu";

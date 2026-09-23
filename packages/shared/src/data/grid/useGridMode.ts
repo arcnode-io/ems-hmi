@@ -4,7 +4,7 @@
  *   - `grid_module_*.interconnect_state` (breaker position — GRID/ISLAND is
  *     derived from this; the real device catalog has no separate mode
  *     enum, confirmed against edp-api 2026-09-13)
- *   - `grid_module_*.net_active_power` (net-at-meter reading — revenue_meter
+ *   - `grid_module_*.net_active_power` (net-at-meter reading — poi_meter
  *     has no instantaneous power field, only cumulative energy, so this is
  *     the real source)
  *
@@ -40,7 +40,7 @@ export interface GridModeState {
    * string when net power isn't yet wired. Used by the SLD POI node
    * primary-value slot. Derived from grid_module.net_active_power.
    */
-  settlement: string;
+  netAtMeter: string;
   /** Raw grid_module net_active_power in watts, signed (+import/−export). */
   netActivePowerW: number | null;
 }
@@ -49,7 +49,7 @@ const DEFAULT_STATE: GridModeState = {
   mode: null,
   islandQualifier: null,
   direction: null,
-  settlement: "",
+  netAtMeter: "",
   netActivePowerW: null,
 };
 
@@ -118,7 +118,7 @@ export function useGridMode(): GridModeState {
     const interconnect = fromInterconnectState(interconnectRaw);
     const mode = interconnect?.mode ?? null;
 
-    const settlement = (() => {
+    const netAtMeter = (() => {
       if (netPower === null) return "";
       const direction = netPower >= 0 ? "IMPORT" : "EXPORT";
       const sign = netPower >= 0 ? "+" : "−";
@@ -135,7 +135,7 @@ export function useGridMode(): GridModeState {
         mode: "ISLAND",
         islandQualifier: interconnect?.islandQualifier ?? "fault",
         direction: null,
-        settlement,
+        netAtMeter,
         netActivePowerW: netPower,
       };
     }
@@ -151,7 +151,7 @@ export function useGridMode(): GridModeState {
       mode: mode ?? "GRID",
       islandQualifier: null,
       direction,
-      settlement,
+      netAtMeter,
       netActivePowerW: netPower,
     };
   }, [view, topics, messages]);

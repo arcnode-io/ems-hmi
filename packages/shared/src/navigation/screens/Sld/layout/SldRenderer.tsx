@@ -15,7 +15,7 @@ import { NodeBox } from "./NodeBox";
 export type SldNodeStatus = "ok" | "warn" | "alarm" | "offline";
 
 export interface PoiOverlay {
-  settlement: string;
+  netAtMeter: string;
   stateToken: string;
   stateColor: string;
 }

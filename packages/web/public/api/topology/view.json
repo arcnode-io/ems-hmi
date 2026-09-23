@@ -50,11 +50,11 @@
       ],
       "extra_measurements": null
     },
-    "revenue_meter_01": {
-      "device_id": "revenue_meter_01",
-      "template": "revenue_meter",
+    "poi_meter_01": {
+      "device_id": "poi_meter_01",
+      "template": "poi_meter",
       "parent": "grid_module_01",
-      "display_name": "GRD-RM-001",
+      "display_name": "GRD-MTR-001",
       "blocking": [],
       "extra_measurements": null
     },
@@ -361,13 +361,13 @@
       },
       "commands": {}
     },
-    "revenue_meter": {
-      "template": "revenue_meter",
+    "poi_meter": {
+      "template": "poi_meter",
       "kind": "leaf",
-      "equipment_id": "RM-POI-001",
-      "vendor": "Utility",
-      "model": "Revenue settlement meter",
-      "description": "Point-of-interconnection settlement meter (revenue grade)",
+      "equipment_id": "GRD-MTR-001",
+      "vendor": "Schneider Electric",
+      "model": "PowerLogic ION9000",
+      "description": "Point-of-interconnection meter, Class 0.1S (ANSI C12.20 / IEC 62053-22)",
       "measurements": {
         "kwh_delivered": {
           "unit": "watt_hours",

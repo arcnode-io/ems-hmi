@@ -5,7 +5,7 @@
  *
  *   - `switchgear_*.bus_voltage_a/b/c` (averaged — the MV bus reading)
  *   - `switchgear_*.voltage_unbalance_pct`
- *   - `revenue_meter_*.thd_voltage_a/b/c` (averaged)
+ *   - `poi_meter_*.thd_voltage_a/b/c` (averaged)
  *
  * LV bus has no home in the BOM today (confirmed with power-engineer
  * 2026-09-13: the transformer's secondary has no metering equipment
@@ -23,7 +23,7 @@ export interface GridPowerQuality {
   mvBusVoltageV: number | null;
   /** Voltage unbalance at the switchgear, percent. */
   voltageUnbalancePct: number | null;
-  /** Average per-phase voltage THD at the revenue meter, percent. */
+  /** Average per-phase voltage THD at the POI meter, percent. */
   thdVPercent: number | null;
 }
 
@@ -67,7 +67,7 @@ export function useGridPowerQuality(): GridPowerQuality {
         "bus_voltage_c",
         "voltage_unbalance_pct",
       ]),
-      ...topicsFor(view, siteId, "revenue_meter", [
+      ...topicsFor(view, siteId, "poi_meter", [
         "thd_voltage_a",
         "thd_voltage_b",
         "thd_voltage_c",

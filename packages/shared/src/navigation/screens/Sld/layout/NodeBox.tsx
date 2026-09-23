@@ -65,7 +65,7 @@ function PoiLabels({ n, overlay, theme }: { n: SldNode; overlay?: PoiOverlay; th
         fontWeight="700"
         fontFamily={theme.fontLabel}
       >
-        {overlay?.settlement ?? ""}
+        {overlay?.netAtMeter ?? ""}
       </SvgText>
       <SvgText
         x={0}

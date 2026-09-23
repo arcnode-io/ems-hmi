@@ -10,7 +10,7 @@ import { POI_TEMPLATE } from "./constants";
 export type ClassifiedDevice = TopologyViewType["devices"][string];
 
 export interface ClassifiedDevices {
-  /** Single POI revenue meter. Multi-POI sites get the first one. */
+  /** Single POI meter. Multi-POI sites get the first one. */
   poi: ClassifiedDevice | null;
   acMembers: ClassifiedDevice[];
   dcMembers: ClassifiedDevice[];

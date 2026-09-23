@@ -53,12 +53,12 @@ describe("buildPoiOverlay", () => {
     mode: "GRID",
     islandQualifier: null,
     direction: "IMP",
-    settlement: "+142 kW IMPORT",
+    netAtMeter: "+142 kW IMPORT",
     netActivePowerW: 142_000,
   };
 
-  it("renders the settlement string straight through", () => {
-    expect(buildPoiOverlay(baseGridMode, SOLARPUNK, false).settlement).toBe(
+  it("renders the netAtMeter string straight through", () => {
+    expect(buildPoiOverlay(baseGridMode, SOLARPUNK, false).netAtMeter).toBe(
       "+142 kW IMPORT",
     );
   });

@@ -53,7 +53,7 @@ export function buildPoiOverlay(
   const stateToken = isIsland ? "ISLAND" : curtailed ? "CURTAILED" : "OK";
   const stateColor = !isIsland && curtailed ? t.statusWarn : t.textSoft;
   return {
-    settlement: gridMode.settlement,
+    netAtMeter: gridMode.netAtMeter,
     stateToken,
     stateColor,
   };

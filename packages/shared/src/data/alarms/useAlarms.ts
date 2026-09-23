@@ -84,7 +84,7 @@ type Watch = FloatWatch | EnumWatch;
 /**
  * Templates that surface as UTILITY alarms per rule 3.12.
  */
-const UTILITY_TEMPLATES = new Set(["revenue_meter"]);
+const UTILITY_TEMPLATES = new Set(["poi_meter"]);
 
 /**
  * Build the watch list: every float measurement with thresholds, plus
