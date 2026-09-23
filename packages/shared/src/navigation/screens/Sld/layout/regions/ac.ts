@@ -63,7 +63,7 @@ function placeAcBus(anchor: AcAnchor, ctx: ViewportMetrics): RegionOutput {
         x2: left,
         y2: Y_AC_BUS,
         kind: "ac" as const,
-        flowSource: { kind: "envelope" as const },
+        flowSource: { kind: "poi" as const },
         particles: busParticles(AC_BUS_PARTICLE_DUR_SEC),
       });
     }
@@ -106,7 +106,7 @@ function placeAcModules(classified: ClassifiedDevices, anchor: AcAnchor): Region
       x2: x,
       y2: Y_AC_MODULE - nodeHeightFor(null, device.template) / 2,
       kind: "drop" as const,
-      flowSource: isLoadSide ? null : ({ kind: "envelope" as const }),
+      flowSource: isLoadSide ? null : ({ kind: "poi" as const }),
       particles: dropParticle(AC_DROP_PARTICLE_DUR_SEC),
     };
   });

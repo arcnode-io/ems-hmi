@@ -20,7 +20,7 @@ export interface TimeseriesSeries {
    * Interpolation between samples.
    * - "linear" (default): straight line — continuous process measurements.
    * - "step": flat plateau + vertical edge — event-driven measurements
-   *   (DOE limits, breaker state). Per constitution rule 3.14, smoothing
+   *   (breaker state, enum status). Per constitution rule 3.14, smoothing
    *   would imply gradual drift and is a lie for these values.
    */
   interpolation?: "linear" | "step";

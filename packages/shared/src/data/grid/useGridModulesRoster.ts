@@ -1,11 +1,11 @@
 /**
  * useGridModulesRoster — the Grid page's device roster.
  *
- * Per power-engineer (2026-09-13): operating_envelope, line_rating, and
- * der_dispatch are unparented site-level singletons in the real DTM, not
- * children of grid_module.contains — so the roster can't be built by
- * walking `device.parent`. Built from an explicit template-name allowlist
- * instead, each with one representative reading.
+ * Per power-engineer (2026-09-13): der_dispatch is an unparented
+ * site-level singleton in the real DTM, not a child of grid_module.contains
+ * — so the roster can't be built by walking `device.parent`. Built from an
+ * explicit template-name allowlist instead, each with one representative
+ * reading.
  *
  * pv_inverter landed 2026-09-14 (power-engineer) and follows
  * grid_module.contains like switchgear does, but real sites won't have an
@@ -36,16 +36,6 @@ const ROSTER_SPEC: Record<
     role: "Site interconnect rollup",
     measurement: "net_active_power",
     format: (w) => ({ v: `${(w / 1000).toFixed(0)} kW`, l: "net" }),
-  },
-  operating_envelope: {
-    role: "Utility DOE feed",
-    measurement: "import_limit",
-    format: (w) => ({ v: `${(w / 1_000_000).toFixed(1)} MW`, l: "import limit" }),
-  },
-  line_rating: {
-    role: "Dynamic line rating feed",
-    measurement: "dynamic_line_rating",
-    format: (a) => ({ v: `${a.toFixed(0)} A`, l: "rating" }),
   },
   der_dispatch: {
     role: "Utility DER dispatch feed",

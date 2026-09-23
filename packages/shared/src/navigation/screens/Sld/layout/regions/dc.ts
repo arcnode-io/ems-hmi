@@ -41,7 +41,7 @@ function placeInverter(
         x2: gridX,
         y2: Y_INVERTER - RING_RADIUS_INVERTER,
         kind: "drop",
-        flowSource: { kind: "envelope" },
+        flowSource: { kind: "poi" },
         particles: dropParticle(INVERTER_TOP_DROP_DUR_SEC),
       },
       {
@@ -51,7 +51,7 @@ function placeInverter(
         x2: gridX,
         y2: Y_DC_BUS,
         kind: "drop",
-        flowSource: { kind: "envelope" },
+        flowSource: { kind: "poi" },
         particles: dropParticle(INVERTER_BOT_DROP_DUR_SEC),
       },
     ],
@@ -88,7 +88,7 @@ function placeDcBusAndModules(
     x2: Math.max(...dcXs),
     y2: Y_DC_BUS,
     kind: "dc" as const,
-    flowSource: { kind: "envelope" as const },
+    flowSource: { kind: "poi" as const },
     particles: busParticles(DC_BUS_PARTICLE_DUR_SEC),
   };
   const nodes = dcMembers.map((device, i) => ({
@@ -111,7 +111,7 @@ function placeDcBusAndModules(
       x2: x,
       y2: Y_DC_MODULE - NODE_H / 2,
       kind: "drop" as const,
-      flowSource: { kind: "envelope" as const },
+      flowSource: { kind: "poi" as const },
       particles: dropParticle(DC_DROP_PARTICLE_DUR_SEC),
     };
   });

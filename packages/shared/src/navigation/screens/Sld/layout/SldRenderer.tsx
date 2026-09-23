@@ -50,7 +50,7 @@ export function sldThemeFrom(t: Theme): SldTheme {
 interface SldRendererProps {
   layout: SldLayout;
   theme: SldTheme;
-  envelopeDirection: "IMP" | "EXP" | null;
+  poiDirection: "IMP" | "EXP" | null;
   onSelectDevice?: (deviceId: string) => void;
   statusByDevice?: Record<string, SldNodeStatus>;
   statusColors?: Record<SldNodeStatus, string>;
@@ -71,7 +71,7 @@ function statusFillResolver(
 export function SldRenderer({
   layout,
   theme,
-  envelopeDirection,
+  poiDirection,
   onSelectDevice,
   statusByDevice,
   statusColors,
@@ -89,7 +89,7 @@ export function SldRenderer({
             key={`${c.id}_p${i}`}
             conductor={c}
             spec={spec}
-            envelopeDirection={envelopeDirection}
+            poiDirection={poiDirection}
             color={theme.text}
           />
         )),

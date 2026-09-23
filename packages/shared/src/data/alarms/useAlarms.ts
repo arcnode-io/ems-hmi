@@ -7,14 +7,17 @@
  *     value ∈ (alarm_min, warn_min) ∪ (warn_max, alarm_max) → "warn"
  *     value <= alarm_min OR value >= alarm_max              → "alarm"
  *
- *   Enum-status: utility-side feed `status` enums (DOE / DLR)
+ *   Enum-status: any utility-side feed's `status` enum, if it has one
  *     "OK"                  → no alarm
  *     "STALE"               → "warn"
  *     "INVALID" / "COMM_FAIL" → "alarm"
  *
  * Per constitution rule 3.12 the row label is still the device ID;
  * alarms from utility-side feeds carry `category: "UTILITY"` so the
- * AlarmRow surface can render the small category chip.
+ * AlarmRow surface can render the small category chip. No DOE
+ * (operating_envelope) or DLR (line_rating) here — ArcNode has no
+ * visibility into either on the real system (utility interconnect is
+ * IEEE 2030.5, see ~/arcnode/ems/readme.md); removed 2026-09-23.
  *
  * Deferred:
  *  - Ack state — needs a per-alarm acknowledgement store.
@@ -47,7 +50,7 @@ export interface ActiveAlarm {
   /** Most-recent message timestamp (ISO). */
   ts: string;
   /**
-   * Optional origin category — "UTILITY" for DOE / DLR feeds. Renders
+   * Optional origin category — "UTILITY" for utility-side feeds. Renders
    * as a small chip in AlarmRow per rule 3.12 (label is index,
    * diagnosis lives in the runbook).
    */
@@ -81,7 +84,7 @@ type Watch = FloatWatch | EnumWatch;
 /**
  * Templates that surface as UTILITY alarms per rule 3.12.
  */
-const UTILITY_TEMPLATES = new Set(["operating_envelope", "line_rating", "revenue_meter"]);
+const UTILITY_TEMPLATES = new Set(["revenue_meter"]);
 
 /**
  * Build the watch list: every float measurement with thresholds, plus
@@ -144,7 +147,8 @@ function classifyFloat(
 }
 
 /**
- * Classify a status-enum string per UTILITY-FEEDS §7 severity mapping.
+ * Classify a status-enum string per the standard OK/STALE/INVALID/
+ * COMM_FAIL severity mapping.
  */
 function classifyStatus(value: string): AlarmSeverity | null {
   return match(value)

@@ -1,6 +1,6 @@
 /**
  * CurtailmentBanner — shown only while der_dispatch.event_active is true.
- * The cap itself (target_active_power) renders in UtilityLimitsPanel;
+ * The cap itself (target_active_power) renders in DispatchStatusPanel;
  * this banner is just the "an event is on" callout. Mirrors
  * grid-features.jsx CurtailmentBanner, minus fields with no real source
  * yet (reductionPct, BESS-covers-it / GPU-impact reassurances — those

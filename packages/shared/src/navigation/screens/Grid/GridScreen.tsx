@@ -22,7 +22,7 @@ import { useGridProtection } from "../../../data/grid/useGridProtection";
 import { useDerEventNotice } from "../../../data/grid/useDerEventNotice";
 import { CurtailmentBanner } from "./parts/CurtailmentBanner";
 import { InterconnectPanel } from "./parts/InterconnectPanel";
-import { UtilityLimitsPanel } from "./parts/UtilityLimitsPanel";
+import { DispatchStatusPanel } from "./parts/DispatchStatusPanel";
 import { FrequencyVoltagePanel } from "./parts/FrequencyVoltagePanel";
 import { ProtectionPanel } from "./parts/ProtectionPanel";
 import { IslandNote } from "./parts/IslandNote";
@@ -119,7 +119,7 @@ export function GridScreen(): React.ReactElement {
       <CurtailmentBanner state={state} />
       {state.mode === "ISLAND" ? <IslandNote state={state} /> : null}
       <InterconnectPanel state={state} />
-      <UtilityLimitsPanel state={state} />
+      <DispatchStatusPanel state={state} />
       <FrequencyVoltagePanel state={state} pq={pq} />
       <ProtectionPanel state={state} protection={protection} />
       <GridModulesPanel />

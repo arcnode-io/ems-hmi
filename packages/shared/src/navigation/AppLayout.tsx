@@ -19,7 +19,7 @@ import { useDeploymentIdentity } from "../data/deployment/useDeploymentIdentity"
 import { useTopologyView } from "../data/topology/useTopologyView";
 import { useFleetKpis } from "../data/kpis/useFleetKpis";
 import { useAlarmCount } from "../data/alarms/useAlarmCount";
-import { useOperatingEnvelope } from "../data/envelope/useOperatingEnvelope";
+import { useGridMode } from "../data/grid/useGridMode";
 import { useDerEventActive } from "../data/grid/useDerEventActive";
 import { useDerEventNotice } from "../data/grid/useDerEventNotice";
 import { TopBar } from "../components/chrome/TopBar/TopBar";
@@ -60,7 +60,7 @@ export function AppLayout({
   const activeSpec = routeByName(activeName);
   const emsMode = topology.view?.ems_mode ?? "sim";
   const kpis = useFleetKpis();
-  const envelope = useOperatingEnvelope();
+  const gridMode = useGridMode();
   const derCurtailed = useDerEventActive();
   const derNotice = useDerEventNotice();
   // Reason: handoff-auto-mode-dispatch-notification-2026-09-22.md — an
@@ -93,18 +93,16 @@ export function AppLayout({
       value: fmtPct(kpis.gpuUtil.value),
       color: t.colorCompute,
     },
-    // Reason: 2026-09-22 — operating_envelope (DOE/headroom-against-a-limit)
-    // is permanently dead on the real system (der-control-api's
-    // EventOrchestrator.dispatch() always sends opModImpLimW/opModExpLimW
-    // null; dlr-rtu-firmware's real DOE derivation goes to DNP3, never
-    // MQTT — see handoff-replace-doe-with-der-2026-09-22.md). ISLAND still
-    // comes from grid_module.interconnect_state (real, unchanged).
-    // Otherwise: der_dispatch.event_active (real) for curtailment, else
-    // the live net-power reading (real, unrelated to the dead DOE limit).
+    // Reason: 2026-09-23 — DOE (operating_envelope) and DLR (line_rating)
+    // are gone entirely; ArcNode has no visibility into either concept
+    // on the real system (utility interconnect is IEEE 2030.5, see
+    // ~/arcnode/ems/readme.md). ISLAND comes from grid_module.
+    // interconnect_state (real). Otherwise: der_dispatch.event_active
+    // (real) for curtailment, else the live net-power reading (real).
     {
       label: "GRID",
       value:
-        envelope.mode === "ISLAND"
+        gridMode.mode === "ISLAND"
           ? "ISLAND"
           : derCurtailed
             ? "CURTAILED"
@@ -113,7 +111,7 @@ export function AppLayout({
               : `${kpis.grid.label === "Export" ? "−" : "+"}${Math.abs(kpis.grid.powerKw).toFixed(0)} kW`,
       color: t.colorGrid,
       sub:
-        envelope.mode === "ISLAND"
+        gridMode.mode === "ISLAND"
           ? "no utility coordination"
           : derCurtailed
             ? "Utility event active"

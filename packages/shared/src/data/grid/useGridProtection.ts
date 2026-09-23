@@ -2,9 +2,7 @@
  * useGridProtection — Protection panel data for the Grid screen.
  * `protective_relay_*.anti_islanding_armed` / `ride_through_enabled` /
  * `reconnect_delay_s`, just approved and built by power-engineer
- * 2026-09-13. "Export permit" isn't here — per Joe, it's the same number
- * as operating_envelope.export_limit (useOperatingEnvelope), just
- * relabeled on this panel, not a separate protection-scheme field.
+ * 2026-09-13.
  */
 
 import { useMemo } from "react";

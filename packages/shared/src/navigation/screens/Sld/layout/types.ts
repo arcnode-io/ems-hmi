@@ -5,8 +5,8 @@
  */
 
 export type FlowSource =
-  /** POI net flow (envelope.direction). Reverses on EXP. */
-  | { kind: "envelope" }
+  /** POI net flow (useGridMode's direction). Reverses on EXP. */
+  | { kind: "poi" }
   /** Sign of a specific measurement on a specific device. Negative = reverse. */
   | { kind: "device"; deviceId: string; measurement: string };
 
@@ -54,7 +54,7 @@ export interface SldDecoration {
   state?: "closed" | "open";
 }
 
-export type DeviceRole = "poi" | "dlr-badge" | null;
+export type DeviceRole = "poi" | null;
 
 export interface SldNode {
   id: string;

@@ -149,10 +149,7 @@ export function useModuleRows(): ModuleRow[] {
     const rank: Record<StatusVariant, number> = {
       fire: 0,
       alarm: 1,
-      invalid: 1,
-      "comm-fail": 1,
       warn: 2,
-      stale: 2,
       maintenance: 3,
       sim: 4,
       ok: 5,

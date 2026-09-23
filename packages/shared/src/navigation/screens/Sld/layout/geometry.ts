@@ -11,11 +11,8 @@ import {
   NODE_H_POI,
   NODE_W_CHILD,
   NODE_W_COMPUTE,
-  NODE_W_DLR,
-  NODE_W_LEAF,
   NODE_W_MODULE,
   NODE_W_POI,
-  UTILITY_TEMPLATES,
 } from "./constants";
 
 const BUS_PARTICLE_COUNT = 3;
@@ -45,10 +42,8 @@ export function dropParticle(durationSec: number, beginOffsetSec = 0): ParticleS
 export function nodeWidthFor(template: string, role: DeviceRole): number {
   return match<{ template: string; role: DeviceRole }, number>({ template, role })
     .with({ role: "poi" }, () => NODE_W_POI)
-    .with({ role: "dlr-badge" }, () => NODE_W_DLR)
     .with({ template: COMPUTE_MODULE_TEMPLATE }, () => NODE_W_COMPUTE)
     .with({ template: CDU_TEMPLATE }, () => NODE_W_CHILD)
-    .when(({ template: tpl }) => UTILITY_TEMPLATES.has(tpl), () => NODE_W_LEAF)
     .otherwise(() => NODE_W_MODULE);
 }
 

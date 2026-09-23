@@ -1,13 +1,11 @@
 /**
- * Pure helpers that fold alarm + envelope state into the inputs SldRenderer
- * expects.
+ * Pure helpers that fold alarm + grid-mode state into the inputs
+ * SldRenderer expects.
  */
 
-import { match } from "ts-pattern";
 import type { Theme } from "../../../../theme/tokens";
 import type { ActiveAlarm } from "../../../../data/alarms/useAlarms";
-import type { OperatingEnvelope } from "../../../../data/envelope/useOperatingEnvelope";
-import type { DOEState } from "../../../../components/composed/DOEHeadroomRow/DOEHeadroomRow";
+import type { GridModeState } from "../../../../data/grid/useGridMode";
 import type { SldNodeStatus, PoiOverlay } from "../layout/SldRenderer";
 
 function elevateSeverity(
@@ -38,50 +36,24 @@ export function statusColorsFromTheme(t: Theme): Record<SldNodeStatus, string> {
   };
 }
 
-function stateTokenLabel(state: DOEState): string {
-  return match(state)
-    .with("stale", () => "STALE")
-    .with("invalid", () => "INVALID")
-    .with("comm-fail", () => "COMM FAIL")
-    .with("island", () => "ISLAND")
-    .with("ok", () => "OK")
-    .exhaustive();
-}
-
-// UTILITY-FEEDS §7 severity mapping.
-function stateTokenColor(state: DOEState, t: Theme): string {
-  return match(state)
-    .with("ok", "island", () => t.textSoft)
-    .with("stale", () => t.statusWarn)
-    .with("invalid", "comm-fail", () => t.statusAlarm)
-    .exhaustive();
-}
-
 /**
  * @param curtailed der_dispatch.event_active — real (see useDerEventActive).
  *   Takes priority over the plain OK token, since it's the more actionable
- *   fact; ISLAND still wins over both (operating_envelope.status, the old
- *   STALE/INVALID/COMM_FAIL source, is permanently dead — see
- *   handoff-replace-doe-with-der-2026-09-22.md — so doeState is only ever
- *   "island" or "ok" in practice now).
+ *   fact; ISLAND still wins over both. No DOE fault states (STALE/INVALID/
+ *   COMM_FAIL) — operating_envelope is gone entirely (ArcNode has no
+ *   visibility into it on the real system; see ~/arcnode/ems/readme.md),
+ *   so mode/curtailed are the only two POI-state inputs now.
  */
 export function buildPoiOverlay(
-  envelope: OperatingEnvelope,
+  gridMode: GridModeState,
   t: Theme,
   curtailed: boolean,
 ): PoiOverlay {
-  const stateToken =
-    envelope.doeState === "island"
-      ? stateTokenLabel(envelope.doeState)
-      : curtailed
-        ? "CURTAILED"
-        : stateTokenLabel(envelope.doeState);
-  const stateColor =
-    envelope.doeState !== "island" && curtailed
-      ? t.statusWarn
-      : stateTokenColor(envelope.doeState, t);
+  const isIsland = gridMode.mode === "ISLAND";
+  const stateToken = isIsland ? "ISLAND" : curtailed ? "CURTAILED" : "OK";
+  const stateColor = !isIsland && curtailed ? t.statusWarn : t.textSoft;
   return {
-    settlement: envelope.settlement,
+    settlement: gridMode.settlement,
     stateToken,
     stateColor,
   };

@@ -50,22 +50,6 @@
       ],
       "extra_measurements": null
     },
-    "operating_envelope_01": {
-      "device_id": "operating_envelope_01",
-      "template": "operating_envelope",
-      "parent": "grid_module_01",
-      "display_name": "DOE Feed",
-      "blocking": [],
-      "extra_measurements": null
-    },
-    "line_rating_01": {
-      "device_id": "line_rating_01",
-      "template": "line_rating",
-      "parent": "grid_module_01",
-      "display_name": "DLR Feed",
-      "blocking": [],
-      "extra_measurements": null
-    },
     "revenue_meter_01": {
       "device_id": "revenue_meter_01",
       "template": "revenue_meter",
@@ -372,110 +356,6 @@
             "0": "OPEN",
             "1": "CLOSED",
             "2": "TRIPPED"
-          }
-        }
-      },
-      "commands": {}
-    },
-    "operating_envelope": {
-      "template": "operating_envelope",
-      "kind": "leaf",
-      "equipment_id": "DOE-FEED-001",
-      "vendor": "Utility",
-      "model": "DOE publisher",
-      "description": "Operating envelope from the utility \u2014 import/export limits",
-      "measurements": {
-        "import_limit": {
-          "unit": "watts",
-          "type": "float",
-          "poll_rate_hz": 0.0033,
-          "display_name_default": "Import Limit",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 0,
-            "max": 10000000,
-            "nominal": 5000000
-          },
-          "thresholds": {
-            "warn_min": 1000000,
-            "warn_max": 9500000,
-            "alarm_min": 500000,
-            "alarm_max": 10000000
-          },
-          "values": null
-        },
-        "export_limit": {
-          "unit": "watts",
-          "type": "float",
-          "poll_rate_hz": 0.0033,
-          "display_name_default": "Export Limit",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 0,
-            "max": 5000000,
-            "nominal": 0
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "status": {
-          "unit": "none",
-          "type": "enum",
-          "poll_rate_hz": 0.5,
-          "display_name_default": "Status",
-          "iec_61850_ref": null,
-          "bounds": null,
-          "thresholds": null,
-          "values": {
-            "0": "OK",
-            "1": "STALE",
-            "2": "INVALID",
-            "3": "COMM_FAIL"
-          }
-        }
-      },
-      "commands": {}
-    },
-    "line_rating": {
-      "template": "line_rating",
-      "kind": "leaf",
-      "equipment_id": "DLR-FEED-001",
-      "vendor": "Utility",
-      "model": "Dynamic line rating publisher",
-      "description": "Real-time conductor ampacity from utility",
-      "measurements": {
-        "dynamic_line_rating": {
-          "unit": "amps",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Dynamic Line Rating",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 0,
-            "max": 2000,
-            "nominal": 1400
-          },
-          "thresholds": {
-            "warn_min": 200,
-            "warn_max": 1800,
-            "alarm_min": 0,
-            "alarm_max": 2000
-          },
-          "values": null
-        },
-        "status": {
-          "unit": "none",
-          "type": "enum",
-          "poll_rate_hz": 0.5,
-          "display_name_default": "Status",
-          "iec_61850_ref": null,
-          "bounds": null,
-          "thresholds": null,
-          "values": {
-            "0": "OK",
-            "1": "STALE",
-            "2": "INVALID",
-            "3": "COMM_FAIL"
           }
         }
       },

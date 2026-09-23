@@ -39,7 +39,7 @@ function pathBetween(c: SldConductor, reverse: boolean): string {
 interface ParticleProps {
   conductor: SldConductor;
   spec: ParticleSpec;
-  envelopeDirection: "IMP" | "EXP" | null;
+  poiDirection: "IMP" | "EXP" | null;
   color: string;
 }
 
@@ -47,8 +47,8 @@ interface ParticleProps {
  * Web ships SVG <animateMotion>; native renders a static dot at the path
  * origin until we drive motion via rAF.
  */
-export function Particle({ conductor, spec, envelopeDirection, color }: ParticleProps): React.ReactElement {
-  const reverse = conductor.flowSource?.kind === "envelope" && envelopeDirection === "EXP";
+export function Particle({ conductor, spec, poiDirection, color }: ParticleProps): React.ReactElement {
+  const reverse = conductor.flowSource?.kind === "poi" && poiDirection === "EXP";
   const path = pathBetween(conductor, reverse);
   const origin = reverse ? { cx: conductor.x2, cy: conductor.y2 } : { cx: conductor.x1, cy: conductor.y1 };
   if (Platform.OS !== "web") {

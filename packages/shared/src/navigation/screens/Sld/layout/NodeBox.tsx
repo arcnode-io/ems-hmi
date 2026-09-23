@@ -27,11 +27,8 @@ import {
 
 const BODY_STROKE_WIDTH = 1.5;
 const POI_STROKE_WIDTH = 2;
-const DLR_STROKE_WIDTH = 1;
-const DLR_DASH = "3,2";
 const LABEL_NAME_FONT = 11;
 const LABEL_NAME_FONT_POI = 9;
-const LABEL_NAME_FONT_DLR = 9;
 const LABEL_TEMPLATE_FONT = 9;
 const PRIMARY_VALUE_FONT = 11;
 const STATE_ROW_FONT = 7;
@@ -51,9 +48,8 @@ function labelTemplateY(template: string): number {
   return template === CDU_TEMPLATE ? LABEL_TEMPLATE_Y_CDU : LABEL_TEMPLATE_Y_DEFAULT;
 }
 
-function bodyStroke(role: SldNode["role"], theme: SldTheme): { stroke: string; strokeWidth: number; strokeDasharray?: string } {
+function bodyStroke(role: SldNode["role"], theme: SldTheme): { stroke: string; strokeWidth: number } {
   if (role === "poi") return { stroke: theme.accent, strokeWidth: POI_STROKE_WIDTH };
-  if (role === "dlr-badge") return { stroke: theme.textSoft, strokeWidth: DLR_STROKE_WIDTH, strokeDasharray: DLR_DASH };
   return { stroke: theme.border, strokeWidth: BODY_STROKE_WIDTH };
 }
 
@@ -108,32 +104,29 @@ function PoiLabels({ n, overlay, theme }: { n: SldNode; overlay?: PoiOverlay; th
 }
 
 function StandardLabels({ n, theme }: { n: SldNode; theme: SldTheme }): React.ReactElement {
-  const isDlr = n.role === "dlr-badge";
   return (
     <>
       <SvgText
         x={0}
         y={LABEL_NAME_Y}
         textAnchor="middle"
-        fill={isDlr ? theme.textSoft : theme.text}
-        fontSize={isDlr ? LABEL_NAME_FONT_DLR : LABEL_NAME_FONT}
+        fill={theme.text}
+        fontSize={LABEL_NAME_FONT}
         fontWeight="700"
         fontFamily={theme.fontLabel}
       >
         {n.displayName}
       </SvgText>
-      {!isDlr && (
-        <SvgText
-          x={0}
-          y={labelTemplateY(n.template)}
-          textAnchor="middle"
-          fill={theme.textSoft}
-          fontSize={LABEL_TEMPLATE_FONT}
-          fontFamily={theme.fontLabel}
-        >
-          {n.template.toUpperCase()}
-        </SvgText>
-      )}
+      <SvgText
+        x={0}
+        y={labelTemplateY(n.template)}
+        textAnchor="middle"
+        fill={theme.textSoft}
+        fontSize={LABEL_TEMPLATE_FONT}
+        fontFamily={theme.fontLabel}
+      >
+        {n.template.toUpperCase()}
+      </SvgText>
     </>
   );
 }
@@ -163,7 +156,6 @@ export function NodeBox({ n, theme, onSelect, statusFill, poiOverlay }: NodeBoxP
         fill={theme.surface}
         stroke={stroke.stroke}
         strokeWidth={stroke.strokeWidth}
-        strokeDasharray={stroke.strokeDasharray}
       />
       <Circle
         cx={halfW - STATUS_DOT_INSET_X}

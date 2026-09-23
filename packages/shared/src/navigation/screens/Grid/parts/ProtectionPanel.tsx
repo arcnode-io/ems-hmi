@@ -1,12 +1,14 @@
 /**
  * ProtectionPanel — mirrors grid-detail-desktop.jsx ProtectionPanel.
- * "Export permit" is operating_envelope.export_limit relabeled, per Joe
- * (2026-09-13) — not a separate protection-scheme field.
  *
  * Handoff rule 5: anti-islanding disarmed during a planned ride-through
  * reads "INACTIVE (ride-through)", never "BYPASSED" — audit wording. The
  * real armed/disarmed value still drives the row; the special wording only
  * applies to the specific disarmed + planned-island combination.
+ *
+ * "Export permit" row removed 2026-09-23 — it was operating_envelope.
+ * export_limit relabeled, and operating_envelope (DOE) is gone (Joe: no
+ * business knowing about it, utility interconnect is IEEE 2030.5).
  */
 
 import React from "react";
@@ -53,11 +55,6 @@ export function ProtectionPanel({ state, protection }: ProtectionPanelProps): Re
         k="Reconnect delay"
         v={protection.reconnectDelaySec === null ? "—" : protection.reconnectDelaySec.toFixed(0)}
         u={protection.reconnectDelaySec === null ? "" : "s"}
-      />
-      <GridRow
-        k="Export permit"
-        v={state.exportLimitKw === null ? "—" : (Math.abs(state.exportLimitKw) / 1000).toFixed(1)}
-        u={state.exportLimitKw === null ? "" : "MW"}
       />
     </GridPanel>
   );

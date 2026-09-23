@@ -11,8 +11,6 @@ const TEMPLATES: TopologyViewType["templates_used"] = {
   bess_module: { template: "bess_module", kind: "module", equipment_id: null, vendor: null, model: null, description: "", measurements: {}, commands: {} },
   compute_module: { template: "compute_module", kind: "module", equipment_id: null, vendor: null, model: null, description: "", measurements: {}, commands: {} },
   grid_module: { template: "grid_module", kind: "module", equipment_id: null, vendor: null, model: null, description: "", measurements: {}, commands: {} },
-  operating_envelope: { template: "operating_envelope", kind: "leaf", equipment_id: null, vendor: null, model: null, description: "", measurements: {}, commands: {} },
-  line_rating: { template: "line_rating", kind: "leaf", equipment_id: null, vendor: null, model: null, description: "", measurements: {}, commands: {} },
   revenue_meter: { template: "revenue_meter", kind: "leaf", equipment_id: null, vendor: null, model: null, description: "", measurements: {}, commands: {} },
   cdu: { template: "cdu", kind: "leaf", equipment_id: null, vendor: null, model: null, description: "", measurements: {}, commands: {} },
 };
@@ -34,8 +32,6 @@ function makeTopology(): TopologyViewType {
       bess_module_02: { device_id: "bess_module_02", template: "bess_module", parent: null, display_name: "BESS-02", blocking: [], extra_measurements: null },
       compute_module_01: { device_id: "compute_module_01", template: "compute_module", parent: null, display_name: "ARC-COMPUTE-01", blocking: [], extra_measurements: null },
       grid_module_01: { device_id: "grid_module_01", template: "grid_module", parent: null, display_name: "Grid Module", blocking: [], extra_measurements: null },
-      operating_envelope_01: { device_id: "operating_envelope_01", template: "operating_envelope", parent: "grid_module_01", display_name: "DOE Feed", blocking: [], extra_measurements: null },
-      line_rating_01: { device_id: "line_rating_01", template: "line_rating", parent: "grid_module_01", display_name: "DLR Feed", blocking: [], extra_measurements: null },
       revenue_meter_01: { device_id: "revenue_meter_01", template: "revenue_meter", parent: "grid_module_01", display_name: "GRD-RM-001", blocking: [], extra_measurements: null },
       cdu_01: { device_id: "cdu_01", template: "cdu", parent: "compute_module_01", display_name: "CDU-01", blocking: [], extra_measurements: null },
     },
@@ -55,15 +51,6 @@ describe("layoutSld", () => {
     expect(poi).toBeDefined();
     expect(acBusConductor).toBeDefined();
     expect(poi!.y).toBeLessThan(acBusConductor!.y1);
-  });
-
-  it("places utility feed leaves above the POI", () => {
-    const layout = layoutSld(makeTopology());
-    const poi = layout.nodes.find((n) => n.role === "poi")!;
-    const doe = layout.nodes.find((n) => n.id === "operating_envelope_01")!;
-    const dlr = layout.nodes.find((n) => n.id === "line_rating_01")!;
-    expect(doe.y).toBeLessThan(poi.y);
-    expect(dlr.y).toBeLessThan(poi.y);
   });
 
   it("places BESS modules on the DC bus, below the AC bus", () => {
@@ -89,12 +76,12 @@ describe("layoutSld", () => {
     expect(layout.decorations.some((d) => d.kind === "inverter")).toBe(true);
   });
 
-  it("tags the POI-drop conductor with envelope flow source", () => {
+  it("tags the POI-drop conductor with poi flow source", () => {
     const layout = layoutSld(makeTopology());
     const drops = layout.conductors.filter((c) => c.id.startsWith("poi_drop_"));
     expect(drops.length).toBeGreaterThan(0);
     drops.forEach((d) => {
-      expect(d.flowSource).toEqual({ kind: "envelope" });
+      expect(d.flowSource).toEqual({ kind: "poi" });
     });
   });
 
