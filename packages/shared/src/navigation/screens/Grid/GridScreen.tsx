@@ -11,7 +11,7 @@
  * rather than build it against fake data.
  */
 
-import React from "react";
+import React, { useEffect } from "react";
 import { ScrollView, View, Text } from "react-native";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../theme/tokens";
@@ -19,6 +19,7 @@ import { SPACE } from "../../../theme/tokens/primitives";
 import { useGridState } from "../../../data/grid/useGridState";
 import { useGridPowerQuality } from "../../../data/grid/useGridPowerQuality";
 import { useGridProtection } from "../../../data/grid/useGridProtection";
+import { useDerEventNotice } from "../../../data/grid/useDerEventNotice";
 import { CurtailmentBanner } from "./parts/CurtailmentBanner";
 import { InterconnectPanel } from "./parts/InterconnectPanel";
 import { UtilityLimitsPanel } from "./parts/UtilityLimitsPanel";
@@ -47,6 +48,14 @@ export function GridScreen(): React.ReactElement {
   const protection = useGridProtection();
   const status = headerStatus(state);
   const statusColor = status.color(t);
+
+  // Reason: handoff-auto-mode-dispatch-notification-2026-09-22.md — actually
+  // visiting the Grid screen is how the operator "acknowledges" a DER
+  // event; clears the bell badge set by DerEventNoticeProvider.
+  const { markSeen } = useDerEventNotice();
+  useEffect(() => {
+    markSeen();
+  }, [markSeen]);
 
   return (
     <ScrollView

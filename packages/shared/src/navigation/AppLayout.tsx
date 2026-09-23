@@ -21,6 +21,7 @@ import { useFleetKpis } from "../data/kpis/useFleetKpis";
 import { useAlarmCount } from "../data/alarms/useAlarmCount";
 import { useOperatingEnvelope } from "../data/envelope/useOperatingEnvelope";
 import { useDerEventActive } from "../data/grid/useDerEventActive";
+import { useDerEventNotice } from "../data/grid/useDerEventNotice";
 import { TopBar } from "../components/chrome/TopBar/TopBar";
 import { StatusStrip } from "../components/chrome/StatusStrip/StatusStrip";
 import { BottomTabs } from "../components/chrome/BottomTabs/BottomTabs";
@@ -58,10 +59,16 @@ export function AppLayout({
 
   const activeSpec = routeByName(activeName);
   const emsMode = topology.view?.ems_mode ?? "sim";
-  const alarmCount = useAlarmCount();
   const kpis = useFleetKpis();
   const envelope = useOperatingEnvelope();
   const derCurtailed = useDerEventActive();
+  const derNotice = useDerEventNotice();
+  // Reason: handoff-auto-mode-dispatch-notification-2026-09-22.md — an
+  // AUTO-mode DER event has zero operator gate, so it needs the same
+  // attention-getting badge as an alarm. Folds into the existing bell/
+  // nav-badge count rather than a new component; clears once the operator
+  // actually visits the Grid screen (GridScreen calls markSeen()).
+  const alarmCount = useAlarmCount() + (derNotice.unseen ? 1 : 0);
 
   const fmtPct = (v: number | null): string =>
     v === null ? "—" : `${Math.round(v)}%`;

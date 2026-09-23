@@ -17,6 +17,7 @@ import { TopologyProvider } from "./data/topology/TopologyProvider";
 import { MockMqttProvider } from "./data/mqtt/MockMqttProvider";
 import { RealMqttProvider } from "./data/mqtt/RealMqttProvider";
 import { AnalystConversationProvider } from "./data/analyst/AnalystConversationProvider";
+import { DerEventNoticeProvider } from "./data/grid/DerEventNoticeProvider";
 import { analystStream } from "./data/analyst/sse/analystStream";
 import { mockAnalystStream } from "./data/analyst/mockAnalystStream";
 import { NavigationRoot } from "./navigation/NavigationRoot";
@@ -61,7 +62,9 @@ function resolveAnalystStream(): typeof analystStream {
 function AppShell({ cfg }: { cfg: AppRootCfg }): React.ReactElement {
   const inner = (
     <AnalystConversationProvider stream={resolveAnalystStream()}>
-      <NavigationRoot />
+      <DerEventNoticeProvider>
+        <NavigationRoot />
+      </DerEventNoticeProvider>
     </AnalystConversationProvider>
   );
   return (
