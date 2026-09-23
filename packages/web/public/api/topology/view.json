@@ -652,6 +652,22 @@
           "thresholds": null,
           "values": null
         },
+        "der_event_state": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "DER Event State",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "IDLE",
+            "1": "PENDING",
+            "2": "ARMED",
+            "3": "ACTIVE",
+            "4": "REJECTED"
+          }
+        },
         "energize_enabled": {
           "unit": "none",
           "type": "bool",

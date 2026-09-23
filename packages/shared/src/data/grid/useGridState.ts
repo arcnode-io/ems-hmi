@@ -36,7 +36,14 @@ import type {
 
 export type FeedStatus = "ok" | "stale" | "invalid" | "comm-fail";
 export type BreakerState = "OPEN" | "CLOSED" | "TRIPPED";
-/** der_dispatch's real dispatch_state enum (confirmed live 2026-09-18). */
+/**
+ * der_dispatch's real der_event_state enum. Fixed 2026-09-22 — this was
+ * wrongly named "dispatch_state" here; the real measurement (and topic)
+ * has always been der_event_state (edp-api's der_dispatch.yaml: named that
+ * way specifically to avoid colliding with ems-industrial-gateway's own,
+ * unrelated dispatch_state). Verified against DerEventState.java directly
+ * — 5 values, no SCHEDULED (a stale claim in an unrelated handoff doc).
+ */
 export type DerDispatchState = "IDLE" | "PENDING" | "ARMED" | "ACTIVE" | "REJECTED";
 
 const DER_DISPATCH_STATES: readonly DerDispatchState[] = [
@@ -126,7 +133,7 @@ export function useGridState(): GridState {
       ...topicsFor(view, siteId, "der_dispatch", [
         "target_active_power",
         "event_active",
-        "dispatch_state",
+        "der_event_state",
       ]),
       ...topicsFor(view, siteId, "pv_inverter", ["active_power"]),
     ];
@@ -164,7 +171,7 @@ export function useGridState(): GridState {
         if (typeof msg.value === "number") curtailmentCapW = msg.value;
       } else if (topic.endsWith("/event_active/none")) {
         if (typeof msg.value === "boolean") curtailmentActive = msg.value;
-      } else if (topic.endsWith("/dispatch_state/none")) {
+      } else if (topic.endsWith("/der_event_state/none")) {
         const match = DER_DISPATCH_STATES.find((s) => s === msg.value);
         if (match) derDispatchState = match;
       } else if (
