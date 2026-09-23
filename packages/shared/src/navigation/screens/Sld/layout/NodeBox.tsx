@@ -86,7 +86,7 @@ function PoiLabels({ n, overlay, theme }: { n: SldNode; overlay?: PoiOverlay; th
         fontWeight="600"
         fontFamily={theme.fontLabel}
       >
-        GRID
+        POI
       </SvgText>
       <SvgText
         x={POI_STATE_TOKEN_X}

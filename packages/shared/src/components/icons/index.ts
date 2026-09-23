@@ -4,7 +4,7 @@
  * Three families:
  *  - Alarm severity (filled, NOT stroked): IconWarning, IconAlarm, IconFire
  *  - Module type: IconBess, IconCompute, IconThermal, IconGrid
- *  - Nav + misc: IconOverview, IconModules, IconEnergy, IconAnalyst,
+ *  - Nav + misc: IconOverview, IconModules, IconEnergy, IconAnalyst, IconSld,
  *    IconBell, IconChevron, IconArrow, IconWrench, IconPadlock, IconCheck,
  *    IconBolt
  *
@@ -30,6 +30,7 @@ export { IconOverview } from "./IconOverview";
 export { IconModules } from "./IconModules";
 export { IconEnergy } from "./IconEnergy";
 export { IconAnalyst } from "./IconAnalyst";
+export { IconSld } from "./IconSld";
 
 // Misc
 export { IconBell } from "./IconBell";

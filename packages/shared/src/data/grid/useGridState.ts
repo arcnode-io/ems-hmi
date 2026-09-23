@@ -1,5 +1,5 @@
 /**
- * useGridState — real data for the Grid screen (`/modules/grid`, site/PCC
+ * useGridState — real data for the Grid screen (`/grid`, site/PCC
  * scope). Interconnect + curtailment concerns; power quality lives in
  * useGridPowerQuality and protection state in useGridProtection
  * (panel-shaped hooks, kept separate to stay under the 200-line budget).

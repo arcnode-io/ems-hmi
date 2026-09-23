@@ -41,8 +41,11 @@ interface RouteSpec {
 export const ROUTES: readonly RouteSpec[] = [
   { name: "Overview", path: "", sidebar: "/overview", bottomTab: "overview" },
   { name: "Modules", path: "modules", sidebar: "/modules", bottomTab: "modules" },
-  { name: "Sld", path: "modules/sld", sidebar: "/modules/sld", bottomTab: "modules" },
-  { name: "Grid", path: "modules/grid", sidebar: "/modules", bottomTab: "modules" },
+  // Reason: SLD + Grid are site-wide views with their own sidebar rows, so
+  // they're top-level URLs. On phone they still highlight the Modules tab —
+  // the 5-slot bottom bar has no room, they're reached via Modules CTAs.
+  { name: "Sld", path: "sld", sidebar: "/sld", bottomTab: "modules" },
+  { name: "Grid", path: "grid", sidebar: "/grid", bottomTab: "modules" },
   { name: "DeviceDetail", path: "devices/:deviceId", sidebar: "/modules", bottomTab: "modules" },
   { name: "Energy", path: "energy", sidebar: "/energy", bottomTab: "energy" },
   { name: "Compute", path: "compute", sidebar: "/compute", bottomTab: "compute" },

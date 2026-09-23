@@ -5,7 +5,7 @@
  * Structure:
  *   - Logo lockup (ARCNODE + EMS · v0.7) — always visible.
  *   - Deployment identity card (accent left-border, site name, hostname) — expanded only.
- *   - Operate section: Overview / Modules / SLD / Energy / Compute / Analyst.
+ *   - Operate section: Overview / Modules / SLD / Grid / Energy / Compute / Analyst.
  *   - Admin section: Settings / Audit log (lower priority).
  *   - User footer (avatar + name + role) — accent-circle initials always visible.
  *
@@ -24,6 +24,7 @@ import type { Theme } from "../../../theme/tokens";
 import {
   IconOverview,
   IconModules,
+  IconSld,
   IconGrid,
   IconEnergy,
   IconCompute,
@@ -33,7 +34,8 @@ import {
 export type SidebarRoute =
   | "/overview"
   | "/modules"
-  | "/modules/sld"
+  | "/sld"
+  | "/grid"
   | "/energy"
   | "/compute"
   | "/analyst"
@@ -72,7 +74,8 @@ interface NavItem {
 const OPERATE_NAV: readonly NavItem[] = [
   { route: "/overview", label: "Overview", Icon: IconOverview },
   { route: "/modules", label: "Modules", Icon: IconModules },
-  { route: "/modules/sld", label: "SLD", Icon: IconGrid },
+  { route: "/sld", label: "SLD", Icon: IconSld },
+  { route: "/grid", label: "Grid", Icon: IconGrid },
   { route: "/energy", label: "Energy", Icon: IconEnergy },
   { route: "/compute", label: "Compute", Icon: IconCompute },
   { route: "/analyst", label: "AI Analyst", Icon: IconAnalyst },

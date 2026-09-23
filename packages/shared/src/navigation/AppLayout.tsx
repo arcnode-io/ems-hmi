@@ -124,8 +124,7 @@ export function AppLayout({
   ];
 
   const breadcrumbs = (() => {
-    if (activeName === "Sld") return [identity.name, "Modules", "SLD"];
-    if (activeName === "Grid") return [identity.name, "Modules", "Grid"];
+    if (activeName === "Sld") return [identity.name, "SLD"];
     if (activeName === "DeviceDetail") return [identity.name, "Devices"];
     return [identity.name, activeName];
   })();

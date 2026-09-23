@@ -1,8 +1,8 @@
 /**
- * GridScreen — `/modules/grid` route. Site/PCC-scope utility relationship:
- * import limit, curtailment, and island state apply to every grid module
- * at once, so this is the site's grid page, not a per-device one (handoff
- * rule 1). Reached via a CTA on the Modules screen, same as SLD.
+ * GridScreen — `/grid` route. Site/PCC-scope utility relationship:
+ * curtailment and island state apply to every grid module at once, so
+ * this is the site's grid page, not a per-device one (handoff rule 1).
+ * Own sidebar row on desktop; reached via a Modules-screen CTA on phone.
  *
  * Composition mirrors grid-detail-desktop.jsx / grid-screen.jsx's Live tab.
  * Events + Alarms tabs aren't built yet — the events log needs a

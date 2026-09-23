@@ -25,6 +25,7 @@ import {
   IconPadlock,
   IconCheck,
   IconBolt,
+  IconSld,
 } from "./index";
 
 const ICONS = [
@@ -44,6 +45,7 @@ const ICONS = [
   ["IconPadlock", IconPadlock],
   ["IconCheck", IconCheck],
   ["IconBolt", IconBolt],
+  ["IconSld", IconSld],
 ] as const;
 
 describe("icons — single-shape", () => {
