@@ -27,12 +27,12 @@ describe("web cfg.yml", () => {
     expect(names).toEqual(["local", "beta", "ai-demo", "device-demo"]);
   });
 
-  it("keys device-demo to demo-site, the id the compose stack publishes on", () => {
+  it("keys device-demo to demo_site, the id the compose stack publishes on", () => {
     // Arrange + Act
     const siteId = CFG["device-demo"]?.siteId;
 
     // Assert
-    expect(siteId).toBe("demo-site");
+    expect(siteId).toBe("demo_site");
   });
 
   it("gives local its own site id so it can't collide with device-demo", () => {
@@ -40,7 +40,18 @@ describe("web cfg.yml", () => {
     const siteId = CFG.local?.siteId;
 
     // Assert
-    expect(siteId).toBe("local-site");
+    expect(siteId).toBe("local_site");
+  });
+
+  it("uses ADR-002 §16 snake_case site ids for local and device-demo", () => {
+    // Arrange
+    const SITE_ID = /^[a-z][a-z0-9_]{0,62}[a-z0-9]$/;
+
+    // Act
+    const ids = [CFG.local?.siteId, CFG["device-demo"]?.siteId];
+
+    // Assert
+    expect(ids.every((id) => SITE_ID.test(id ?? ""))).toBe(true);
   });
 
   it("points device-demo at the same-origin compose proxy", () => {
