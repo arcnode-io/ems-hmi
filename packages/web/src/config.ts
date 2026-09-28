@@ -1,5 +1,9 @@
 import { match } from "ts-pattern";
 import { z } from "zod";
+import {
+  parseDeploymentMode,
+  type DeploymentMode,
+} from "@ems-hmi/shared/data/deployment/deploymentMode";
 import { parse } from "yaml";
 import configYamlRaw from "../cfg.yml?raw";
 
@@ -32,13 +36,13 @@ const Config = z.object({
   chatApiUri: z.string(),
 });
 
-export type Mode = "local" | "beta" | "demo";
-export type ConfigType = z.infer<typeof Config> & { mode: Mode };
+export type ConfigType = z.infer<typeof Config> & { mode: DeploymentMode };
 
 const ConfigMap = z.object({
   local: Config,
   beta: Config,
-  demo: Config,
+  "ai-demo": Config,
+  "device-demo": Config,
 });
 
 /** Path the deployed nginx serves the per-deployment runtime overlay from. */
@@ -69,21 +73,19 @@ async function fetchOverlay(): Promise<Record<string, unknown> | null> {
  * learns its real siteId + same-origin URLs at runtime. Falls back to the baked
  * block when the overlay is absent (demo/local/offline).
  * @returns Active config with `mode` attached
- * @throws if cfg.yml is unparseable or the merged config fails validation
+ * @throws if cfg.yml is unparseable, VITE_ENV names no profile, or the merged
+ * config fails validation
  */
 export async function loadConfig(): Promise<ConfigType> {
   const configYaml: unknown = parse(configYamlRaw);
   const map = ConfigMap.parse(configYaml);
-  const environment: Mode = match<string | undefined, Mode>(
-    import.meta.env.VITE_ENV,
-  )
-    .with("beta", () => "beta")
-    .with("demo", () => "demo")
-    .otherwise(() => "local");
+  const environment = parseDeploymentMode(import.meta.env.VITE_ENV);
   const baked = match(environment)
+    .with("local", () => map.local)
     .with("beta", () => map.beta)
-    .with("demo", () => map.demo)
-    .otherwise(() => map.local);
+    .with("ai-demo", () => map["ai-demo"])
+    .with("device-demo", () => map["device-demo"])
+    .exhaustive();
 
   const overlay = await fetchOverlay();
   const block = overlay ? Config.parse({ ...baked, ...overlay }) : baked;

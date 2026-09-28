@@ -493,7 +493,7 @@ export function Sidebar({
 }: SidebarProps): React.ReactElement {
   const t = useTheme();
   const identity = useDeploymentIdentity();
-  const nav = identity.mode === "demo"
+  const nav = identity.mode === "ai-demo"
     ? OPERATE_NAV.map((it) => (it.route === "/analyst" ? { ...it, chip: "NEW" } : it))
     : OPERATE_NAV;
   return (

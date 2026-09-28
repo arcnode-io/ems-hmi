@@ -3,9 +3,10 @@
  * web and native; each platform's `main` feeds it cfg loaded from its own
  * cfg.yml.
  *
- * Real-broker modes (beta) gate the shell behind AuthProvider + a login screen;
- * demo/local bypass auth entirely (offline, deterministic — the appliance demo
- * and the Playwright specs depend on instant entry).
+ * Real-backend modes (beta, device-demo) gate the shell behind AuthProvider + a
+ * login screen; mock modes (local, ai-demo) bypass auth entirely (offline,
+ * deterministic — the public demo and the Playwright specs depend on instant
+ * entry).
  */
 
 import React from "react";
@@ -18,6 +19,10 @@ import { MockMqttProvider } from "./data/mqtt/MockMqttProvider";
 import { RealMqttProvider } from "./data/mqtt/RealMqttProvider";
 import { AnalystConversationProvider } from "./data/analyst/AnalystConversationProvider";
 import { DerEventNoticeProvider } from "./data/grid/DerEventNoticeProvider";
+import {
+  usesRealBackend,
+  type DeploymentMode,
+} from "./data/deployment/deploymentMode";
 import { analystStream } from "./data/analyst/sse/analystStream";
 import { mockAnalystStream } from "./data/analyst/mockAnalystStream";
 import { NavigationRoot } from "./navigation/NavigationRoot";
@@ -27,7 +32,7 @@ export interface AppRootCfg {
   deploymentName: string;
   deploymentHost: string;
   siteId: string;
-  mode: "local" | "beta" | "demo";
+  mode: DeploymentMode;
   chatApiUri: string;
   deviceApiUri: string;
   mqttUri: string;
@@ -40,9 +45,9 @@ export interface AppRootProps {
 }
 
 function topologyUrl(cfg: AppRootCfg): string {
-  // Static fixtures are served as JSON files in local + demo; only beta
-  // talks to a real device-api that responds at /topology/view.
-  return `${cfg.deviceApiUri}/topology/view${cfg.mode === "beta" ? "" : ".json"}`;
+  // Static fixtures are served as JSON files in the mock modes; real-backend
+  // modes talk to a device-api that responds at /topology/view.
+  return `${cfg.deviceApiUri}/topology/view${usesRealBackend(cfg.mode) ? "" : ".json"}`;
 }
 
 /**
@@ -69,7 +74,7 @@ function AppShell({ cfg }: { cfg: AppRootCfg }): React.ReactElement {
   );
   return (
     <TopologyProvider viewUrl={topologyUrl(cfg)}>
-      {cfg.mode === "beta" ? (
+      {usesRealBackend(cfg.mode) ? (
         <RealMqttProvider>{inner}</RealMqttProvider>
       ) : (
         <MockMqttProvider siteId={cfg.siteId}>{inner}</MockMqttProvider>
@@ -90,8 +95,8 @@ export function AppRoot({
   cfg,
   errorBoundary: Boundary,
 }: AppRootProps): React.ReactElement {
-  // Real-broker modes require a human login; demo/local enter straight in.
-  const requiresAuth = cfg.mode === "beta";
+  // Real-backend modes require a human login; mock modes enter straight in.
+  const requiresAuth = usesRealBackend(cfg.mode);
   const inner = requiresAuth ? (
     <AuthProvider>
       <AuthGate cfg={cfg} />

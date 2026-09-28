@@ -8,10 +8,9 @@
 
 import React, { createContext, useCallback, useEffect, useMemo, useState } from "react";
 import { kv } from "../storage/persisted";
+import type { DeploymentMode } from "./deploymentMode";
 
 const HOST_OVERRIDE_KEY = "@arcnode/host-override";
-
-export type DeploymentMode = "local" | "beta" | "demo";
 
 export interface DeploymentIdentity {
   name: string;

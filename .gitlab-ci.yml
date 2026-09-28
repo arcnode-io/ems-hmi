@@ -10,7 +10,7 @@ check-web:
     - npx playwright install --with-deps chromium
     - npm run checks -w packages/web
     - npm run cover -w packages/web
-    - VITE_ENV=demo npm run build -w packages/web
+    - VITE_ENV=ai-demo npm run build -w packages/web
   coverage: '/All files\s*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*(\d+(?:\.\d+)?)/'
   artifacts:
     when: always
@@ -31,7 +31,7 @@ build-web:
   stage: publish
   # The DOCKER image ships to cloud + appliance stacks, which run the real
   # broker (File RBAC) — so it must be the beta build (RealMqttProvider +
-  # login + same-origin URIs), NOT the demo build check-web produces for the
+  # login + same-origin URIs), NOT the ai-demo build check-web produces for the
   # public S3 demo site. Build our own beta dist here; don't inherit the
   # demo artifact.
   script:

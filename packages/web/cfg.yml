@@ -3,7 +3,7 @@ local:
   e2e: false
   deploymentName: "Localhost Dev"
   deploymentHost: "localhost"
-  siteId: "demo-site"
+  siteId: "local-site"
   mqttUri: "ws://localhost:8083/mqtt"
   deviceApiUri: "/api"
   chatApiUri: "http://localhost:8000"
@@ -18,7 +18,8 @@ beta:
   deviceApiUri: "https://beta-device-api.example.com"
   chatApiUri: "https://analyst-api.example.com"
 
-demo:
+# Public S3 web demo: mock devices + fixture topology, hosted analyst.
+ai-demo:
   logLevel: INFO
   e2e: false
   deploymentName: "Brookside DC-1"
@@ -27,3 +28,16 @@ demo:
   mqttUri: ""
   deviceApiUri: "/api"
   chatApiUri: "https://analyst.arcnode.io"
+
+# End-to-end device demo against the local compose stack. Same-origin URIs
+# mirror the overlay platform-api writes: /api → nginx → device-api, empty
+# chatApiUri → /analyst/chat, empty mqttUri → ws(s)://<host>/mqtt.
+device-demo:
+  logLevel: INFO
+  e2e: true
+  deploymentName: "Brookside DC-1"
+  deploymentHost: "localhost"
+  siteId: "demo-site"
+  mqttUri: ""
+  deviceApiUri: "/api"
+  chatApiUri: ""
