@@ -50,6 +50,14 @@
       ],
       "extra_measurements": null
     },
+    "operating_envelope": {
+      "device_id": "operating_envelope",
+      "template": "operating_envelope",
+      "parent": null,
+      "display_name": "Operating Envelope",
+      "blocking": [],
+      "extra_measurements": null
+    },
     "poi_meter_01": {
       "device_id": "poi_meter_01",
       "template": "poi_meter",
@@ -356,6 +364,62 @@
             "0": "OPEN",
             "1": "CLOSED",
             "2": "TRIPPED"
+          }
+        }
+      },
+      "commands": {}
+    },
+    "operating_envelope": {
+      "template": "operating_envelope",
+      "kind": "leaf",
+      "equipment_id": "GRD-OE-001",
+      "vendor": "ARCNODE",
+      "model": "Operating Envelope Producer (Pi RTU)",
+      "description": "Utility-published dynamic operating envelope (CSIP-AUS DERControlBase). Singleton per site.",
+      "measurements": {
+        "import_limit": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 0.2,
+          "display_name_default": "Import Limit",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 10000000,
+            "nominal": 5000000
+          },
+          "thresholds": {
+            "warn_min": 100000,
+            "warn_max": 9500000,
+            "alarm_min": 0,
+            "alarm_max": 10000000
+          },
+          "values": null
+        },
+        "export_limit": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 0.2,
+          "display_name_default": "Export Limit",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 0,
+            "nominal": 0
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "status": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 0.2,
+          "display_name_default": "Status",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "OK"
           }
         }
       },

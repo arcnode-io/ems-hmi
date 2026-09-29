@@ -1,6 +1,7 @@
 /**
  * GridScreen — `/grid` route. Site/PCC-scope utility relationship:
- * curtailment and island state apply to every grid module at once, so
+ * operating envelope, curtailment, and island state apply to every grid
+ * module at once, so
  * this is the site's grid page, not a per-device one (handoff rule 1).
  * Own sidebar row on desktop; reached via a Modules-screen CTA on phone.
  *
@@ -20,8 +21,10 @@ import { useGridState } from "../../../data/grid/useGridState";
 import { useGridPowerQuality } from "../../../data/grid/useGridPowerQuality";
 import { useGridProtection } from "../../../data/grid/useGridProtection";
 import { useDerEventNotice } from "../../../data/grid/useDerEventNotice";
+import { useOperatingEnvelope } from "../../../data/grid/useOperatingEnvelope";
 import { CurtailmentBanner } from "./parts/CurtailmentBanner";
 import { InterconnectPanel } from "./parts/InterconnectPanel";
+import { EnvelopePanel } from "./parts/EnvelopePanel";
 import { DispatchStatusPanel } from "./parts/DispatchStatusPanel";
 import { FrequencyVoltagePanel } from "./parts/FrequencyVoltagePanel";
 import { ProtectionPanel } from "./parts/ProtectionPanel";
@@ -46,6 +49,7 @@ export function GridScreen(): React.ReactElement {
   const state = useGridState();
   const pq = useGridPowerQuality();
   const protection = useGridProtection();
+  const envelope = useOperatingEnvelope();
   const status = headerStatus(state);
   const statusColor = status.color(t);
 
@@ -119,9 +123,10 @@ export function GridScreen(): React.ReactElement {
       <CurtailmentBanner state={state} />
       {state.mode === "ISLAND" ? <IslandNote state={state} /> : null}
       <InterconnectPanel state={state} />
+      <EnvelopePanel envelope={envelope} islanded={state.mode === "ISLAND"} />
       <DispatchStatusPanel state={state} />
       <FrequencyVoltagePanel state={state} pq={pq} />
-      <ProtectionPanel state={state} protection={protection} />
+      <ProtectionPanel state={state} protection={protection} envelope={envelope} />
       <GridModulesPanel />
     </ScrollView>
   );

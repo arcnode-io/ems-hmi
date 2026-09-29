@@ -20,12 +20,14 @@ import { useTopologyView } from "../data/topology/useTopologyView";
 import { useFleetKpis } from "../data/kpis/useFleetKpis";
 import { useAlarmCount } from "../data/alarms/useAlarmCount";
 import { useGridMode } from "../data/grid/useGridMode";
+import { useOperatingEnvelope } from "../data/grid/useOperatingEnvelope";
 import { useDerEventActive } from "../data/grid/useDerEventActive";
 import { useDerEventNotice } from "../data/grid/useDerEventNotice";
 import { TopBar } from "../components/chrome/TopBar/TopBar";
 import { StatusStrip } from "../components/chrome/StatusStrip/StatusStrip";
 import { BottomTabs } from "../components/chrome/BottomTabs/BottomTabs";
 import { Sidebar } from "../components/chrome/Sidebar/Sidebar";
+import { gridSegment } from "./gridSegment";
 import {
   routeByName,
   nameBySidebar,
@@ -61,6 +63,7 @@ export function AppLayout({
   const emsMode = topology.view?.ems_mode ?? "sim";
   const kpis = useFleetKpis();
   const gridMode = useGridMode();
+  const envelope = useOperatingEnvelope();
   const derCurtailed = useDerEventActive();
   const derNotice = useDerEventNotice();
   // Reason: handoff-auto-mode-dispatch-notification-2026-09-22.md — an
@@ -72,8 +75,6 @@ export function AppLayout({
 
   const fmtPct = (v: number | null): string =>
     v === null ? "—" : `${Math.round(v)}%`;
-  const fmtFreq = (v: number | null): string =>
-    v === null ? "—" : `${v.toFixed(2)} Hz`;
   const siteColor =
     kpis.site.label === "Nominal"
       ? t.statusOk
@@ -93,29 +94,19 @@ export function AppLayout({
       value: fmtPct(kpis.gpuUtil.value),
       color: t.colorCompute,
     },
-    // Reason: 2026-09-23 — DOE (operating_envelope) and DLR (line_rating)
-    // are gone entirely; ArcNode has no visibility into either concept
-    // on the real system (utility interconnect is IEEE 2030.5, see
-    // ~/arcnode/ems/readme.md). ISLAND comes from grid_module.
-    // interconnect_state (real). Otherwise: der_dispatch.event_active
-    // (real) for curtailment, else the live net-power reading (real).
     {
       label: "GRID",
-      value:
-        gridMode.mode === "ISLAND"
-          ? "ISLAND"
-          : derCurtailed
-            ? "CURTAILED"
-            : kpis.grid.powerKw === null
-              ? (kpis.grid.label ?? "—")
-              : `${kpis.grid.label === "Export" ? "−" : "+"}${Math.abs(kpis.grid.powerKw).toFixed(0)} kW`,
       color: t.colorGrid,
-      sub:
-        gridMode.mode === "ISLAND"
-          ? "no utility coordination"
-          : derCurtailed
-            ? "Utility event active"
-            : fmtFreq(kpis.grid.frequencyHz),
+      ...gridSegment({
+        mode: gridMode.mode,
+        direction: gridMode.direction,
+        curtailed: derCurtailed,
+        importHeadroomW: envelope.importHeadroomW,
+        exportHeadroomW: envelope.exportHeadroomW,
+        netPowerKw: kpis.grid.powerKw,
+        netLabel: kpis.grid.label,
+        frequencyHz: kpis.grid.frequencyHz,
+      }),
     },
     // TODO: PUE · 24h needs timeseries history hook
     { label: "PUE · 24h", value: "—", color: t.colorThermal, sub: "24h avg" },
