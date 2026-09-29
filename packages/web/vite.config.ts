@@ -26,7 +26,10 @@ export default defineConfig({
       // Mirrors nginx's real-deployment role: RealMqttProvider derives
       // ws(s)://<page-origin>/mqtt by convention when the broker-creds
       // response ships an empty `url` (see brokerUrl.ts). Dev-server-only;
-      // never touches the production build.
+      // never touches the production build. 9001 is not HiveMQ's port: it
+      // assumes the local broker was started with host 9001 → container 8000
+      // (HiveMQ CE's ws listener). The compose stacks don't publish ws on the
+      // host at all — browsers reach it via nginx /mqtt.
       '/mqtt': {
         target: 'ws://localhost:9001',
         ws: true,
