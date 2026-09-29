@@ -40,6 +40,7 @@ function makeTopology(): TopologyViewType {
       { bus_id: "dc_bus_1", type: "dc", members: [{ device_id: "bess_module_01", port: null }, { device_id: "bess_module_02", port: null }] },
     ],
     templates_used: TEMPLATES,
+    bess: null,
   };
 }
 

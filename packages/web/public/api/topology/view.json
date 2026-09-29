@@ -896,5 +896,10 @@
       },
       "commands": {}
     }
+  },
+  "bess": {
+    "pack_mwh": 16.0,
+    "reserve_floor_mwh": 2.0,
+    "reserve_floor_pct": 12.5
   }
 }

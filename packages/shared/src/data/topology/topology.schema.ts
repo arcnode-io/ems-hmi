@@ -82,6 +82,16 @@ const SizingParams = z.object({
   bess_reserve_floor_mwh: z.number(),
 });
 
+/**
+ * Site BESS pack + reserve floor, derived by device-api from summed rack
+ * capacity — the same derivation the gateway clamps discharge against.
+ */
+const BessView = z.object({
+  pack_mwh: z.number(),
+  reserve_floor_mwh: z.number(),
+  reserve_floor_pct: z.number(),
+});
+
 export const TopologyView = z.object({
   deployment_uuid: z.string(),
   ems_mode: z.enum(["sim", "live"]),
@@ -90,6 +100,10 @@ export const TopologyView = z.object({
   devices: z.record(z.string(), DeviceView),
   buses: z.array(Bus),
   templates_used: z.record(z.string(), TemplateView),
+  // Reason: null = no device carries rack capacity. Absent (device-api older
+  // than 70dcc30) reads as null too — a required key would fail the whole
+  // topology parse, blanking the HMI instead of just the reserve panel.
+  bess: BessView.nullable().default(null),
 });
 
 export type TopologyViewType = z.infer<typeof TopologyView>;

@@ -1,7 +1,8 @@
 /**
  * ReserveFloorPanel — read-only reserve-floor config (rule 6 from the
  * design handoff: no slider, this is an engineering action not an
- * operator control). Real data via useReserveFloor (Dtm.sizing_params).
+ * operator control). Real data via useReserveFloor (the view's rack-derived
+ * `bess` block + sizing_params.ride_through_hours).
  *
  * "Request a change" has no real backend action to wire — reserve floor
  * changes go through re-engineering the site's DTM, not an in-app

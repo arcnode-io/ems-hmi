@@ -36,6 +36,7 @@ const fixtureView: TopologyViewType = {
       extra_measurements: null,
     },
   },
+  bess: null,
   buses: [],
   templates_used: {
     bess_leaf: {
