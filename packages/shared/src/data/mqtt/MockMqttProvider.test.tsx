@@ -32,7 +32,6 @@ const fixtureView: TopologyViewType = {
       template: "bess_leaf",
       parent: null,
       display_name: "BESS Unit 1",
-      blocking: ["live_mode"],
       extra_measurements: null,
     },
   },

@@ -15,9 +15,6 @@
       "template": "bess_module",
       "parent": null,
       "display_name": "BESS-01",
-      "blocking": [
-        "live_mode"
-      ],
       "extra_measurements": null
     },
     "bess_module_02": {
@@ -25,9 +22,6 @@
       "template": "bess_module",
       "parent": null,
       "display_name": "BESS-02",
-      "blocking": [
-        "live_mode"
-      ],
       "extra_measurements": null
     },
     "compute_module_01": {
@@ -35,9 +29,6 @@
       "template": "compute_module",
       "parent": null,
       "display_name": "ARC-COMPUTE-01",
-      "blocking": [
-        "live_mode"
-      ],
       "extra_measurements": null
     },
     "grid_module_01": {
@@ -45,9 +36,6 @@
       "template": "grid_module",
       "parent": null,
       "display_name": "Grid Module",
-      "blocking": [
-        "live_mode"
-      ],
       "extra_measurements": null
     },
     "operating_envelope": {
@@ -55,7 +43,6 @@
       "template": "operating_envelope",
       "parent": null,
       "display_name": "Operating Envelope",
-      "blocking": [],
       "extra_measurements": null
     },
     "poi_meter_01": {
@@ -63,7 +50,6 @@
       "template": "poi_meter",
       "parent": "grid_module_01",
       "display_name": "GRD-MTR-001",
-      "blocking": [],
       "extra_measurements": null
     },
     "cdu_01": {
@@ -71,9 +57,6 @@
       "template": "cdu",
       "parent": "compute_module_01",
       "display_name": "CDU-01",
-      "blocking": [
-        "live_mode"
-      ],
       "extra_measurements": null
     },
     "der_dispatch_01": {
@@ -81,7 +64,6 @@
       "template": "der_dispatch",
       "parent": null,
       "display_name": "DER Dispatch Feed",
-      "blocking": [],
       "extra_measurements": null
     },
     "switchgear_01": {
@@ -89,7 +71,6 @@
       "template": "switchgear",
       "parent": "grid_module_01",
       "display_name": "Switchgear",
-      "blocking": [],
       "extra_measurements": null
     },
     "protective_relay_01": {
@@ -97,7 +78,6 @@
       "template": "protective_relay",
       "parent": "grid_module_01",
       "display_name": "Protective Relay",
-      "blocking": [],
       "extra_measurements": null
     },
     "pv_inverter_01": {
@@ -105,7 +85,6 @@
       "template": "pv_inverter",
       "parent": "grid_module_01",
       "display_name": "PV Inverter 1",
-      "blocking": [],
       "extra_measurements": null
     },
     "pv_inverter_02": {
@@ -113,7 +92,6 @@
       "template": "pv_inverter",
       "parent": "grid_module_01",
       "display_name": "PV Inverter 2",
-      "blocking": [],
       "extra_measurements": null
     },
     "bess_rack_01a": {
@@ -121,7 +99,6 @@
       "template": "bess_rack",
       "parent": "bess_module_01",
       "display_name": "BESS-01 Rack A",
-      "blocking": [],
       "extra_measurements": null
     },
     "bess_rack_01b": {
@@ -129,7 +106,6 @@
       "template": "bess_rack",
       "parent": "bess_module_01",
       "display_name": "BESS-01 Rack B",
-      "blocking": [],
       "extra_measurements": null
     },
     "bess_rack_02a": {
@@ -137,7 +113,6 @@
       "template": "bess_rack",
       "parent": "bess_module_02",
       "display_name": "BESS-02 Rack A",
-      "blocking": [],
       "extra_measurements": null
     },
     "bess_rack_02b": {
@@ -145,7 +120,6 @@
       "template": "bess_rack",
       "parent": "bess_module_02",
       "display_name": "BESS-02 Rack B",
-      "blocking": [],
       "extra_measurements": null
     }
   },

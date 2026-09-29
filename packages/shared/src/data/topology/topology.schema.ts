@@ -57,7 +57,6 @@ const DeviceView = z.object({
   template: z.string(),
   parent: z.string().nullable(),
   display_name: z.string().nullable(),
-  blocking: z.array(z.string()),
   extra_measurements: z.record(z.string(), MeasurementView).nullable(),
 });
 

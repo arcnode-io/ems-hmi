@@ -28,12 +28,12 @@ function makeTopology(): TopologyViewType {
       bess_reserve_floor_mwh: 0,
     },
     devices: {
-      bess_module_01: { device_id: "bess_module_01", template: "bess_module", parent: null, display_name: "BESS-01", blocking: [], extra_measurements: null },
-      bess_module_02: { device_id: "bess_module_02", template: "bess_module", parent: null, display_name: "BESS-02", blocking: [], extra_measurements: null },
-      compute_module_01: { device_id: "compute_module_01", template: "compute_module", parent: null, display_name: "ARC-COMPUTE-01", blocking: [], extra_measurements: null },
-      grid_module_01: { device_id: "grid_module_01", template: "grid_module", parent: null, display_name: "Grid Module", blocking: [], extra_measurements: null },
-      poi_meter_01: { device_id: "poi_meter_01", template: "poi_meter", parent: "grid_module_01", display_name: "GRD-MTR-001", blocking: [], extra_measurements: null },
-      cdu_01: { device_id: "cdu_01", template: "cdu", parent: "compute_module_01", display_name: "CDU-01", blocking: [], extra_measurements: null },
+      bess_module_01: { device_id: "bess_module_01", template: "bess_module", parent: null, display_name: "BESS-01", extra_measurements: null },
+      bess_module_02: { device_id: "bess_module_02", template: "bess_module", parent: null, display_name: "BESS-02", extra_measurements: null },
+      compute_module_01: { device_id: "compute_module_01", template: "compute_module", parent: null, display_name: "ARC-COMPUTE-01", extra_measurements: null },
+      grid_module_01: { device_id: "grid_module_01", template: "grid_module", parent: null, display_name: "Grid Module", extra_measurements: null },
+      poi_meter_01: { device_id: "poi_meter_01", template: "poi_meter", parent: "grid_module_01", display_name: "GRD-MTR-001", extra_measurements: null },
+      cdu_01: { device_id: "cdu_01", template: "cdu", parent: "compute_module_01", display_name: "CDU-01", extra_measurements: null },
     },
     buses: [
       { bus_id: "ac_bus_1", type: "ac", members: [{ device_id: "grid_module_01", port: null }, { device_id: "compute_module_01", port: null }] },
@@ -100,7 +100,7 @@ describe("layoutSld", () => {
     const big = makeTopology();
     for (let i = 3; i <= 8; i++) {
       const id = `bess_module_0${i}`;
-      big.devices[id] = { device_id: id, template: "bess_module", parent: null, display_name: `BESS-0${i}`, blocking: [], extra_measurements: null };
+      big.devices[id] = { device_id: id, template: "bess_module", parent: null, display_name: `BESS-0${i}`, extra_measurements: null };
       big.buses[1].members.push({ device_id: id, port: null });
     }
     const wideW = layoutSld(big).width;
