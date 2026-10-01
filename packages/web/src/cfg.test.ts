@@ -56,9 +56,15 @@ describe("web cfg.yml", () => {
 
   it("points device-demo at the same-origin compose proxy", () => {
     // Arrange + Act
-    const { mqttUri, deviceApiUri } = CFG["device-demo"] ?? { mqttUri: "x", deviceApiUri: "x" };
+    const { mqttUri, deviceApiUri } = CFG["device-demo"] ?? {
+      mqttUri: "x",
+      deviceApiUri: "x",
+    };
 
     // Assert
-    expect({ mqttUri, deviceApiUri }).toEqual({ mqttUri: "", deviceApiUri: "/api" });
+    expect({ mqttUri, deviceApiUri }).toEqual({
+      mqttUri: "",
+      deviceApiUri: "/api",
+    });
   });
 });
