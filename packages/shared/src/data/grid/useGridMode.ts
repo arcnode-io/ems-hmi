@@ -10,9 +10,8 @@
  *
  * Utility interconnect is IEEE 2030.5 (MirrorUsagePoint compliance
  * reporting via der-control-api → the mock DERMS dispatch_api — see
- * ~/arcnode/ems/readme.md). ArcNode has no visibility into utility-side
- * DOE/DLR concepts; this hook only ever reads grid_module, a real device
- * in our own DTM.
+ * ~/arcnode/ems/readme.md). This hook only reads grid_module; the
+ * utility's operating envelope lives in useOperatingEnvelope.
  */
 
 import { useMemo } from "react";

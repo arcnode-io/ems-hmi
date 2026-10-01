@@ -1,9 +1,6 @@
 /**
  * POI meter + main breaker, and the POI → AC-bus drop split around
- * it. POI is the topmost node in the diagram — no utility-feed row above
- * it; ArcNode has no visibility into DOE/DLR on the real system (utility
- * interconnect is IEEE 2030.5, see ~/arcnode/ems/readme.md). Removed
- * 2026-09-23.
+ * it. POI is the topmost node in the diagram.
  */
 
 import {

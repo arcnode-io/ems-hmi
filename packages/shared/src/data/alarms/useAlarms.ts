@@ -18,8 +18,7 @@
  *
  * Per constitution rule 3.12 the row label is still the device ID;
  * alarms from utility-side feeds carry `category: "UTILITY"` so the
- * AlarmRow surface can render the small category chip. DLR (line_rating)
- * stays out: it's the utility's own sensor, the site never sees it.
+ * AlarmRow surface can render the small category chip.
  *
  * Deferred:
  *  - Ack state — needs a per-alarm acknowledgement store.

@@ -85,3 +85,36 @@ it("refuses an empty topic instead of sending a filter the broker disconnects on
   expect(() => client.subscribe("", () => {})).toThrow(/empty topic/);
   expect(raw.subs).toEqual([]);
 });
+
+it("replays the last message to a listener that joins an already-subscribed topic", () => {
+  // Arrange — the broker only replays retained state to a NEW subscription, and
+  // the client dedupes subscribes, so a second hook on a transition-only topic
+  // (event_active) would otherwise sit at null until the next transition.
+  const raw = fakeRaw();
+  const client = new RealMqttClient(raw);
+  client.subscribe("t/a", () => {});
+  raw.emit("t/a", { ts: "2026-01-01T00:00:00Z", value: true });
+  const late: unknown[] = [];
+
+  // Act
+  client.subscribe("t/a", (m) => late.push(m.value));
+
+  // Assert
+  expect(late).toEqual([true]);
+});
+
+it("forgets the cached message once the last listener unsubscribes", () => {
+  // Arrange
+  const raw = fakeRaw();
+  const client = new RealMqttClient(raw);
+  const off = client.subscribe("t/a", () => {});
+  raw.emit("t/a", { ts: "2026-01-01T00:00:00Z", value: 1 });
+  off();
+  const seen: unknown[] = [];
+
+  // Act — a fresh broker subscribe; the broker's retain will deliver, not a stale cache
+  client.subscribe("t/a", (m) => seen.push(m.value));
+
+  // Assert
+  expect(seen).toEqual([]);
+});

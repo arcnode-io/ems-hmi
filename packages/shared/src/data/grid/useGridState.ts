@@ -12,10 +12,7 @@
  *   - `pv_inverter_*.active_power` (summed — generation is never signed,
  *     so no sign-convention risk the way BESS/site-load would carry)
  *
- * No DOE (operating_envelope) or DLR (line_rating) fields here — the
- * utility interconnect is IEEE 2030.5, and ArcNode has no visibility into
- * either concept on the wire (see ~/arcnode/ems/readme.md). Both were
- * removed from the demo fixture and data layer 2026-09-23, per Joe.
+ * The operating envelope (limits + headroom) lives in useOperatingEnvelope.
  *
  * Site load and BESS aren't included: deriving load algebraically
  * (load = net − bess + pv) needs bess_module.active_power's charge/

@@ -3,9 +3,8 @@
  * sizing constants live alongside so region helpers don't sprinkle magic
  * numbers.
  *
- * No utility-feed row (DOE/DLR) — removed 2026-09-23, ArcNode has no
- * visibility into either on the real system (utility interconnect is
- * IEEE 2030.5, see ~/arcnode/ems/readme.md). POI is the topmost node.
+ * POI is the topmost node: the SLD draws the site's own electrical
+ * equipment, not utility-side feeds.
  */
 
 /** Y-coordinate of the row centers, top→bottom. */

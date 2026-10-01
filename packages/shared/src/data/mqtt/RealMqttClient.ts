@@ -32,6 +32,12 @@ function decode(payload: Uint8Array): string {
 
 export class RealMqttClient implements MqttClient {
   private listeners = new Map<string, Set<MessageListener<unknown>>>();
+  // Reason: the broker replays retained state only to a NEW subscription, and
+  // subscribes are deduped per topic — so a second listener joining later
+  // (e.g. the Grid screen while the status strip already holds event_active)
+  // would wait for the next publish, which for transition-only topics may
+  // never come. Replay the last message to late joiners instead.
+  private last = new Map<string, MqttMessage<unknown>>();
 
   constructor(private readonly raw: RawMqtt) {
     raw.on("message", (topic, payload) => this.dispatch(topic, payload));
@@ -46,6 +52,7 @@ export class RealMqttClient implements MqttClient {
     } catch {
       return; // drop unparseable frames rather than throw into the fan-out
     }
+    this.last.set(topic, msg);
     for (const listener of set) listener(msg);
   }
 
@@ -61,10 +68,13 @@ export class RealMqttClient implements MqttClient {
       this.raw.subscribe(topic, { qos: QOS_MEASUREMENT });
     }
     set.add(listener as MessageListener<unknown>);
+    const cached = this.last.get(topic);
+    if (cached) (listener as MessageListener<unknown>)(cached);
     return (): void => {
       set.delete(listener as MessageListener<unknown>);
       if (set.size === 0) {
         this.listeners.delete(topic);
+        this.last.delete(topic);
         this.raw.unsubscribe(topic);
       }
     };
