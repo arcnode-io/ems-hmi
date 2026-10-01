@@ -35,5 +35,8 @@ export function gridHeadroomRow(envelope: OperatingEnvelope, islanded: boolean):
   if (degraded || usedFraction === null || importHeadroomW === null) {
     return { val: 0, headline: "—", forState: null };
   }
+  if (importHeadroomW < 0) {
+    return { val: 1, headline: `${fmtPower(importHeadroomW)} over limit`, forState: 1 };
+  }
   return { val: usedFraction, headline: `${fmtPower(importHeadroomW)} import free`, forState: usedFraction };
 }

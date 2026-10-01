@@ -37,15 +37,26 @@ describe("envelopeFrom", () => {
     expect([stale, nothingYet]).toEqual(["stale", null]);
   });
 
-  it("clamps used fraction to [0,1] and nulls it on a zero limit", () => {
+  it("clamps used fraction to [0,1] and nulls it on a zero limit with nothing flowing", () => {
     // Arrange
     const over = { importLimitW: 100, exportLimitW: 0, importHeadroomW: -50, exportHeadroomW: 0, status: "OK" };
-    const zero = { ...over, importLimitW: 0 };
+    const zero = { ...over, importLimitW: 0, importHeadroomW: 0 };
 
     // Act
     const fractions = [envelopeFrom(over).usedFraction, envelopeFrom(zero).usedFraction];
 
     // Assert
     expect(fractions).toEqual([1, null]);
+  });
+
+  it("reads negative headroom as the limit fully used, even at a zero limit", () => {
+    // Arrange — live stack: envelope closed to 0 W, site importing 1.12 MW
+    const over = { importLimitW: 0, exportLimitW: 0, importHeadroomW: -1_120_000, exportHeadroomW: 1_120_000, status: "OK" };
+
+    // Act
+    const used = envelopeFrom(over).usedFraction;
+
+    // Assert
+    expect(used).toBe(1);
   });
 });

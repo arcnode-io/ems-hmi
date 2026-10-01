@@ -27,6 +27,10 @@ export function EnvelopePanel({ envelope, islanded }: EnvelopePanelProps): React
   const unit = (w: number | null): string => (islanded || w === null ? "" : "MW");
   const val = (w: number | null): string => (islanded ? "n/a" : mw(w));
   const used = envelope.usedFraction;
+  // Reason: signed on purpose — negative headroom means the site is over the
+  // envelope, and dropping the sign would show a violation as spare capacity.
+  const headroom = envelope.importHeadroomW;
+  const over = headroom !== null && headroom < 0;
 
   return (
     <GridPanel title="Operating envelope">
@@ -40,10 +44,10 @@ export function EnvelopePanel({ envelope, islanded }: EnvelopePanelProps): React
       <GridRow k="Export limit" v={val(envelope.exportLimitW)} u={unit(envelope.exportLimitW)} tone={tone} />
       <GridRow
         k="Import headroom"
-        v={val(envelope.importHeadroomW)}
-        u={unit(envelope.importHeadroomW)}
-        tone={tone}
-        hint="at POI"
+        v={islanded ? "n/a" : headroom === null ? "—" : (headroom / 1_000_000).toFixed(2)}
+        u={unit(headroom)}
+        tone={!islanded && over ? "alarm" : tone}
+        hint={over ? "over limit · at POI" : "at POI"}
       />
       <GridRow
         k="Limit in use"

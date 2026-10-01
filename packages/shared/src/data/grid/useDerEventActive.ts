@@ -37,6 +37,6 @@ export function useDerEventActive(): boolean {
     return measurementTopic(siteId, deviceId, "event_active", m.unit as TopicUnit);
   }, [view, siteId]);
 
-  const msg = useSubscription<boolean>(topic ?? "");
+  const msg = useSubscription<boolean>(topic);
   return topic !== null && msg?.value === true;
 }

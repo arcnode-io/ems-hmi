@@ -74,3 +74,14 @@ it("serializes the {ts,value} envelope on publish", () => {
     value: 7,
   });
 });
+
+it("refuses an empty topic instead of sending a filter the broker disconnects on", () => {
+  // Arrange — HiveMQ drops the whole connection on an empty topic filter,
+  // blanking every panel in a silent reconnect loop.
+  const raw = fakeRaw();
+  const client = new RealMqttClient(raw);
+
+  // Act + Assert
+  expect(() => client.subscribe("", () => {})).toThrow(/empty topic/);
+  expect(raw.subs).toEqual([]);
+});

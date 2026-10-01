@@ -37,6 +37,11 @@ export function gridSegment(input: GridSegmentInput): { value: string; sub: stri
   // don't have. Unknown flow defaults to import — a load site's binding side.
   const exporting = input.direction === "EXP";
   const headroom = exporting ? input.exportHeadroomW : input.importHeadroomW;
+  if (headroom !== null && headroom < 0) {
+    // Reason: over the envelope. Never render the magnitude as headroom.
+    const over = `${fmtPower(headroom)} over ${exporting ? "export" : "import"} limit`;
+    return { value: "OVER LIMIT", sub: input.curtailed ? `Curtailed · ${over}` : over };
+  }
   if (headroom !== null) {
     const which = exporting ? "Export headroom" : "Import headroom";
     return {

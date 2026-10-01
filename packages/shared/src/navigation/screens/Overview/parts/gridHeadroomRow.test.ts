@@ -56,4 +56,12 @@ describe("gridHeadroomRow", () => {
     // Assert
     expect(row).toEqual({ val: 0, headline: "—", forState: null });
   });
+
+  it("shows an over-limit site as a full bar that counts as GRID LIMITED", () => {
+    // Arrange + Act
+    const row = gridHeadroomRow({ ...LIVE, importLimitW: 0, importHeadroomW: -1_120_000, usedFraction: 1 }, false);
+
+    // Assert
+    expect(row).toEqual({ val: 1, headline: "1.1 MW over limit", forState: 1 });
+  });
 });

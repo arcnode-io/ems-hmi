@@ -50,6 +50,10 @@ export class RealMqttClient implements MqttClient {
   }
 
   subscribe<T = unknown>(topic: string, listener: MessageListener<T>): Unsubscribe {
+    // Reason: an empty topic filter is a protocol violation — HiveMQ drops the
+    // whole connection, and the reconnect loop blanks every panel with no
+    // error anywhere. Fail loud at the caller instead.
+    if (topic === "") throw new Error("RealMqttClient.subscribe: empty topic");
     let set = this.listeners.get(topic);
     if (!set) {
       set = new Set();

@@ -57,4 +57,12 @@ describe("gridSegment", () => {
       { value: "+180 kW", sub: "60.01 Hz" },
     ]);
   });
+
+  it("says OVER LIMIT for negative headroom instead of dropping the sign", () => {
+    // Arrange + Act
+    const seg = gridSegment({ ...BASE, direction: null, importHeadroomW: -1_120_000 });
+
+    // Assert
+    expect(seg).toEqual({ value: "OVER LIMIT", sub: "1.1 MW over import limit" });
+  });
 });

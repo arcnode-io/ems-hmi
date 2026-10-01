@@ -56,11 +56,17 @@ export function envelopeFrom(raw: RawEnvelope): OperatingEnvelope {
     .otherwise(() => null);
   // Reason: used = limit − headroom, from the gateway's own two numbers, so
   // the bar agrees with whatever the gateway referenced headroom to.
+  // Negative headroom = over the limit, i.e. fully used — including a limit
+  // closed to 0 W, where the ratio itself would divide by zero.
   const { importLimitW: limit, importHeadroomW: headroom } = raw;
   const usedFraction =
-    limit !== null && headroom !== null && limit > 0
-      ? Math.min(1, Math.max(0, (limit - headroom) / limit))
-      : null;
+    limit === null || headroom === null
+      ? null
+      : headroom < 0
+        ? 1
+        : limit > 0
+          ? Math.min(1, Math.max(0, (limit - headroom) / limit))
+          : null;
   return {
     status,
     importLimitW: raw.importLimitW,
