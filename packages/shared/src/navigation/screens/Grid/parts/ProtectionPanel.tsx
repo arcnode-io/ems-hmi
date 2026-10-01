@@ -53,11 +53,6 @@ export function ProtectionPanel({ state, protection, envelope }: ProtectionPanel
         tone={protection.rideThroughEnabled ? "ok" : "warn"}
       />
       <GridRow
-        k="Reconnect delay"
-        v={protection.reconnectDelaySec === null ? "—" : protection.reconnectDelaySec.toFixed(0)}
-        u={protection.reconnectDelaySec === null ? "" : "s"}
-      />
-      <GridRow
         k="Export permit"
         v={envelope.exportLimitW === null ? "—" : (Math.abs(envelope.exportLimitW) / 1_000_000).toFixed(2)}
         u={envelope.exportLimitW === null ? "" : "MW"}

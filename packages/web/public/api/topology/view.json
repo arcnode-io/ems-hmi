@@ -750,20 +750,6 @@
           "bounds": null,
           "thresholds": null,
           "values": null
-        },
-        "reconnect_delay_s": {
-          "unit": "none",
-          "type": "float",
-          "poll_rate_hz": 0.1,
-          "display_name_default": "Reconnect Delay",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 0,
-            "max": 600,
-            "nominal": 300
-          },
-          "thresholds": null,
-          "values": null
         }
       },
       "commands": {}

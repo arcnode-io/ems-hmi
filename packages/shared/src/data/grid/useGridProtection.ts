@@ -1,8 +1,8 @@
 /**
  * useGridProtection — Protection panel data for the Grid screen.
- * `protective_relay_*.anti_islanding_armed` / `ride_through_enabled` /
- * `reconnect_delay_s`, just approved and built by power-engineer
- * 2026-09-13.
+ * `protective_relay_*.anti_islanding_armed` / `ride_through_enabled`, from
+ * the SEL-351 DNP3 profile. No reconnect delay: it's a relay setting with
+ * no DNP point (edp-api dbea150).
  */
 
 import { useMemo } from "react";
@@ -14,7 +14,6 @@ import { measurementTopic, type TopicUnit } from "../topics/topicBuilder";
 export interface GridProtection {
   antiIslandingArmed: boolean | null;
   rideThroughEnabled: boolean | null;
-  reconnectDelaySec: number | null;
 }
 
 /**
@@ -32,7 +31,7 @@ export function useGridProtection(): GridProtection {
       if (device.template !== "protective_relay") continue;
       const tpl = view.templates_used[device.template];
       if (!tpl) continue;
-      for (const name of ["anti_islanding_armed", "ride_through_enabled", "reconnect_delay_s"]) {
+      for (const name of ["anti_islanding_armed", "ride_through_enabled"]) {
         const m = tpl.measurements[name];
         if (m) list.push(measurementTopic(siteId, deviceId, name, m.unit as TopicUnit));
       }
@@ -45,7 +44,6 @@ export function useGridProtection(): GridProtection {
   return useMemo(() => {
     let antiIslandingArmed: boolean | null = null;
     let rideThroughEnabled: boolean | null = null;
-    let reconnectDelaySec: number | null = null;
 
     for (const topic of topics) {
       const msg = messages[topic];
@@ -54,11 +52,9 @@ export function useGridProtection(): GridProtection {
         if (typeof msg.value === "boolean") antiIslandingArmed = msg.value;
       } else if (topic.endsWith("/ride_through_enabled/none")) {
         if (typeof msg.value === "boolean") rideThroughEnabled = msg.value;
-      } else if (topic.endsWith("/reconnect_delay_s/none")) {
-        if (typeof msg.value === "number") reconnectDelaySec = msg.value;
       }
     }
 
-    return { antiIslandingArmed, rideThroughEnabled, reconnectDelaySec };
+    return { antiIslandingArmed, rideThroughEnabled };
   }, [topics, messages]);
 }
