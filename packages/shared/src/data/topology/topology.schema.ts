@@ -58,6 +58,9 @@ const DeviceView = z.object({
   parent: z.string().nullable(),
   display_name: z.string().nullable(),
   extra_measurements: z.record(z.string(), MeasurementView).nullable(),
+  // false = address still the commissioning placeholder (ADR §25) — render
+  // grey, not a fault. Absent (device-api before the flag) = today's behaviour.
+  provisioned: z.boolean().optional(),
 });
 
 const BusMember = z.object({

@@ -12,7 +12,9 @@ import { resolveTypeStyle, type Theme } from "../../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
 import type { BessRackRow, RackOperatingState } from "../../../../data/bess/useBessRackRoster";
 
-function stateColor(t: Theme, s: RackOperatingState | null): string {
+function stateColor(t: Theme, s: RackOperatingState | null, provisioned: boolean): string {
+  // Reason: ADR §25 — no address yet is neutral, not a fault.
+  if (!provisioned) return t.statusOffline;
   if (s === "FAULT") return t.statusAlarm;
   if (s === "OFFLINE") return t.statusWarn;
   if (s === null) return t.textSoft;
@@ -61,14 +63,14 @@ export function BessRacksPanel({ racks }: BessRacksPanelProps): React.ReactEleme
                   width: 6,
                   height: 6,
                   borderRadius: 3,
-                  backgroundColor: stateColor(t, r.operatingState),
+                  backgroundColor: stateColor(t, r.operatingState, r.provisioned),
                 }}
               />
               <Text style={[resolveTypeStyle(t, "label"), { color: t.text, fontWeight: "700", flex: 1 }]}>
                 {r.displayName}
               </Text>
               <Text style={[resolveTypeStyle(t, "caption"), { color: t.textSoft }]}>
-                {r.operatingState ?? "—"}
+                {r.provisioned ? (r.operatingState ?? "—") : "Not provisioned"}
               </Text>
             </View>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: SPACE[4] }}>

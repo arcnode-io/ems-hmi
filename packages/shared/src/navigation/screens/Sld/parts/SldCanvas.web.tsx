@@ -14,7 +14,7 @@ import { layoutSld } from "../layout/layoutSld";
 import { SldRenderer, sldThemeFrom } from "../layout/SldRenderer";
 import {
   buildPoiOverlay,
-  foldAlarmsToStatus,
+  deviceStatuses,
   statusColorsFromTheme,
 } from "../helpers/sldStatus";
 import { usePanZoom } from "../hooks/usePanZoom";
@@ -59,7 +59,10 @@ export function SldCanvas({ onSelectDevice }: SldCanvasProps = {}): React.ReactE
   const panZoom = usePanZoom(containerRef, layout);
 
   const sldTheme = useMemo(() => sldThemeFrom(t), [t]);
-  const statusByDevice = useMemo(() => foldAlarmsToStatus(alarms), [alarms]);
+  const statusByDevice = useMemo(
+    () => deviceStatuses(view?.devices ?? {}, alarms),
+    [view, alarms],
+  );
   const statusColors = useMemo(() => statusColorsFromTheme(t), [t]);
   const poiOverlay = useMemo(
     () => buildPoiOverlay(gridMode, t, derCurtailed),

@@ -1,4 +1,5 @@
 import {
+  deviceStatuses,
   foldAlarmsToStatus,
   statusColorsFromTheme,
   buildPoiOverlay,
@@ -93,5 +94,32 @@ describe("buildPoiOverlay", () => {
     );
     expect(overlay.stateToken).toBe("ISLAND");
     expect(overlay.stateColor).toBe(SOLARPUNK.textSoft);
+  });
+});
+
+describe("deviceStatuses", () => {
+  it("marks provisioned:false devices unprovisioned and leaves the rest to alarms", () => {
+    // Arrange
+    const devices = {
+      meter_01: { provisioned: false },
+      bess_01: { provisioned: true },
+      cdu_01: {},
+    };
+
+    // Act
+    const statuses = deviceStatuses(devices, [alarm("bess_01", "warn")]);
+
+    // Assert
+    expect(statuses).toEqual({ meter_01: "unprovisioned", bess_01: "warn" });
+  });
+});
+
+describe("statusColorsFromTheme unprovisioned", () => {
+  it("renders unprovisioned in the neutral offline grey", () => {
+    // Arrange + Act
+    const colors = statusColorsFromTheme(SOLARPUNK);
+
+    // Assert
+    expect(colors.unprovisioned).toBe(SOLARPUNK.statusOffline);
   });
 });

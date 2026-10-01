@@ -44,3 +44,17 @@ describe("TopologyView device blocking", () => {
     expect(result.success).toBe(true);
   });
 });
+
+describe("TopologyView device provisioned", () => {
+  it("keeps provisioned when device-api sends it, and allows it absent", () => {
+    // Arrange
+    const withFlag = TopologyView.parse(viewWith({ ...DEVICE, provisioned: false }));
+    const without = TopologyView.parse(viewWith(DEVICE));
+
+    // Act
+    const flags = [withFlag.devices.bess_module_01?.provisioned, without.devices.bess_module_01?.provisioned];
+
+    // Assert
+    expect(flags).toEqual([false, undefined]);
+  });
+});

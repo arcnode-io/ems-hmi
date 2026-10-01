@@ -12,7 +12,7 @@ import { ConductorPath, Particle } from "./Conductor";
 import { DecorationByKind } from "./Decorations";
 import { NodeBox } from "./NodeBox";
 
-export type SldNodeStatus = "ok" | "warn" | "alarm" | "offline";
+export type SldNodeStatus = "ok" | "warn" | "alarm" | "offline" | "unprovisioned";
 
 export interface PoiOverlay {
   netAtMeter: string;

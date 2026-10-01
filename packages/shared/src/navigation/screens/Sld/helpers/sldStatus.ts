@@ -27,12 +27,29 @@ export function foldAlarmsToStatus(
   return byDevice;
 }
 
+/**
+ * Per-device node status: unprovisioned (ADR §25 — no address yet, not a
+ * fault) wins, since such a device can't have data to alarm on; otherwise
+ * the highest alarm severity. Devices absent from the map render ok.
+ */
+export function deviceStatuses(
+  devices: Readonly<Record<string, { provisioned?: boolean }>>,
+  alarms: readonly ActiveAlarm[],
+): Record<string, SldNodeStatus> {
+  const byDevice = foldAlarmsToStatus(alarms);
+  for (const [id, device] of Object.entries(devices)) {
+    if (device.provisioned === false) byDevice[id] = "unprovisioned";
+  }
+  return byDevice;
+}
+
 export function statusColorsFromTheme(t: Theme): Record<SldNodeStatus, string> {
   return {
     ok: t.statusOk,
     warn: t.statusWarn,
     alarm: t.statusAlarm,
     offline: t.statusOffline,
+    unprovisioned: t.statusOffline,
   };
 }
 

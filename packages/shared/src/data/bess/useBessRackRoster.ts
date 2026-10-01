@@ -23,6 +23,8 @@ export interface BessRackRow {
   frequencyHz: number | null;
   energyDischargedWh: number | null;
   operatingState: RackOperatingState | null;
+  /** false = no address yet (ADR §25). Absent from device-api counts as provisioned. */
+  provisioned: boolean;
 }
 
 const MEASUREMENTS = [
@@ -110,6 +112,7 @@ export function useBessRackRoster(moduleDeviceId: string): BessRackRow[] {
         frequencyHz,
         energyDischargedWh,
         operatingState,
+        provisioned: device.provisioned !== false,
       };
     });
   }, [racks, view, siteId, messages]);
