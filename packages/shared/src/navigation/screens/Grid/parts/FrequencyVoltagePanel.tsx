@@ -26,9 +26,9 @@ export function FrequencyVoltagePanel({ state, pq }: FrequencyVoltagePanelProps)
       />
       <GridRow
         k="MV bus"
-        v={pq.mvBusVoltageV === null ? "—" : (pq.mvBusVoltageV / 1000).toFixed(2)}
-        u={pq.mvBusVoltageV === null ? "" : "kV"}
-        hint="A-B-C avg"
+        v={pq.mvBusLnVoltageV === null ? "—" : (pq.mvBusLnVoltageV / 1000).toFixed(2)}
+        u={pq.mvBusLnVoltageV === null ? "" : "kV"}
+        hint="L-N avg"
       />
       <GridRow
         k="THD-V"

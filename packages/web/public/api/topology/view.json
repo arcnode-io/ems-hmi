@@ -606,121 +606,7 @@
       "vendor": "ABB",
       "model": "SafeGear 15kV",
       "description": "MV switchgear \u2014 bus voltage/current + unbalance",
-      "measurements": {
-        "bus_voltage_a": {
-          "unit": "volts",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Bus Voltage Phase A",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 11500,
-            "max": 13500,
-            "nominal": 12470
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "bus_voltage_b": {
-          "unit": "volts",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Bus Voltage Phase B",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 11500,
-            "max": 13500,
-            "nominal": 12470
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "bus_voltage_c": {
-          "unit": "volts",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Bus Voltage Phase C",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 11500,
-            "max": 13500,
-            "nominal": 12470
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "bus_current_a": {
-          "unit": "amps",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Bus Current Phase A",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 0,
-            "max": 2000,
-            "nominal": 400
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "bus_current_b": {
-          "unit": "amps",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Bus Current Phase B",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 0,
-            "max": 2000,
-            "nominal": 400
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "bus_current_c": {
-          "unit": "amps",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Bus Current Phase C",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 0,
-            "max": 2000,
-            "nominal": 400
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "voltage_unbalance_pct": {
-          "unit": "percent",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Voltage Unbalance",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 0,
-            "max": 3,
-            "nominal": 0.6
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "breaker_state": {
-          "unit": "none",
-          "type": "enum",
-          "poll_rate_hz": 0.5,
-          "display_name_default": "Breaker State",
-          "iec_61850_ref": null,
-          "bounds": null,
-          "thresholds": null,
-          "values": {
-            "0": "OPEN",
-            "1": "CLOSED",
-            "2": "TRIPPED",
-            "3": "UNKNOWN"
-          }
-        }
-      },
+      "measurements": {},
       "commands": {}
     },
     "protective_relay": {
@@ -748,6 +634,62 @@
           "display_name_default": "Ride-Through Enabled",
           "iec_61850_ref": null,
           "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "phase_voltage_a": {
+          "unit": "volts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Phase Voltage A",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 6640,
+            "max": 7794,
+            "nominal": 7200
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "phase_voltage_b": {
+          "unit": "volts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Phase Voltage B",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 6640,
+            "max": 7794,
+            "nominal": 7200
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "phase_voltage_c": {
+          "unit": "volts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Phase Voltage C",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 6640,
+            "max": 7794,
+            "nominal": 7200
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "voltage_unbalance_pct": {
+          "unit": "percent",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Voltage Unbalance",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 3,
+            "nominal": 0.6
+          },
           "thresholds": null,
           "values": null
         }
