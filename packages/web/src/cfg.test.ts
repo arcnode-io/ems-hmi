@@ -9,6 +9,7 @@ import { join } from "path";
 import { parse } from "yaml";
 
 interface Profile {
+  loginPrefill?: { username: string; password: string };
   siteId: string;
   mqttUri: string;
   deviceApiUri: string;
@@ -66,5 +67,15 @@ describe("web cfg.yml", () => {
       mqttUri: "",
       deviceApiUri: "/api",
     });
+  });
+
+  it("prefills the operator login on device-demo only — never on a real deployment", () => {
+    // Arrange + Act
+    const prefilled = Object.entries(CFG)
+      .filter(([, profile]) => profile.loginPrefill !== undefined)
+      .map(([name, profile]) => `${name}:${profile.loginPrefill?.username}`);
+
+    // Assert
+    expect(prefilled).toEqual(["device-demo:operator"]);
   });
 });

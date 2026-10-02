@@ -23,12 +23,15 @@ const BASE: DeploymentIdentityBase = {
   deviceApiUri: "http://localhost:3000/device",
 };
 
-function mount(loginFn: AuthProviderProps["loginFn"]): void {
+function mount(
+  loginFn: AuthProviderProps["loginFn"],
+  prefill?: React.ComponentProps<typeof LoginCard>["prefill"],
+): void {
   render(
     <ThemeProvider>
       <DeploymentIdentityProvider base={BASE}>
         <AuthProvider loginFn={loginFn}>
-          <LoginCard label="Brookside DC-1" />
+          <LoginCard label="Brookside DC-1" prefill={prefill} />
         </AuthProvider>
       </DeploymentIdentityProvider>
     </ThemeProvider>,
@@ -96,4 +99,25 @@ it("surfaces a rejection message from the auth service", async () => {
   expect(
     await screen.findByText("Incorrect username or password"),
   ).toBeTruthy();
+});
+
+it("signs in with one click when the profile prefills credentials", async () => {
+  // Arrange — the device-demo profile ships a public demo login
+  const loginFn = jest.fn(
+    async (): Promise<LoginResult> => ({ token: "t", role: "operator" }),
+  );
+  mount(loginFn as unknown as AuthProviderProps["loginFn"], {
+    username: "operator",
+    password: "demo-operator-pw",
+  });
+
+  // Act
+  await act(async () => {
+    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+  });
+
+  // Assert
+  await waitFor(() =>
+    expect(loginFn).toHaveBeenCalledWith("http://localhost:3000/device", "operator", "demo-operator-pw"),
+  );
 });

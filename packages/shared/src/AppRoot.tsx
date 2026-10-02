@@ -27,6 +27,7 @@ import { analystStream } from "./data/analyst/sse/analystStream";
 import { mockAnalystStream } from "./data/analyst/mockAnalystStream";
 import { NavigationRoot } from "./navigation/NavigationRoot";
 import { LoginScreen } from "./navigation/screens/Login/LoginScreen";
+import type { LoginPrefill } from "./navigation/screens/Login/LoginCard";
 
 export interface AppRootCfg {
   deploymentName: string;
@@ -36,6 +37,8 @@ export interface AppRootCfg {
   chatApiUri: string;
   deviceApiUri: string;
   mqttUri: string;
+  /** Public demo login, prefilled on the sign-in form (device-demo only). */
+  loginPrefill?: LoginPrefill;
 }
 
 export interface AppRootProps {
@@ -87,7 +90,7 @@ function AppShell({ cfg }: { cfg: AppRootCfg }): React.ReactElement {
 function AuthGate({ cfg }: { cfg: AppRootCfg }): React.ReactElement | null {
   const { status } = useAuth();
   if (status === "loading") return null; // brief; avoids a gate flash on reload
-  if (status !== "authenticated") return <LoginScreen />;
+  if (status !== "authenticated") return <LoginScreen prefill={cfg.loginPrefill} />;
   return <AppShell cfg={cfg} />;
 }
 

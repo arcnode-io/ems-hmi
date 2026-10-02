@@ -41,3 +41,8 @@ device-demo:
   mqttUri: ""
   deviceApiUri: "/api"
   chatApiUri: ""
+  # Public demo login — the device-demo stack sets AUTH_OPERATOR_PW to this.
+  # A sim, not hardware; never set this on a real deployment.
+  loginPrefill:
+    username: "operator"
+    password: "demo-operator-pw"

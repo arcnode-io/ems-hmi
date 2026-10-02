@@ -31,6 +31,8 @@ const Config = z.object({
   mqttUri: z.string(),
   deviceApiUri: z.string(),
   chatApiUri: z.string(),
+  /** Public demo login prefilled on the sign-in form. device-demo only. */
+  loginPrefill: z.object({ username: z.string(), password: z.string() }).optional(),
 });
 
 export type ConfigType = z.infer<typeof Config> & { mode: DeploymentMode };

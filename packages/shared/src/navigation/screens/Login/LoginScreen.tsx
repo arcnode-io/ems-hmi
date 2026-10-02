@@ -15,7 +15,7 @@ import { SPACE } from "../../../theme/tokens/primitives";
 import { useBreakpoint } from "../../../hooks/useBreakpoint";
 import { useDeploymentIdentity } from "../../../data/deployment/useDeploymentIdentity";
 import { HeartbeatBackdrop } from "./HeartbeatBackdrop";
-import { LoginCard } from "./LoginCard";
+import { LoginCard, type LoginPrefill } from "./LoginCard";
 
 /** Vertical legibility scrim behind the phone card (SVG → cross-platform). */
 function Scrim({ theme }: { theme: Theme }): React.ReactElement {
@@ -46,7 +46,7 @@ function Backdrop({ theme }: { theme: Theme }): React.ReactElement {
   );
 }
 
-export function LoginScreen(): React.ReactElement {
+export function LoginScreen({ prefill }: { prefill?: LoginPrefill }): React.ReactElement {
   const t = useTheme();
   const isDesktop = useBreakpoint().layout === "desktop";
   const label = useDeploymentIdentity().name;
@@ -56,7 +56,7 @@ export function LoginScreen(): React.ReactElement {
       <View dataSet={{ comp: "LoginScreen" }} style={{ flex: 1, backgroundColor: t.bg }}>
         <Backdrop theme={t} />
         <View style={{ flex: 1, flexDirection: "row", alignItems: "center", paddingLeft: 64 }}>
-          <LoginCard label={label} />
+          <LoginCard label={label} prefill={prefill} />
         </View>
       </View>
     );
@@ -85,7 +85,7 @@ export function LoginScreen(): React.ReactElement {
         ARCNODE EMS
       </Text>
       <View style={{ width: "100%", alignItems: "center" }}>
-        <LoginCard label={label} fluid />
+        <LoginCard label={label} fluid prefill={prefill} />
       </View>
       <Text
         style={[

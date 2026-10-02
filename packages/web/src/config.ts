@@ -34,6 +34,10 @@ const Config = z.object({
   deviceApiUri: z.string(),
   /** Base URL for the analyst chat backend. */
   chatApiUri: z.string(),
+  /** Public demo login prefilled on the sign-in form. device-demo only. */
+  loginPrefill: z
+    .object({ username: z.string(), password: z.string() })
+    .optional(),
 });
 
 export type ConfigType = z.infer<typeof Config> & { mode: DeploymentMode };

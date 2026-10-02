@@ -45,19 +45,27 @@ function cardShadow(t: Theme): string {
   return t.name === "sovereign" ? "0 18px 50px rgba(0,0,0,0.55)" : "0 18px 50px rgba(40,30,18,0.18)";
 }
 
+/** Public demo credentials a profile ships prefilled (device-demo). */
+export interface LoginPrefill {
+  username: string;
+  password: string;
+}
+
 interface LoginCardProps {
   /** Deployment label, e.g. "Brookside DC-1". */
   label: string;
+  /** Initial field values; omitted on real deployments. */
+  prefill?: LoginPrefill;
   /** Mobile: card goes fluid (maxWidth 360) instead of a fixed 340. */
   fluid?: boolean;
 }
 
-export function LoginCard({ label, fluid }: LoginCardProps): React.ReactElement {
+export function LoginCard({ label, fluid, prefill }: LoginCardProps): React.ReactElement {
   const t = useTheme();
   const isSov = t.name === "sovereign";
   const { login } = useAuth();
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState(prefill?.username ?? "");
+  const [password, setPassword] = useState(prefill?.password ?? "");
   const [errors, setErrors] = useState<{ username?: string; password?: string; form?: string }>({});
   const [submitting, setSubmitting] = useState(false);
 
