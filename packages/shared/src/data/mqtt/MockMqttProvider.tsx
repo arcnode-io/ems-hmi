@@ -116,8 +116,8 @@ function snapshot(sim: DispatchSimulator): DispatchState {
 }
 
 interface MockMqttProviderProps {
-  /** Site id used in topic strings. Demo default is "demo-site". */
-  siteId?: string;
+  /** Site id used in topic strings — the active cfg.yml profile's siteId. */
+  siteId: string;
   /** Pass `false` to disable the canned demo alarms. Default `true`. */
   demoAlarms?: boolean;
   children: React.ReactNode;
@@ -128,7 +128,7 @@ interface MockMqttProviderProps {
  * lifecycle. Renders children inside MqttProvider + DispatchContext.
  */
 export function MockMqttProvider({
-  siteId = "demo-site",
+  siteId,
   demoAlarms = true,
   children,
 }: MockMqttProviderProps): React.ReactElement {

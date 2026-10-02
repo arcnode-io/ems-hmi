@@ -37,7 +37,7 @@ device-demo:
   e2e: true
   deploymentName: "Brookside DC-1"
   deploymentHost: "localhost"
-  siteId: "demo_site"
+  siteId: "device_demo_site"
   mqttUri: ""
   deviceApiUri: "/api"
   chatApiUri: ""

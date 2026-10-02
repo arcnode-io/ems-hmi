@@ -27,12 +27,12 @@ describe("web cfg.yml", () => {
     expect(names).toEqual(["local", "beta", "ai-demo", "device-demo"]);
   });
 
-  it("keys device-demo to demo_site, the id the compose stack publishes on", () => {
+  it("keys device-demo to device_demo_site, the id the compose stack publishes on", () => {
     // Arrange + Act
     const siteId = CFG["device-demo"]?.siteId;
 
     // Assert
-    expect(siteId).toBe("demo_site");
+    expect(siteId).toBe("device_demo_site");
   });
 
   it("gives local its own site id so it can't collide with device-demo", () => {
