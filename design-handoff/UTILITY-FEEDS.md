@@ -1,4 +1,4 @@
-# Utility-side feeds — DOE + DLR integration spec
+# Utility-side feeds — operating envelope (DOE) integration spec
 
 > Companion to `00-constitution.md` and the per-component MDs in `02-components/`.
 > Source: grilling session with HMI vet + backend dev, May 2026.
@@ -10,20 +10,19 @@
 | Term | Meaning |
 |------|---------|
 | **Operating Envelope** / **DOE** | The utility's published authorization at the point of interconnection: how many watts you may import / export *right now*. Updates ~every 5 min, step-change (event-driven). |
-| **Line Rating** / **Dynamic Line Rating** / **DLR** | The thermal ampacity of the conductor feeding the site. Real-time (1 Hz), updates continuously with weather. |
 | **Headroom** | Gateway-derived margin: `import_headroom = import_limit − current_import`. Synthetic measurement. |
-| **Utility-side feeds** | Collective name for `operating_envelope`, `line_rating`, `revenue_meter`. **NOT "modules."** |
+| **Utility-side feeds** | Collective name for `operating_envelope`, `revenue_meter`. **NOT "modules."** |
 | **Synthetic measurement** | Engineer-internal term for gateway-computed values. Operators don't see this word in UI copy. |
 
 **Never say** in UI: "utility envelope," "grid permission," "import cap," "wire capacity," "feeder limit," "available capacity," "remaining import."
 
-Display names (verbatim from YAML): `Import Limit`, `Export Limit`, `Dynamic Line Rating`, `Status`, `Module Import Headroom`, `Module Export Headroom`.
+Display names (verbatim from YAML): `Import Limit`, `Export Limit`, `Status`, `Module Import Headroom`, `Module Export Headroom`.
 
 ---
 
 ## The framing rule
 
-> **DOE and DLR are dispatch constraints, not monitoring metrics.** They surface wherever the operator commits to a power value — and only there. They are never a standalone informational screen.
+> **The DOE is a dispatch constraint, not a monitoring metric.** It surfaces wherever the operator commits to a power value — and only there. It is never a standalone informational screen.
 
 This shapes everything below.
 
@@ -123,19 +122,14 @@ Add **DOE step-change history** as horizontal reference lines overlaid on the po
 - **DOE fault gaps**: when status was non-OK in the historical window, render the gap as a **shaded region** or **broken line** — never silently zero, never interpolated. "We had no envelope data for 20 minutes at 14:00" must read as a fact in the chart.
 - **Optional forward projection** (design iteration option, not required): a thin `CURRENT LIMIT` line extending ~60 min past `NOW`, labeled clearly as "current limit," NOT "forecast." Same visual treatment as the historical line but visually distinct from the historical record.
 
-**Do NOT** put DLR on this chart. Different unit (amps), different conceptual question. DLR lives on the SLD (where it constrains the physical conductor) and on Grid module detail (where amps belong with the other AC measurements). Mixing amps + MW on one chart is the slop trap.
-
 **Export-active edge case:** when `export_limit > 0` in a deployment AND the site is actively exporting, surface DOE limits prominently on the **Active Dispatch card** in the Energy screen. The default `export_limit: 0` makes this rare today, but the chart spec must accommodate it.
 
 ### 5. SLD · top-of-diagram
 
-The revenue meter is the POI — surface it explicitly as an SLD node. The DLR badge attaches to the conductor itself (mid-line). Two badges, two locations, two label anchors.
+The revenue meter is the POI — surface it explicitly as an SLD node.
 
 ```
         UTILITY · 13.2 kV
-              │
-              │
-            DLR  ●                ← persistent dot + label anchor
               │
               │
         ╔═══════════════════════╗
@@ -158,28 +152,14 @@ The revenue meter is the POI — surface it explicitly as an SLD node. The DLR b
 - Below: `DOE   OK` row using `kpiLabel` for `DOE` and `textSoft` for `OK`. When state goes non-OK, `OK` → `STALE` / `INVALID` / `COMM_FAIL` in `statusWarn` / `statusAlarm` — color elevation, no layout change.
 - Tap the meter node → read-only detail view. (Settlement discrepancy investigation enters here. The Modules list never shows the meter.)
 
-**DLR mid-conductor badge — three visual states:**
-
-| State | Render |
-|-------|--------|
-| **Nominal** | Collapsed: tiny muted-`statusOk` dot + `DLR` label. No number. (Confirms "feed present, healthy.") |
-| **Operational warning** (draw approaching threshold) | Expanded: `DLR 94%` — severity dot + ratio. |
-| **Status fault** (STALE / INVALID / COMM_FAIL) | Expanded: `DLR ⚠ STALE` — severity dot + sensor-fault glyph + state token. No ratio (rating unknown). |
-
-**Why three states (not two):** an operator sees `DLR 94%` and knows to watch the line; sees `DLR ⚠ STALE` and knows the EMS is flying blind on capacity. Two different responses; the badge must distinguish.
-
-**Label anchors are mandatory** — `DLR` and `DOE` rendered always (in `kpiLabel` ramp). They serve two purposes simultaneously:
-1. **Distinguishability** — DLR badge mid-conductor and DOE badge in meter node card are physically adjacent on the SLD. The labels prevent them from visually merging.
-2. **Feed presence** — on a deployment without DLR (e.g. off-grid, no utility coordination), the `DLR` label and dot simply don't render. Operator learns: presence of label = feature implemented; absence = not configured.
-
 **Conductor rendering:**
 - Color stays `colorGrid` (Rule 1 — domain color = identity, never alarm).
 - Particle flow unchanged — speed proportional to `|kW|` (already in SLD spec).
-- **No stroke-width modulation, no color shift on threshold.** Particles encode magnitude; badge encodes threshold. One variable, one encoding. Adding a third would force the operator to learn which to trust when they disagree.
+- **No stroke-width modulation, no color shift on threshold.** Particles encode magnitude. One variable, one encoding.
 
 ### 6. `/modules` list
 
-Utility-side feeds **do NOT appear** in `/modules`. The list is filtered by `kind: module` (DTM field, already exists). `kind: leaf` devices (`operating_envelope`, `line_rating`, `revenue_meter`) are excluded automatically — no hand-maintained name list.
+Utility-side feeds **do NOT appear** in `/modules`. The list is filtered by `kind: module` (DTM field, already exists). `kind: leaf` devices (`operating_envelope`, `revenue_meter`) are excluded automatically — no hand-maintained name list.
 
 Rationale:
 - Operators don't own, control, or maintain utility-side feeds.
@@ -190,7 +170,7 @@ Rationale:
 
 ### 7. Alarm panel (Overview Zone D + global)
 
-DOE/DLR status non-OK feeds the existing alarm panel — same component, same flow, same ack semantics.
+DOE status non-OK feeds the existing alarm panel — same component, same flow, same ack semantics.
 
 **Row format:**
 ```
@@ -242,8 +222,6 @@ These are commissioning parameters, not design constants:
 | Parameter | Where set | Effect |
 |-----------|-----------|--------|
 | `import_limit.warn_min/warn_max`, `export_limit.warn_min/warn_max` | device template YAML | Threshold color transitions in Stranded Capacity bar + alarm severity |
-| `dynamic_line_rating.warn_min/warn_max` | device template YAML | DLR mid-conductor badge expansion threshold |
-| DLR feed implemented (yes/no) | deployment config | If absent: DLR label and badge don't render anywhere |
 | DOE feed implemented (yes/no) | deployment config | If absent: DOE row hidden in BESS Controls + Strip GRID segment falls back to direction-only |
 | `Apply`-during-fault behavior | deployment config | Commercial/ISO: block; Defense/off-grid: conservative fallback |
 | Stranded Capacity badge mode during DOE non-OK | deployment config | Dual-token (`GRID LIMITED · STALE`) or override (`FEED STALE`). Default: override. |
@@ -291,7 +269,6 @@ Measurements that update event-driven (DOE limits, breaker state, run mode) rend
 
 - **Reactive power limits** — DOE MVP is active power only. No Q-side envelope.
 - **Voltage / frequency envelopes** — not in the operating_envelope template.
-- **Per-feeder DLR** — single conductor, single DLR feed in MVP.
 - **DOE forecast** — the utility doesn't publish forward envelope; we render current value extending forward only as a clearly-labeled "current limit" line, never "forecast."
 - **Multiple POIs** — single point of interconnection per deployment in MVP.
 
@@ -301,7 +278,7 @@ These are documented for future-watch but no design work is needed today.
 
 ## Implementation references
 
-- Templates: `edp-api/device_templates/leaf/operating_envelope.yaml`, `line_rating.yaml`, `revenue_meter.yaml`
+- Templates: `edp-api/device_templates/leaf/operating_envelope.yaml`, `revenue_meter.yaml`
 - Origin handoff: `uploads/HANDOFF_doe_designer.md` (the utility engineer's brief that started this)
 - Constitution rules touched: 1, 3.4, 3.5, 3.6, 3.7, 3.10 (new), 3.11 (new), 4.1–4.4 (new)
 - Component MDs that need updates: `SLDDiagram.md`, `StatusBadge.md`, `AlarmRow.md`

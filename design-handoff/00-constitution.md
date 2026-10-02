@@ -100,7 +100,7 @@ Color transitions on ratio bars, alarm severity bands, gauge warn/alarm zones �
 Measurements that update event-driven (DOE limits, breaker state, run mode) render as step-change lines on timeseries charts. **No interpolation between samples.** Flat plateau + vertical step IS the information. Smoothing implies gradual drift, which is a lie for event-driven values. Data gaps render as shaded regions or broken lines, never silently zero.
 
 ### 3.15 `/modules` shows operator-owned hardware only
-`/modules` is filtered by `kind: module` (DTM field). `kind: leaf` devices — utility-side feeds (DOE, DLR, revenue meter), sub-component sensors — surface contextually elsewhere (SLD, alarm panel, headroom rows on consumer modules), never in the modules list. Adding them as a demoted section trains operators to skim.
+`/modules` is filtered by `kind: module` (DTM field). `kind: leaf` devices — utility-side feeds (DOE, revenue meter), sub-component sensors — surface contextually elsewhere (SLD, alarm panel, headroom rows on consumer modules), never in the modules list. Adding them as a demoted section trains operators to skim.
 
 ---
 

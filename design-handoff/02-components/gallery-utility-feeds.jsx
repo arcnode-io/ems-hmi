@@ -1,6 +1,6 @@
 // gallery-utility-feeds.jsx — DOE Headroom row + SLD top-of-diagram
 // Composable visuals for the three surfaces utility-side feeds appear on,
-// plus the revenue meter + DLR mid-conductor badge layout.
+// plus the revenue meter (POI) node layout.
 
 // =====================================================================
 //  DOEHeadroomRow — composable row used in 3 surfaces
@@ -235,42 +235,29 @@ function DOEHeadroomShowcase({ t }) {
 }
 
 // =====================================================================
-//  SLDTopOfDiagram — revenue meter as POI + DLR mid-conductor + DOE badge
+//  SLDTopOfDiagram — revenue meter as POI + DOE state row
 // =====================================================================
 
 function SLDTopShowcase({ t }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: SPACE[3] }}>
-      <StateCell t={t} label="nominal · DLR + DOE both OK" h={360}>
-        <SLDTopRender t={t} dlrState="ok" doeState="ok"/>
+      <StateCell t={t} label="nominal · DOE OK" h={360}>
+        <SLDTopRender t={t} doeState="ok"/>
       </StateCell>
-      <StateCell t={t} label="DLR operational warning · 94%" h={360}>
-        <SLDTopRender t={t} dlrState="warn" doeState="ok"/>
-      </StateCell>
-      <StateCell t={t} label="DOE STALE · DLR OK" h={360}>
-        <SLDTopRender t={t} dlrState="ok" doeState="stale"/>
-      </StateCell>
-      <StateCell t={t} label="DLR sensor fault · STALE" h={360}>
-        <SLDTopRender t={t} dlrState="stale" doeState="ok"/>
+      <StateCell t={t} label="DOE STALE" h={360}>
+        <SLDTopRender t={t} doeState="stale"/>
       </StateCell>
       <StateCell t={t} label="ISLAND mode · DOE n/a" h={360}>
-        <SLDTopRender t={t} dlrState="ok" doeState="island"/>
-      </StateCell>
-      <StateCell t={t} label="DLR not configured · no badge" h={360}>
-        <SLDTopRender t={t} dlrState="absent" doeState="ok"/>
+        <SLDTopRender t={t} doeState="island"/>
       </StateCell>
     </div>
   );
 }
 
-function SLDTopRender({ t, dlrState, doeState }) {
+function SLDTopRender({ t, doeState }) {
   const W = 200, H = 320;
   const meterY = 200, meterH = 70;
   // colors
-  const dlrColor = dlrState === 'ok' ? t.statusOk
-                 : dlrState === 'warn' ? t.statusWarn
-                 : dlrState === 'stale' ? t.statusWarn
-                 : null;
   const doeColor = doeState === 'ok' ? t.statusOk
                  : doeState === 'stale' ? t.statusWarn
                  : doeState === 'alarm' ? t.statusAlarm
@@ -289,41 +276,8 @@ function SLDTopRender({ t, dlrState, doeState }) {
             fontFamily={t.fontLabel} fontSize="10" fontWeight="700"
             letterSpacing="1.5" fill={t.textMid}>UTILITY · 13.2 kV</text>
 
-      {/* conductor segment 1 (above DLR badge) */}
-      <line x1={W/2} y1={32} x2={W/2} y2={100} stroke={t.colorGrid} strokeWidth="2"/>
-
-      {/* DLR badge — three states */}
-      {dlrState !== 'absent' && (
-        <g transform={`translate(${W/2 + 8} 110)`}>
-          {dlrState === 'ok' ? (
-            // collapsed: tiny dot + label only
-            <>
-              <circle cx="0" cy="0" r="3" fill={dlrColor}/>
-              <text x="8" y="3" fontFamily={t.fontLabel} fontSize="9" fontWeight="700"
-                    letterSpacing="1.2" fill={t.textSoft}>DLR</text>
-            </>
-          ) : dlrState === 'warn' ? (
-            // expanded: ratio
-            <>
-              <circle cx="0" cy="0" r="4" fill={dlrColor}>
-                <animate attributeName="opacity" values="1;0.4;1" dur="1.4s" repeatCount="indefinite"/>
-              </circle>
-              <text x="9" y="3" fontFamily={t.fontLabel} fontSize="10" fontWeight="700"
-                    letterSpacing="1" fill={dlrColor}>DLR 94%</text>
-            </>
-          ) : (
-            // status fault: sensor glyph + STALE
-            <>
-              <circle cx="0" cy="0" r="4" fill={dlrColor}/>
-              <text x="9" y="3" fontFamily={t.fontLabel} fontSize="10" fontWeight="700"
-                    letterSpacing="1" fill={dlrColor}>DLR ⚠ STALE</text>
-            </>
-          )}
-        </g>
-      )}
-
-      {/* conductor segment 2 (below DLR badge) */}
-      <line x1={W/2} y1={120} x2={W/2} y2={meterY} stroke={t.colorGrid} strokeWidth="2"/>
+      {/* conductor: utility → meter */}
+      <line x1={W/2} y1={32} x2={W/2} y2={meterY} stroke={t.colorGrid} strokeWidth="2"/>
 
       {/* particle flow on the conductor (decorative — would animate in real SLD) */}
       <circle cx={W/2} cy={70} r="2" fill="#fff" opacity="0.7"/>

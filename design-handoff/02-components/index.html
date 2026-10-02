@@ -639,15 +639,11 @@
 
     <section id="sld-top" class="section">
       <div class="section-eyebrow">Utility-side feeds · SLD top-of-diagram</div>
-      <h2 class="section-title">Revenue meter + DLR badge</h2>
+      <h2 class="section-title">Revenue meter (POI)</h2>
       <p class="section-desc">
         The point of interconnection on the SLD. The revenue meter <code>GRD-RM-001</code> is the
         POI node — settlement reading (<code>+142 kW IMPORT</code>) plus a <code>DOE</code> state row inside the
-        card. The DLR badge attaches to the 13.2 kV conductor itself, mid-line, with a persistent
-        <code>DLR</code> label and three visual states: collapsed-nominal (dot only), operational-warning
-        (<code>DLR 94%</code>), status-fault (<code>DLR ⚠ STALE</code>). Label anchors solve two problems:
-        distinguishability from each other, and presence-vs-absence (no label = feature
-        not configured on this deployment).
+        card. A non-OK DOE status elevates the state token's color; the layout never changes.
       </p>
       <div class="section-tags">
         <span class="tag tier-1">Tier 1</span>
@@ -656,11 +652,6 @@
         <span class="tag spec">Source: UTILITY-FEEDS.md §5</span>
       </div>
       <div id="mount-sld-top"></div>
-      <div class="rule-callout">
-        <b>Why two badges, two locations.</b> DLR is a property of the conductor; DOE is an
-        authorization at the metering point. They're physically adjacent on the SLD but logically
-        different attachment points. Badge the equipment the constraint applies to.
-      </div>
     </section>
 
     <!-- ═══════════ CROSS-CUTTING ═══════════ -->
