@@ -1,4 +1,4 @@
-import { gpuFleetFrom, gpuNodeTopics } from "./useGpuFleet";
+import { gpuFleetFilter, gpuFleetFrom, gpuNodeTopics } from "./useGpuFleet";
 import type { MeasurementViewType, TopologyViewType } from "../topology/topology.schema";
 
 function meas(unit: string, type: MeasurementViewType["type"]): MeasurementViewType {
@@ -11,10 +11,10 @@ function device(deviceId: string, template: string): TopologyViewType["devices"]
 
 describe("gpuFleetFrom", () => {
   it("sums node draw, averages per-GPU power, and counts throttling GPUs", () => {
-    // Arrange — 2 nodes × 2 GPUs; node b has one GPU on SW_POWER_CAP
+    // Arrange — 2 nodes × 2 GPUs; node b has one GPU on SW_POWER_CAP and one cap not yet reported
     const nodes = [
-      { deviceId: "a", nodePowerW: 10_000, gpuPowerW: 8_000, throttleReasons: ["NA", "NA"] },
-      { deviceId: "b", nodePowerW: 11_000, gpuPowerW: 8_400, throttleReasons: ["NA", "SW_POWER_CAP"] },
+      { deviceId: "a", nodePowerW: 10_000, nodeLimitW: 26_400, gpuPowerW: 8_000, gpuLimitsW: [4_000, 4_000], throttleReasons: ["NA", "NA"] },
+      { deviceId: "b", nodePowerW: 11_000, nodeLimitW: null, gpuPowerW: 8_400, gpuLimitsW: [5_000, null], throttleReasons: ["NA", "SW_POWER_CAP"] },
     ];
 
     // Act
@@ -23,8 +23,8 @@ describe("gpuFleetFrom", () => {
     // Assert
     expect(fleet).toEqual({
       nodes: [
-        { deviceId: "a", throttling: 0, nodePowerW: 10_000 },
-        { deviceId: "b", throttling: 1, nodePowerW: 11_000 },
+        { deviceId: "a", throttling: 0, nodePowerW: 10_000, nodeLimitW: 26_400, gpuPowerW: 8_000, capUsed: 1 },
+        { deviceId: "b", throttling: 1, nodePowerW: 11_000, nodeLimitW: null, gpuPowerW: 8_400, capUsed: null },
       ],
       gpuCount: 4,
       throttlingCount: 1,
@@ -35,7 +35,9 @@ describe("gpuFleetFrom", () => {
 
   it("reads not-yet-reported values as null, never as zero or throttling", () => {
     // Arrange
-    const nodes = [{ deviceId: "a", nodePowerW: null, gpuPowerW: null, throttleReasons: [null, null] }];
+    const nodes = [
+      { deviceId: "a", nodePowerW: null, nodeLimitW: null, gpuPowerW: null, gpuLimitsW: [null, null], throttleReasons: [null, null] },
+    ];
 
     // Act
     const fleet = gpuFleetFrom(nodes);
@@ -46,7 +48,7 @@ describe("gpuFleetFrom", () => {
 });
 
 describe("gpuNodeTopics", () => {
-  it("builds per-node topics for every gpu_node, with one throttle topic per template GPU", () => {
+  it("builds the per-node topics to read out of the fleet subscription, per template GPU", () => {
     // Arrange — template with 2 GPUs; a pdu in the view must be ignored
     const view: Pick<TopologyViewType, "devices" | "templates_used"> = {
       devices: { gpu_node_01: device("gpu_node_01", "gpu_node"), pdu_01: device("pdu_01", "pdu") },
@@ -59,6 +61,9 @@ describe("gpuNodeTopics", () => {
             gpu_2_throttle_reason: meas("none", "enum"),
             gpu_1_throttle_reason: meas("none", "enum"),
             gpu_1_power: meas("watts", "float"),
+            power_limit: meas("watts", "float"),
+            gpu_2_power_limit: meas("watts", "float"),
+            gpu_1_power_limit: meas("watts", "float"),
           },
         },
       },
@@ -73,9 +78,21 @@ describe("gpuNodeTopics", () => {
       {
         deviceId: "gpu_node_01",
         nodePower: `${prefix}/power_consumed/watts`,
+        nodeLimit: `${prefix}/power_limit/watts`,
         gpuPower: `${prefix}/gpu_power_watts/watts`,
         throttle: [`${prefix}/gpu_1_throttle_reason/none`, `${prefix}/gpu_2_throttle_reason/none`],
+        gpuLimits: [`${prefix}/gpu_1_power_limit/watts`, `${prefix}/gpu_2_power_limit/watts`],
       },
     ]);
+  });
+});
+
+describe("gpuFleetFilter", () => {
+  it("is one site-wide wildcard, so dispatch matches each message once, not per node", () => {
+    // Arrange / Act
+    const filter = gpuFleetFilter("s1");
+
+    // Assert
+    expect(filter).toBe("sites/s1/devices/+/measurements/#");
   });
 });

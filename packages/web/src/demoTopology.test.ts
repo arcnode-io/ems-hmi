@@ -80,7 +80,7 @@ describe("demo topology — power quality", () => {
 });
 
 describe("demo topology — GPU fleet", () => {
-  it("parses with GPU nodes whose throttle enum can only read NA", () => {
+  it("parses with GPU nodes carrying per-GPU caps, whose throttle enum can only read NA", () => {
     // Arrange — mock enums cycle through `values`; anything but NA would fake throttling
     const view = TopologyView.parse(VIEW);
 
@@ -96,7 +96,8 @@ describe("demo topology — GPU fleet", () => {
     expect({
       nodes: nodes.length,
       gpusPerNode: nodes[0]?.throttle.length,
+      capsPerNode: nodes[0]?.gpuLimits.length,
       labels: [...new Set(throttleLabels)],
-    }).toEqual({ nodes: 32, gpusPerNode: 8, labels: ["NA"] });
+    }).toEqual({ nodes: 32, gpusPerNode: 8, capsPerNode: 8, labels: ["NA"] });
   });
 });

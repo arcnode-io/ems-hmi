@@ -45,20 +45,24 @@ import type {
   DispatchProposal,
   DispatchState,
 } from "../dispatch/dispatch.types";
+import { isWildcard, topicMatches } from "./topicMatches";
 import {
   useDemoCurtailmentToggle,
   DEMO_CURTAILMENT_CAP_W,
 } from "./demoCurtailmentToggle";
 
 /** A concrete MqttClient that talks to local listeners only. */
-class MockMqttClientImpl implements MqttClient {
+export class MockMqttClientImpl implements MqttClient {
+  /** Keyed by subscribed filter (exact topic or wildcard). */
   private listeners = new Map<string, Set<MessageListener<unknown>>>();
+  private wildcards = new Set<string>();
 
   subscribe<T = unknown>(
     topic: string,
     listener: MessageListener<T>,
   ): Unsubscribe {
     if (!this.listeners.has(topic)) this.listeners.set(topic, new Set());
+    if (isWildcard(topic)) this.wildcards.add(topic);
     const set = this.listeners.get(topic)!;
     set.add(listener as MessageListener<unknown>);
     return (): void => {
@@ -71,9 +75,11 @@ class MockMqttClientImpl implements MqttClient {
   }
 
   broadcast(topic: string, msg: MqttMessage<unknown>): void {
-    const set = this.listeners.get(topic);
-    if (!set) return;
-    for (const listener of set) listener(msg);
+    for (const listener of this.listeners.get(topic) ?? []) listener(msg, topic);
+    for (const filter of this.wildcards) {
+      if (!topicMatches(filter, topic)) continue;
+      for (const listener of this.listeners.get(filter) ?? []) listener(msg, topic);
+    }
   }
 }
 

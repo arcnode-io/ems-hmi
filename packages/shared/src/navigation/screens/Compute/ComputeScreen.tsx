@@ -1,10 +1,9 @@
 /**
- * ComputeScreen — `/compute` route. Cluster utilization + per-server
- * heatmap + draw distribution + top-N + alarms.
+ * ComputeScreen — `/compute` route. Throttle/draw/headroom hero, per-node
+ * cap-in-use heatmap, draw distribution, top-N by draw, compute alarms.
  *
- * Per-server data still mocked (compute_pod template models the pod
- * as a single device today); wire to per-server measurements when the
- * decomposition lands. Histogram + AlarmRow are real canonical reuse.
+ * All live: per-node data from useGpuFleet (one wildcard subscription per
+ * gpu_node), capacity from sizing P_compute_total_kW, alarms from useAlarms.
  */
 
 import React from "react";
@@ -16,12 +15,16 @@ import { EDSectionHead } from "../Energy/parts/EDPanel";
 import { ComputeHero } from "./parts/ComputeHero";
 import { GpuHeatmap } from "./parts/GpuHeatmap";
 import { DrawDistribution } from "./parts/DrawDistribution";
-import { TopServers } from "./parts/TopServers";
+import { TopNodes } from "./parts/TopNodes";
+import { useGpuFleet } from "../../../data/compute/useGpuFleet";
+import { useTopologyView } from "../../../data/topology/useTopologyView";
 import { ComputeAlarmsBlock } from "./parts/ComputeAlarmsBlock";
 
 export function ComputeScreen(): React.ReactElement {
   const t = useTheme();
   const isSov = t.name === "sovereign";
+  const fleet = useGpuFleet();
+  const { view } = useTopologyView();
   return (
     <ScrollView
       dataSet={{ comp: "ComputeScreen" }}
@@ -97,16 +100,16 @@ export function ComputeScreen(): React.ReactElement {
         </View>
       </View>
 
-      <ComputeHero />
+      <ComputeHero fleet={fleet} capacityKw={view?.sizing_params.P_compute_total_kW ?? 0} />
 
-      <EDSectionHead title="GPU heatmap" meta={`${32} servers`} />
-      <GpuHeatmap />
+      <EDSectionHead title="GPU heatmap" meta={`${fleet.nodes.length} nodes`} />
+      <GpuHeatmap fleet={fleet} />
 
-      <EDSectionHead title="Per-server draw" meta="distribution" />
-      <DrawDistribution />
+      <EDSectionHead title="Per-node draw" meta="distribution" />
+      <DrawDistribution fleet={fleet} />
 
-      <EDSectionHead title="Top servers" meta="by util" />
-      <TopServers />
+      <EDSectionHead title="Top nodes" meta="by draw" />
+      <TopNodes fleet={fleet} />
 
       <EDSectionHead title="Active alarms" meta="cluster" />
       <ComputeAlarmsBlock />

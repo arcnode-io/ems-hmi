@@ -21,14 +21,18 @@ export interface MqttMessage<T = unknown> {
 /** Cleanup callback returned from subscribe(). */
 export type Unsubscribe = () => void;
 
-/** Listener signature — receives decoded messages for a single topic. */
-export type MessageListener<T = unknown> = (msg: MqttMessage<T>) => void;
+/**
+ * Listener signature. `topic` is the concrete topic the message arrived on —
+ * differs from the subscribed filter when that filter has `+` / `#`.
+ */
+export type MessageListener<T = unknown> = (msg: MqttMessage<T>, topic: string) => void;
 
 /** The wire contract every MqttClient impl satisfies. */
 export interface MqttClient {
   /**
-   * Subscribe to a topic. The listener fires for every message until the
-   * returned Unsubscribe is called. Implementations dedupe on (topic, listener).
+   * Subscribe to a topic or wildcard filter. The listener fires for every
+   * matching message until the returned Unsubscribe is called.
+   * Implementations dedupe on (filter, listener).
    */
   subscribe: <T = unknown>(
     topic: string,

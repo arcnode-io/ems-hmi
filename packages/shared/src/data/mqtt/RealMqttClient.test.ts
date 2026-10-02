@@ -118,3 +118,34 @@ it("forgets the cached message once the last listener unsubscribes", () => {
   // Assert
   expect(seen).toEqual([]);
 });
+
+it("routes a concrete topic to a wildcard filter's listeners, passing the topic along", () => {
+  // Arrange
+  const raw = fakeRaw();
+  const client = new RealMqttClient(raw);
+  const seen: [string, unknown][] = [];
+  client.subscribe("s/devices/n1/measurements/#", (msg, topic) => seen.push([topic, msg.value]));
+
+  // Act
+  raw.emit("s/devices/n1/measurements/p/watts", { ts: "2026-01-01T00:00:00Z", value: 8000 });
+  raw.emit("s/devices/n2/measurements/p/watts", { ts: "2026-01-01T00:00:00Z", value: 1 });
+
+  // Assert
+  expect(seen).toEqual([["s/devices/n1/measurements/p/watts", 8000]]);
+});
+
+it("replays every cached topic under a wildcard to a late joiner", () => {
+  // Arrange — first listener holds the filter; two topics arrive
+  const raw = fakeRaw();
+  const client = new RealMqttClient(raw);
+  client.subscribe("n1/#", () => {});
+  raw.emit("n1/a", { ts: "2026-01-01T00:00:00Z", value: 1 });
+  raw.emit("n1/b", { ts: "2026-01-01T00:00:00Z", value: 2 });
+
+  // Act
+  const replayed: [string, unknown][] = [];
+  client.subscribe("n1/#", (msg, topic) => replayed.push([topic, msg.value]));
+
+  // Assert
+  expect(replayed).toEqual([["n1/a", 1], ["n1/b", 2]]);
+});

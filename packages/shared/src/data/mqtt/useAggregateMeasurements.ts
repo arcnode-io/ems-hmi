@@ -58,8 +58,10 @@ export function useAggregateMeasurements<T = unknown>(
   useEffect(() => {
     setMessages({});
     pending.current = {};
-    const unsubs = topics.map((topic) =>
-      client.subscribe<T>(topic, (msg) => {
+    // Reason: key by the arrival topic — a wildcard filter fans many
+    // concrete topics into one subscription.
+    const unsubs = topics.map((filter) =>
+      client.subscribe<T>(filter, (msg, topic) => {
         if (flushMs === undefined) setMessages((prev) => ({ ...prev, [topic]: msg }));
         else pending.current[topic] = msg;
       }),

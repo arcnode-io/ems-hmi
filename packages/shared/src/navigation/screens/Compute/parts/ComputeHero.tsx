@@ -8,7 +8,8 @@ import { View, Text } from "react-native";
 import { useTheme } from "../../../../theme/ThemeProvider";
 import { resolveTypeStyle, type Theme } from "../../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
-import { MOCK_COMPUTE } from "../data/mockCompute";
+import type { GpuFleet } from "../../../../data/compute/useGpuFleet";
+import { heroKpis } from "./computeView";
 
 interface KpiProps {
   label: string;
@@ -50,9 +51,10 @@ function Kpi({ label, value, unit, color, showDivider }: KpiProps): React.ReactE
   );
 }
 
-export function ComputeHero(): React.ReactElement {
+/** Hero KPIs. `capacityKw` = sizing P_compute_total_kW (design compute capacity). */
+export function ComputeHero({ fleet, capacityKw }: { fleet: GpuFleet; capacityKw: number }): React.ReactElement {
   const t = useTheme();
-  const c = MOCK_COMPUTE.cluster;
+  const kpis = heroKpis(fleet, capacityKw);
   return (
     <View
       style={{
@@ -65,9 +67,14 @@ export function ComputeHero(): React.ReactElement {
         borderRadius: RADIUS[3],
       }}
     >
-      <Kpi label="Cluster util" value={`${c.util}`} unit="%" color={t.colorCompute} showDivider />
-      <Kpi label="Draw" value={c.drawKw.toFixed(1)} unit="kW" color={t.text} showDivider />
-      <Kpi label="Headroom" value={c.headroomKw.toFixed(1)} unit="kW" color={t.text} showDivider={false} />
+      <Kpi
+        label="GPU throttle"
+        {...kpis.throttling}
+        color={fleet.throttlingCount > 0 ? t.statusWarn : t.colorCompute}
+        showDivider
+      />
+      <Kpi label="Draw" {...kpis.draw} color={t.text} showDivider />
+      <Kpi label="Headroom" {...kpis.headroom} color={t.text} showDivider={false} />
     </View>
   );
 }

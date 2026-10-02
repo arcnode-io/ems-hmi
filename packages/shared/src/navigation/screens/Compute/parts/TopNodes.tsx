@@ -1,5 +1,5 @@
 /**
- * TopServers — top 5 servers by utilization. Pure read-only table.
+ * TopNodes — top 5 gpu_nodes by draw, with % of GPU cap in use. Read-only.
  */
 
 import React from "react";
@@ -7,15 +7,14 @@ import { View, Text } from "react-native";
 import { useTheme } from "../../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
-import { MOCK_COMPUTE } from "../data/mockCompute";
+import type { GpuFleet } from "../../../../data/compute/useGpuFleet";
+import { topNodes } from "./computeView";
 
 const TOP_N = 5;
 
-export function TopServers(): React.ReactElement {
+export function TopNodes({ fleet }: { fleet: GpuFleet }): React.ReactElement {
   const t = useTheme();
-  const ranked = [...MOCK_COMPUTE.servers]
-    .sort((a, b) => b.util - a.util)
-    .slice(0, TOP_N);
+  const ranked = topNodes(fleet, TOP_N);
   return (
     <View
       style={{
@@ -28,15 +27,15 @@ export function TopServers(): React.ReactElement {
         overflow: "hidden",
       }}
     >
-      {ranked.map((s, i) => (
+      {ranked.map((row, idx) => (
         <View
-          key={s.id}
+          key={row.deviceId}
           style={{
             flexDirection: "row",
             alignItems: "center",
             paddingVertical: SPACE[2],
             paddingHorizontal: SPACE[3],
-            borderTopWidth: i > 0 ? 1 : 0,
+            borderTopWidth: idx > 0 ? 1 : 0,
             borderTopColor: t.borderSoft,
             gap: SPACE[3],
           }}
@@ -54,7 +53,7 @@ export function TopServers(): React.ReactElement {
               },
             ]}
           >
-            {i + 1}
+            {idx + 1}
           </Text>
           <Text
             style={[
@@ -68,7 +67,7 @@ export function TopServers(): React.ReactElement {
               },
             ]}
           >
-            COMPUTE-{s.id.toUpperCase()}
+            {row.deviceId.toUpperCase()}
           </Text>
           <Text
             style={[
@@ -76,7 +75,7 @@ export function TopServers(): React.ReactElement {
               { fontSize: 12, color: t.colorCompute, fontWeight: "700" },
             ]}
           >
-            {s.util}%
+            {row.cap}
           </Text>
           <Text
             style={[
@@ -84,7 +83,7 @@ export function TopServers(): React.ReactElement {
               { fontSize: 10, color: t.textMid, width: 64, textAlign: "right" },
             ]}
           >
-            {s.draw} W
+            {row.draw}
           </Text>
         </View>
       ))}

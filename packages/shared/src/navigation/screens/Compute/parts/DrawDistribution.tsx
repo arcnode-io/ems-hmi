@@ -1,28 +1,26 @@
 /**
- * DrawDistribution — per-server draw histogram. Demonstrates the
- * canonical Histogram component end-to-end on the Compute screen.
+ * DrawDistribution — per-node draw histogram (canonical Histogram). Warn line
+ * at 90% of the node PSU cap, read from live `power_limit`.
  */
 
 import React from "react";
 import { View } from "react-native";
 import { SPACE } from "../../../../theme/tokens/primitives";
 import { Histogram } from "../../../../components/composed/Histogram/Histogram";
-import { MOCK_COMPUTE } from "../data/mockCompute";
+import type { GpuFleet } from "../../../../data/compute/useGpuFleet";
+import { drawSamples } from "./computeView";
 
-const PER_SERVER_CAP_W = 728;
-
-export function DrawDistribution(): React.ReactElement {
-  const samples = MOCK_COMPUTE.servers.map((s) => s.draw);
+export function DrawDistribution({ fleet }: { fleet: GpuFleet }): React.ReactElement {
+  const { samples, warnAtW } = drawSamples(fleet);
   return (
     <View style={{ marginHorizontal: SPACE[4], marginTop: SPACE[2] }}>
       <Histogram
         samples={samples}
         unit="W"
         domainColor="colorCompute"
-        // Reason: warn band starts at 90% of per-server cap (advisory),
-        // alarm at the cap itself. Outlier bins paint statusAlarm per
-        // Histogram contract.
-        thresholds={{ max: PER_SERVER_CAP_W * 0.9 }}
+        // Reason: outlier bins past the warn line paint statusAlarm per the
+        // Histogram contract; no line until a node reports its cap.
+        thresholds={warnAtW === null ? undefined : { max: warnAtW }}
       />
     </View>
   );

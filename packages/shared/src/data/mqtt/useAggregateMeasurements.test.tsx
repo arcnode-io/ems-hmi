@@ -3,8 +3,9 @@ import { act, renderHook } from "@testing-library/react";
 import { MqttClientContext } from "./MqttProvider";
 import type { MqttClient, MqttMessage } from "./MqttClient";
 import { useAggregateMeasurements } from "./useAggregateMeasurements";
+import { MockMqttClientImpl } from "./MockMqttProvider";
 
-type Listener = (msg: MqttMessage<unknown>) => void;
+type Listener = (msg: MqttMessage<unknown>, topic: string) => void;
 
 function fakeClient(): MqttClient & { emit: (topic: string, value: number) => void } {
   const listeners = new Map<string, Listener>();
@@ -13,7 +14,7 @@ function fakeClient(): MqttClient & { emit: (topic: string, value: number) => vo
       listeners.set(topic, listener);
       return () => listeners.delete(topic);
     },
-    emit: (topic: string, value: number) => listeners.get(topic)?.({ ts: "t", value }),
+    emit: (topic: string, value: number) => listeners.get(topic)?.({ ts: "t", value }, topic),
   } as unknown as MqttClient & { emit: (topic: string, value: number) => void };
 }
 
@@ -54,6 +55,26 @@ describe("useAggregateMeasurements flushMs", () => {
       a: 49,
       b: 98,
       rendersAdded: 1,
+    });
+  });
+});
+
+describe("useAggregateMeasurements wildcard", () => {
+  it("keys messages by the concrete topic they arrived on, not the filter", () => {
+    // Arrange — one node-level filter, two measurements under it
+    const client = new MockMqttClientImpl();
+    const { result } = renderHook(() => useAggregateMeasurements<number>(["n1/#"]), {
+      wrapper: wrapperFor(client),
+    });
+
+    // Act
+    act(() => client.broadcast("n1/p/watts", { ts: "t", value: 8000 }));
+    act(() => client.broadcast("n1/limit/watts", { ts: "t", value: 1000 }));
+
+    // Assert
+    expect(Object.fromEntries(Object.entries(result.current).map(([topic, msg]) => [topic, msg.value]))).toEqual({
+      "n1/p/watts": 8000,
+      "n1/limit/watts": 1000,
     });
   });
 });

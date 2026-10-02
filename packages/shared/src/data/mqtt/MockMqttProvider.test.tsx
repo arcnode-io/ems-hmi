@@ -8,7 +8,7 @@
 
 import React, { useEffect, useState } from "react";
 import { act, render } from "@testing-library/react";
-import { MockMqttProvider } from "./MockMqttProvider";
+import { MockMqttClientImpl, MockMqttProvider } from "./MockMqttProvider";
 import { TopologyProvider } from "../topology/TopologyProvider";
 import { useSubscription } from "./useSubscription";
 import { measurementTopic } from "../topics/topicBuilder";
@@ -123,5 +123,21 @@ describe("MockMqttProvider end-to-end", () => {
     expect(msg.value).toBeGreaterThanOrEqual(10); // warn_min
     expect(msg.value).toBeLessThanOrEqual(90); // warn_max
     expect(typeof msg.ts).toBe("string");
+  });
+});
+
+describe("MockMqttClientImpl", () => {
+  it("broadcasts to wildcard filters with the concrete topic", () => {
+    // Arrange
+    const client = new MockMqttClientImpl();
+    const seen: [string, unknown][] = [];
+    client.subscribe("s/devices/n1/measurements/#", (msg, topic) => seen.push([topic, msg.value]));
+
+    // Act
+    client.broadcast("s/devices/n1/measurements/p/watts", { ts: "2026-01-01T00:00:00Z", value: 8000 });
+    client.broadcast("s/devices/n2/measurements/p/watts", { ts: "2026-01-01T00:00:00Z", value: 1 });
+
+    // Assert
+    expect(seen).toEqual([["s/devices/n1/measurements/p/watts", 8000]]);
   });
 });

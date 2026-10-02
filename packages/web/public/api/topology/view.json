@@ -1135,9 +1135,9 @@
           "display_name_default": "GPU Power (total)",
           "iec_61850_ref": null,
           "bounds": {
-            "min": 7600,
-            "max": 8400,
-            "nominal": 8000
+            "min": 7700,
+            "max": 8000,
+            "nominal": 7950
           },
           "thresholds": null,
           "values": null
@@ -1237,6 +1237,132 @@
           "values": {
             "0": "NA"
           }
+        },
+        "power_limit": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "Node Power Limit",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 26400,
+            "max": 26400,
+            "nominal": 26400
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_1_power_limit": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "GPU 1 Power Limit",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 1000,
+            "max": 1000,
+            "nominal": 1000
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_2_power_limit": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "GPU 2 Power Limit",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 1000,
+            "max": 1000,
+            "nominal": 1000
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_3_power_limit": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "GPU 3 Power Limit",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 1000,
+            "max": 1000,
+            "nominal": 1000
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_4_power_limit": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "GPU 4 Power Limit",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 1000,
+            "max": 1000,
+            "nominal": 1000
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_5_power_limit": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "GPU 5 Power Limit",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 1000,
+            "max": 1000,
+            "nominal": 1000
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_6_power_limit": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "GPU 6 Power Limit",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 1000,
+            "max": 1000,
+            "nominal": 1000
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_7_power_limit": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "GPU 7 Power Limit",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 1000,
+            "max": 1000,
+            "nominal": 1000
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_8_power_limit": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "GPU 8 Power Limit",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 1000,
+            "max": 1000,
+            "nominal": 1000
+          },
+          "thresholds": null,
+          "values": null
         }
       },
       "commands": {}

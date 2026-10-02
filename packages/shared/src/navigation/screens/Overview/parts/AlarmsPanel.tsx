@@ -14,7 +14,7 @@ import { AlarmRow } from "../../../../components/composed/AlarmRow/AlarmRow";
 import { useAlarms } from "../../../../data/alarms/useAlarms";
 
 /** Format a Unix-ms-ish ISO timestamp to a coarse "Nm ago" / "Nh Mm ago". */
-function relativeAge(isoTs: string): string {
+export function relativeAge(isoTs: string): string {
   const then = Date.parse(isoTs);
   if (!Number.isFinite(then)) return "just now";
   const seconds = Math.max(0, (Date.now() - then) / 1000);
