@@ -1,85 +1,51 @@
 /**
- * GpuClusterStrip — Overview Zone B. Shows N compute servers as a horizontal
- * grid of cells colored by utilization. Per Rule 1: utilization uses the
- * compute domain color, NOT status colors — high util is not an alarm.
+ * GpuClusterStrip — Overview Zone B. One cell per gpu_node showing its live
+ * draw. Per Rule 1: load uses the compute domain color, NOT status colors —
+ * a hot node is not an alarm. Only throttling (any GPU off `NA`) goes warn.
  *
- * Data is currently mocked (32 servers) — wire to topology + per-server
- * telemetry when a per-server measurement lands.
+ * No util fill bar: gpu_node publishes power, not utilization.
  */
 
 import React from "react";
 import { View, Text, ScrollView } from "react-native";
 import { useTheme } from "../../../../theme/ThemeProvider";
-import { resolveTypeStyle, type Theme } from "../../../../theme/tokens";
+import { resolveTypeStyle } from "../../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
 import { IconChevron } from "../../../../components/icons/IconChevron";
+import type { GpuFleet } from "../../../../data/compute/useGpuFleet";
+import { gpuStripMetrics } from "./gpuStripMetrics";
 
-const MOCK_SERVERS: readonly number[] = [
-  92, 94, 91, 89, 95, 93, 92, 88, 90, 87, 91, 93, 96, 94, 89, 92,
-  88, 91, 86, 90, 0, 0, 4, 12, 85, 88, 87, 91, 72, 68, 71, 74,
-];
-
-const CELL_W = 26;
+// Reason: wide enough for a "10.5" kW label at caption size.
+const CELL_W = 32;
 const CELL_H = 32;
 const CELL_GAP = 4;
 
-function gpuColor(util: number, t: Theme): string {
-  if (util < 5) return t.textFaint;
-  return t.colorCompute;
-}
-
-interface ServerCellProps {
-  util: number;
-}
-
-function ServerCell({ util }: ServerCellProps): React.ReactElement {
+function NodeCell({ node }: { node: GpuFleet["nodes"][number] }): React.ReactElement {
   const t = useTheme();
-  const idle = util < 5;
-  const baseColor = gpuColor(util, t);
-  const opacity = idle ? 0.55 : 0.55 + (util / 100) * 0.45;
-
+  // Reason: unreported = idle styling, so a cold start reads as "no data", not load.
+  const idle = node.nodePowerW === null;
+  const fill = node.throttling > 0 ? t.statusWarn : t.colorCompute;
   return (
     <View
       style={{
         width: CELL_W,
         height: CELL_H,
         borderRadius: RADIUS[2],
-        backgroundColor: idle ? t.borderSoft : baseColor,
+        backgroundColor: idle ? t.borderSoft : fill,
         borderWidth: 1,
         borderColor: idle ? t.border : "transparent",
-        opacity,
-        position: "relative",
+        opacity: idle ? 0.55 : 1,
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
-      <View
-        style={{
-          position: "absolute",
-          left: 3,
-          right: 3,
-          top: 3,
-          height: 3,
-          borderRadius: 1.5,
-          backgroundColor: idle ? t.textFaint : "#fff",
-          opacity: 0.85,
-          width: ((CELL_W - 8) * util) / 100,
-        }}
-      />
       <Text
         style={[
           resolveTypeStyle(t, "caption"),
-          {
-            position: "absolute",
-            bottom: 4,
-            left: 0,
-            right: 0,
-            textAlign: "center",
-            color: idle ? t.textSoft : "#fff",
-            fontWeight: "700",
-            fontSize: 9,
-          },
+          { color: idle ? t.textSoft : "#fff", fontWeight: "700", fontSize: 9 },
         ]}
       >
-        {idle ? "—" : util}
+        {node.nodePowerW === null ? "—" : (node.nodePowerW / 1000).toFixed(1)}
       </Text>
     </View>
   );
@@ -90,9 +56,11 @@ interface MetricCellProps {
   value: string;
   unit: string;
   showDivider: boolean;
+  /** Value color override (e.g. warn when GPUs throttle). */
+  tone?: string;
 }
 
-function MetricCell({ label, value, unit, showDivider }: MetricCellProps): React.ReactElement {
+function MetricCell({ label, value, unit, showDivider, tone }: MetricCellProps): React.ReactElement {
   const t = useTheme();
   return (
     <View
@@ -116,7 +84,7 @@ function MetricCell({ label, value, unit, showDivider }: MetricCellProps): React
         <Text
           style={[
             resolveTypeStyle(t, "kpiValue"),
-            { color: t.text, fontSize: 18, letterSpacing: -0.3 },
+            { color: tone ?? t.text, fontSize: 18, letterSpacing: -0.3 },
           ]}
         >
           {value}
@@ -129,12 +97,10 @@ function MetricCell({ label, value, unit, showDivider }: MetricCellProps): React
   );
 }
 
-export function GpuClusterStrip(): React.ReactElement {
+export function GpuClusterStrip({ fleet }: { fleet: GpuFleet }): React.ReactElement {
   const t = useTheme();
   const isSov = t.name === "sovereign";
-  const avgUtil = Math.round(
-    MOCK_SERVERS.reduce((s, x) => s + x, 0) / MOCK_SERVERS.length,
-  );
+  const metrics = gpuStripMetrics(fleet);
 
   return (
     <View
@@ -162,7 +128,7 @@ export function GpuClusterStrip(): React.ReactElement {
       >
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={[resolveTypeStyle(t, "kpiLabel"), { color: t.textSoft }]}>
-            Compute · {MOCK_SERVERS.length} servers
+            Compute · {fleet.nodes.length} nodes
           </Text>
           <Text
             numberOfLines={1}
@@ -181,7 +147,7 @@ export function GpuClusterStrip(): React.ReactElement {
               },
             ]}
           >
-            Cluster utilization
+            GPU fleet
           </Text>
         </View>
         <IconChevron size={18} color={t.textSoft} />
@@ -197,8 +163,8 @@ export function GpuClusterStrip(): React.ReactElement {
           gap: CELL_GAP,
         }}
       >
-        {MOCK_SERVERS.map((util, i) => (
-          <ServerCell key={i} util={util} />
+        {fleet.nodes.map((node) => (
+          <NodeCell key={node.deviceId} node={node} />
         ))}
       </ScrollView>
 
@@ -209,9 +175,14 @@ export function GpuClusterStrip(): React.ReactElement {
           borderTopColor: t.borderSoft,
         }}
       >
-        <MetricCell label="Total draw" value="184.2" unit="kW" showDivider />
-        <MetricCell label="Avg util" value={`${avgUtil}`} unit="%" showDivider />
-        <MetricCell label="Headroom" value="38.5" unit="kW" showDivider={false} />
+        <MetricCell
+          label="Throttling"
+          {...metrics.throttling}
+          tone={fleet.throttlingCount > 0 ? t.statusWarn : undefined}
+          showDivider
+        />
+        <MetricCell label="Total draw" {...metrics.totalDraw} showDivider />
+        <MetricCell label="Per GPU" {...metrics.perGpu} showDivider={false} />
       </View>
     </View>
   );

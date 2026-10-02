@@ -5,6 +5,8 @@
 
 import { readFileSync } from "fs";
 import { join } from "path";
+import { TopologyView } from "@ems-hmi/shared/data/topology/topology.schema";
+import { gpuNodeTopics } from "@ems-hmi/shared/data/compute/useGpuFleet";
 
 interface Fixture {
   templates_used: Record<
@@ -74,5 +76,27 @@ describe("demo topology — power quality", () => {
 
     // Assert
     expect(present).toEqual({ breaker: true, netPower: true });
+  });
+});
+
+describe("demo topology — GPU fleet", () => {
+  it("parses with GPU nodes whose throttle enum can only read NA", () => {
+    // Arrange — mock enums cycle through `values`; anything but NA would fake throttling
+    const view = TopologyView.parse(VIEW);
+
+    // Act
+    const nodes = gpuNodeTopics(view, "local_site");
+    const throttleLabels = Object.entries(
+      view.templates_used.gpu_node?.measurements ?? {},
+    )
+      .filter(([name]) => name.endsWith("_throttle_reason"))
+      .flatMap(([, meas]) => Object.values(meas.values ?? {}));
+
+    // Assert
+    expect({
+      nodes: nodes.length,
+      gpusPerNode: nodes[0]?.throttle.length,
+      labels: [...new Set(throttleLabels)],
+    }).toEqual({ nodes: 32, gpusPerNode: 8, labels: ["NA"] });
   });
 });

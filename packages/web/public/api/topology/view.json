@@ -121,6 +121,230 @@
       "parent": "bess_module_02",
       "display_name": "BESS-02 Rack B",
       "extra_measurements": null
+    },
+    "gpu_node_01": {
+      "device_id": "gpu_node_01",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-01",
+      "extra_measurements": null
+    },
+    "gpu_node_02": {
+      "device_id": "gpu_node_02",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-02",
+      "extra_measurements": null
+    },
+    "gpu_node_03": {
+      "device_id": "gpu_node_03",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-03",
+      "extra_measurements": null
+    },
+    "gpu_node_04": {
+      "device_id": "gpu_node_04",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-04",
+      "extra_measurements": null
+    },
+    "gpu_node_05": {
+      "device_id": "gpu_node_05",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-05",
+      "extra_measurements": null
+    },
+    "gpu_node_06": {
+      "device_id": "gpu_node_06",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-06",
+      "extra_measurements": null
+    },
+    "gpu_node_07": {
+      "device_id": "gpu_node_07",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-07",
+      "extra_measurements": null
+    },
+    "gpu_node_08": {
+      "device_id": "gpu_node_08",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-08",
+      "extra_measurements": null
+    },
+    "gpu_node_09": {
+      "device_id": "gpu_node_09",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-09",
+      "extra_measurements": null
+    },
+    "gpu_node_10": {
+      "device_id": "gpu_node_10",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-10",
+      "extra_measurements": null
+    },
+    "gpu_node_11": {
+      "device_id": "gpu_node_11",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-11",
+      "extra_measurements": null
+    },
+    "gpu_node_12": {
+      "device_id": "gpu_node_12",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-12",
+      "extra_measurements": null
+    },
+    "gpu_node_13": {
+      "device_id": "gpu_node_13",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-13",
+      "extra_measurements": null
+    },
+    "gpu_node_14": {
+      "device_id": "gpu_node_14",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-14",
+      "extra_measurements": null
+    },
+    "gpu_node_15": {
+      "device_id": "gpu_node_15",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-15",
+      "extra_measurements": null
+    },
+    "gpu_node_16": {
+      "device_id": "gpu_node_16",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-16",
+      "extra_measurements": null
+    },
+    "gpu_node_17": {
+      "device_id": "gpu_node_17",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-17",
+      "extra_measurements": null
+    },
+    "gpu_node_18": {
+      "device_id": "gpu_node_18",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-18",
+      "extra_measurements": null
+    },
+    "gpu_node_19": {
+      "device_id": "gpu_node_19",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-19",
+      "extra_measurements": null
+    },
+    "gpu_node_20": {
+      "device_id": "gpu_node_20",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-20",
+      "extra_measurements": null
+    },
+    "gpu_node_21": {
+      "device_id": "gpu_node_21",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-21",
+      "extra_measurements": null
+    },
+    "gpu_node_22": {
+      "device_id": "gpu_node_22",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-22",
+      "extra_measurements": null
+    },
+    "gpu_node_23": {
+      "device_id": "gpu_node_23",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-23",
+      "extra_measurements": null
+    },
+    "gpu_node_24": {
+      "device_id": "gpu_node_24",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-24",
+      "extra_measurements": null
+    },
+    "gpu_node_25": {
+      "device_id": "gpu_node_25",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-25",
+      "extra_measurements": null
+    },
+    "gpu_node_26": {
+      "device_id": "gpu_node_26",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-26",
+      "extra_measurements": null
+    },
+    "gpu_node_27": {
+      "device_id": "gpu_node_27",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-27",
+      "extra_measurements": null
+    },
+    "gpu_node_28": {
+      "device_id": "gpu_node_28",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-28",
+      "extra_measurements": null
+    },
+    "gpu_node_29": {
+      "device_id": "gpu_node_29",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-29",
+      "extra_measurements": null
+    },
+    "gpu_node_30": {
+      "device_id": "gpu_node_30",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-30",
+      "extra_measurements": null
+    },
+    "gpu_node_31": {
+      "device_id": "gpu_node_31",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-31",
+      "extra_measurements": null
+    },
+    "gpu_node_32": {
+      "device_id": "gpu_node_32",
+      "template": "gpu_node",
+      "parent": "compute_module_01",
+      "display_name": "GPU-32",
+      "extra_measurements": null
     }
   },
   "buses": [
@@ -877,6 +1101,141 @@
             "2": "DISCHARGING",
             "3": "FAULT",
             "4": "OFFLINE"
+          }
+        }
+      },
+      "commands": {}
+    },
+    "gpu_node": {
+      "template": "gpu_node",
+      "kind": "leaf",
+      "equipment_id": null,
+      "vendor": null,
+      "model": null,
+      "description": "8-GPU compute node",
+      "measurements": {
+        "power_consumed": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Node Power",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 10000,
+            "max": 11000,
+            "nominal": 10500
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_power_watts": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU Power (total)",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 7600,
+            "max": 8400,
+            "nominal": 8000
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_1_throttle_reason": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 1 Throttle Reason",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "NA"
+          }
+        },
+        "gpu_2_throttle_reason": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 2 Throttle Reason",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "NA"
+          }
+        },
+        "gpu_3_throttle_reason": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 3 Throttle Reason",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "NA"
+          }
+        },
+        "gpu_4_throttle_reason": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 4 Throttle Reason",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "NA"
+          }
+        },
+        "gpu_5_throttle_reason": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 5 Throttle Reason",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "NA"
+          }
+        },
+        "gpu_6_throttle_reason": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 6 Throttle Reason",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "NA"
+          }
+        },
+        "gpu_7_throttle_reason": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 7 Throttle Reason",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "NA"
+          }
+        },
+        "gpu_8_throttle_reason": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 8 Throttle Reason",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "NA"
           }
         }
       },

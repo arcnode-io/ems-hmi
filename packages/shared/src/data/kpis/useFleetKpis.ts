@@ -5,6 +5,7 @@
  *
  * Aggregations (initial set; more land as device templates grow):
  *  - FLEET SoC   — average of every bess_rack `state_of_charge`
+ *  - BESS power  — sum of every bess_module `active_power`
  *  - GPU UTIL    — average of every compute_pod `gpu_utilization`
  *  - GRID        — label from grid_tap `active_power` sign + frequency
  *  - SITE        — `Nominal` when alarms = 0, otherwise highest-severity label
@@ -30,6 +31,8 @@ export interface FleetKpis {
   site: { label: "Nominal" | "Warn" | "Alarm" | "Fire" };
   /** Fleet average state-of-charge across all BESS racks. */
   fleetSoc: { value: number | null };
+  /** Summed bess_module active_power, W (+ discharge / - charge). */
+  bess: { powerW: number | null };
   /** Fleet average GPU utilization across all compute pods. */
   gpuUtil: { value: number | null };
   /**
@@ -93,6 +96,10 @@ export function useFleetKpis(): FleetKpis {
     () => topicsForMeasurement(view, siteId, "bess_module", "state_of_charge"),
     [view, siteId],
   );
+  const bessPowerTopics = useMemo(
+    () => topicsForMeasurement(view, siteId, "bess_module", "active_power"),
+    [view, siteId],
+  );
   const gpuTopics = useMemo(
     () => topicsForMeasurement(view, siteId, "compute_module", "gpu_utilization"),
     [view, siteId],
@@ -107,6 +114,7 @@ export function useFleetKpis(): FleetKpis {
   );
 
   const socMessages = useAggregateMeasurements<number>(socTopics);
+  const bessPowerMessages = useAggregateMeasurements<number>(bessPowerTopics);
   const gpuMessages = useAggregateMeasurements<number>(gpuTopics);
   const gridPowerMessages = useAggregateMeasurements<number>(gridPowerTopics);
   const gridFreqMessages = useAggregateMeasurements<number>(gridFreqTopics);
@@ -114,6 +122,11 @@ export function useFleetKpis(): FleetKpis {
   const fleetSocAvg = avg(
     socTopics.map((t) => socMessages[t]?.value ?? null),
   );
+  const bessPowers = bessPowerTopics
+    .map((t) => bessPowerMessages[t]?.value ?? null)
+    .filter((v): v is number => v !== null);
+  const bessPowerW =
+    bessPowers.length === 0 ? null : bessPowers.reduce((a, b) => a + b, 0);
   const gpuUtilAvg = avg(
     gpuTopics.map((t) => gpuMessages[t]?.value ?? null),
   );
@@ -146,6 +159,7 @@ export function useFleetKpis(): FleetKpis {
   return {
     site: { label: siteLabel },
     fleetSoc: { value: fleetSocAvg },
+    bess: { powerW: bessPowerW },
     gpuUtil: { value: gpuUtilAvg },
     grid: {
       label: gridLabel,
