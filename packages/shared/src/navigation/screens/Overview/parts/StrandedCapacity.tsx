@@ -1,9 +1,10 @@
 /**
- * StrandedCapacity — Overview Zone B'. Power/Cooling/Runway/Grid headroom.
+ * StrandedCapacity — Overview Zone B'. Power/Runway/Grid headroom.
  * Grid is the operating envelope's import limit in use at the POI (see
  * gridHeadroomRow for the ISLAND / degraded-source rules).
  *
- * Power/Cooling/Runway still mocked (need new hooks in step 9b).
+ * Power = GPU fleet draw vs design capacity; Runway = BESS energy above the
+ * reserve floor at the current discharge (see headroomRows).
  */
 
 import React from "react";
@@ -14,7 +15,11 @@ import { resolveTypeStyle, type Theme } from "../../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
 import { useOperatingEnvelope } from "../../../../data/grid/useOperatingEnvelope";
 import { useGridMode } from "../../../../data/grid/useGridMode";
+import { useTopologyView } from "../../../../data/topology/useTopologyView";
+import { useFleetKpis } from "../../../../data/kpis/useFleetKpis";
+import type { GpuFleet } from "../../../../data/compute/useGpuFleet";
 import { gridHeadroomRow } from "./gridHeadroomRow";
+import { constraintSummary, powerRow, runwayRow, type CapacityState } from "./headroomRows";
 
 interface Row {
   label: string;
@@ -22,32 +27,9 @@ interface Row {
   val: number;
   color: string;
   headline: string;
-  sub: string;
 }
 
-type Limit = "POWER LIMITED" | "COOLING LIMITED" | "RUNWAY LIMITED" | "GRID LIMITED";
-type State = "BALANCED" | Limit;
-
-/** Pick the worst-case constraint state; grid null = excluded from the pick. */
-function deriveState(power: number, cooling: number, runway: number, grid: number | null): State {
-  const candidates: Array<[Limit, number]> = [
-    ["POWER LIMITED", power],
-    ["COOLING LIMITED", cooling],
-    ["RUNWAY LIMITED", runway],
-  ];
-  if (grid !== null) candidates.push(["GRID LIMITED", grid]);
-  let winner: State = "BALANCED";
-  let worst = 0.85; // below 85% = BALANCED
-  for (const [label, val] of candidates) {
-    if (val >= worst) {
-      worst = val;
-      winner = label;
-    }
-  }
-  return winner;
-}
-
-function stateColor(t: Theme, state: State): string {
+function stateColor(t: Theme, state: CapacityState): string {
   return match(state)
     .with("BALANCED", () => t.statusOk)
     .otherwise(() => t.statusWarn);
@@ -102,23 +84,26 @@ function RatioRow({ row }: RatioRowProps): React.ReactElement {
   );
 }
 
-export function StrandedCapacity(): React.ReactElement {
+export function StrandedCapacity({ fleet }: { fleet: GpuFleet }): React.ReactElement {
   const t = useTheme();
-  // Mock ratios for Power/Cooling/Runway pending step 9b hooks
-  const power = 0.71;
-  const cooling = 0.78;
-  const runway = 0.62;
+  const { view } = useTopologyView();
+  const kpis = useFleetKpis();
   const envelope = useOperatingEnvelope();
   const gridMode = useGridMode();
+  const power = powerRow(fleet.totalDrawW, view?.sizing_params.P_compute_total_kW ?? 0);
+  const runway = runwayRow(view?.bess ?? null, kpis.fleetSoc.value, kpis.bess.powerW);
   const grid = gridHeadroomRow(envelope, gridMode.mode === "ISLAND");
-  const state = deriveState(power, cooling, runway, grid.forState);
+  const { state, footer } = constraintSummary([
+    { limit: "POWER LIMITED", label: "Power", ratio: power.forState },
+    { limit: "RUNWAY LIMITED", label: "Runway", ratio: runway.forState },
+    { limit: "GRID LIMITED", label: "Grid", ratio: grid.forState },
+  ]);
   const sColor = stateColor(t, state);
 
   const rows: Row[] = [
-    { label: "Power", val: power, color: t.colorCompute, headline: "184 / 260 kW", sub: "76 kW headroom" },
-    { label: "Cooling", val: cooling, color: t.colorThermal, headline: "38.4 / 49 °C", sub: "worst CDU · s04" },
-    { label: "Runway", val: runway, color: t.colorBess, headline: "6.2 h", sub: "at current load" },
-    { label: "Grid", val: grid.val, color: t.colorGrid, headline: grid.headline, sub: "" },
+    { label: "Power", val: power.val, color: t.colorCompute, headline: power.headline },
+    { label: "Runway", val: runway.val, color: t.colorBess, headline: runway.headline },
+    { label: "Grid", val: grid.val, color: t.colorGrid, headline: grid.headline },
   ];
 
   return (
@@ -187,8 +172,7 @@ export function StrandedCapacity(): React.ReactElement {
           { color: t.textSoft, marginTop: SPACE[3] },
         ]}
       >
-        Power and runway have headroom; cooling is the closest constraint (s04
-        CDU at 38.4 °C).
+        {footer}
       </Text>
     </View>
   );

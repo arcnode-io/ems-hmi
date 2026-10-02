@@ -3,11 +3,12 @@
  * draw. Per Rule 1: load uses the compute domain color, NOT status colors —
  * a hot node is not an alarm. Only throttling (any GPU off `NA`) goes warn.
  *
- * No util fill bar: gpu_node publishes power, not utilization.
+ * Cells wrap so every node is visible. No util fill bar: gpu_node publishes
+ * power, not utilization.
  */
 
 import React from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text } from "react-native";
 import { useTheme } from "../../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
@@ -153,10 +154,11 @@ export function GpuClusterStrip({ fleet }: { fleet: GpuFleet }): React.ReactElem
         <IconChevron size={18} color={t.textSoft} />
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{
+      {/* Reason: wrap, not scroll — the whole fleet on screen at once is the point. */}
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
           paddingHorizontal: SPACE[4],
           paddingBottom: SPACE[3],
           paddingTop: 2,
@@ -166,7 +168,7 @@ export function GpuClusterStrip({ fleet }: { fleet: GpuFleet }): React.ReactElem
         {fleet.nodes.map((node) => (
           <NodeCell key={node.deviceId} node={node} />
         ))}
-      </ScrollView>
+      </View>
 
       <View
         style={{

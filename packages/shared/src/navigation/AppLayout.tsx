@@ -18,6 +18,8 @@ import { useBreakpoint } from "../hooks/useBreakpoint";
 import { useDeploymentIdentity } from "../data/deployment/useDeploymentIdentity";
 import { useTopologyView } from "../data/topology/useTopologyView";
 import { useFleetKpis } from "../data/kpis/useFleetKpis";
+import { useGpuFleet } from "../data/compute/useGpuFleet";
+import { gpuStripMetrics } from "./screens/Overview/parts/gpuStripMetrics";
 import { useAlarmCount } from "../data/alarms/useAlarmCount";
 import { useGridMode } from "../data/grid/useGridMode";
 import { useOperatingEnvelope } from "../data/grid/useOperatingEnvelope";
@@ -62,6 +64,7 @@ export function AppLayout({
   const activeSpec = routeByName(activeName);
   const emsMode = topology.view?.ems_mode ?? "sim";
   const kpis = useFleetKpis();
+  const gpuFleet = useGpuFleet();
   const gridMode = useGridMode();
   const envelope = useOperatingEnvelope();
   const derCurtailed = useDerEventActive();
@@ -90,9 +93,11 @@ export function AppLayout({
       color: t.colorBess,
     },
     {
-      label: "GPU UTIL",
-      value: fmtPct(kpis.gpuUtil.value),
-      color: t.colorCompute,
+      // Reason: no GPU utilization source in the catalog yet (handoff to ICS +
+      // power-engineer); throttle count is live and is the demo's point anyway.
+      label: "GPU THROTTLE",
+      value: gpuStripMetrics(gpuFleet).throttling.value,
+      color: gpuFleet.throttlingCount > 0 ? t.statusWarn : t.colorCompute,
     },
     {
       label: "GRID",

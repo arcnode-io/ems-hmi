@@ -60,7 +60,7 @@ export function OverviewScreen(): React.ReactElement {
         {/* Reason: banner above the GPU strip — "site curtailed" reads straight into "GPUs unaffected". */}
         <CurtailmentBanner state={gridState} />
         <GpuClusterStrip fleet={gpuFleet} />
-        <StrandedCapacity />
+        <StrandedCapacity fleet={gpuFleet} />
         <KpiStrip />
         <AlarmsPanel />
         <EnergyChart />

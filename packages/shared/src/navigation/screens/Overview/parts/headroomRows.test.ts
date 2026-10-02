@@ -1,0 +1,81 @@
+import { constraintSummary, powerRow, runwayRow } from "./headroomRows";
+
+describe("powerRow", () => {
+  it("reads fleet draw against the design compute capacity", () => {
+    // Arrange — live demo: 1.029 MW against P_compute_total_kW 1120
+
+    // Act
+    const row = powerRow(1_029_000, 1120);
+
+    // Assert
+    expect(row).toEqual({ val: 1_029 / 1_120, headline: "1029 / 1120 kW", forState: 1_029 / 1_120 });
+  });
+
+  it("drops out of the pick until the fleet reports", () => {
+    // Arrange / Act
+    const row = powerRow(null, 1120);
+
+    // Assert
+    expect(row).toEqual({ val: 0, headline: "—", forState: null });
+  });
+});
+
+describe("runwayRow", () => {
+  const BESS = { pack_mwh: 8, reserve_floor_mwh: 2, reserve_floor_pct: 25 };
+
+  it("divides usable energy above the floor by the discharge rate", () => {
+    // Arrange — 50% of 8 MWh = 4 MWh, 2 above the floor, discharging 1 MW → 2 h; 2 of 6 usable MWh left
+    // Act
+    const row = runwayRow(BESS, 50, 1_000_000);
+
+    // Assert
+    expect(row).toEqual({ val: 1 - 2 / 6, headline: "2.0 h", forState: 1 - 2 / 6 });
+  });
+
+  it("reads Idle with no runway claim when the battery isn't discharging", () => {
+    // Arrange / Act
+    const idle = runwayRow(BESS, 50, 0);
+    const charging = runwayRow(BESS, 50, -300_000);
+
+    // Assert
+    expect([idle, charging.headline, charging.forState]).toEqual([
+      { val: 1 - 2 / 6, headline: "Idle", forState: null },
+      "Idle",
+      null,
+    ]);
+  });
+
+  it("is a dash with no BESS sizing or SoC yet", () => {
+    // Arrange / Act
+    const rows = [runwayRow(null, 50, 1_000_000), runwayRow(BESS, null, 1_000_000)];
+
+    // Assert
+    expect(rows.map((row) => row.headline)).toEqual(["—", "—"]);
+  });
+});
+
+describe("constraintSummary", () => {
+  it("flags the closest constraint once it crosses 85%, skipping excluded rows", () => {
+    // Arrange
+    const constraints = [
+      { limit: "POWER LIMITED", label: "Power", ratio: 0.92 },
+      { limit: "RUNWAY LIMITED", label: "Runway", ratio: null },
+      { limit: "GRID LIMITED", label: "Grid", ratio: 0.4 },
+    ] as const;
+
+    // Act
+    const summary = constraintSummary(constraints);
+
+    // Assert
+    expect(summary).toEqual({ state: "POWER LIMITED", footer: "Power is the closest constraint (92% used)." });
+  });
+
+  it("is BALANCED below 85%, and waits when nothing reports", () => {
+    // Arrange / Act
+    const calm = constraintSummary([{ limit: "GRID LIMITED", label: "Grid", ratio: 0.5 }]);
+    const cold = constraintSummary([{ limit: "GRID LIMITED", label: "Grid", ratio: null }]);
+
+    // Assert
+    expect([calm.state, cold]).toEqual(["BALANCED", { state: "BALANCED", footer: "Waiting on live data." }]);
+  });
+});
