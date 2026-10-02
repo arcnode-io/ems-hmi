@@ -54,4 +54,25 @@ describe("demo topology — power quality", () => {
     // Assert — 12 470 / √3 (ems-industrial-fixtures fc94b6b)
     expect(nominal).toBe(7200);
   });
+
+  it("carries the PCC breaker on the relay and net power on the POI meter", () => {
+    // Arrange
+    const relay = Object.keys(
+      VIEW.templates_used.protective_relay?.measurements ?? {},
+    );
+    const meter = Object.keys(
+      VIEW.templates_used.poi_meter?.measurements ?? {},
+    );
+
+    // Act
+    const present = {
+      breaker: ["breaker_closed", "trip_status"].every((name) =>
+        relay.includes(name),
+      ),
+      netPower: meter.includes("active_power"),
+    };
+
+    // Assert
+    expect(present).toEqual({ breaker: true, netPower: true });
+  });
 });

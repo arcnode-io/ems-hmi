@@ -325,20 +325,6 @@
             "alarm_max": 61
           },
           "values": null
-        },
-        "interconnect_state": {
-          "unit": "none",
-          "type": "enum",
-          "poll_rate_hz": 0.5,
-          "display_name_default": "Interconnect State",
-          "iec_61850_ref": "XCBR.Pos.stVal",
-          "bounds": null,
-          "thresholds": null,
-          "values": {
-            "0": "OPEN",
-            "1": "CLOSED",
-            "2": "TRIPPED"
-          }
         }
       },
       "commands": {}
@@ -487,6 +473,20 @@
             "min": 0,
             "max": 5,
             "nominal": 1.4
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "active_power": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "POI Active Power (+ import, - export)",
+          "iec_61850_ref": "MMXU.W",
+          "bounds": {
+            "min": -8000000,
+            "max": 2000000,
+            "nominal": 200000
           },
           "thresholds": null,
           "values": null
@@ -690,6 +690,26 @@
             "max": 3,
             "nominal": 0.6
           },
+          "thresholds": null,
+          "values": null
+        },
+        "breaker_closed": {
+          "unit": "none",
+          "type": "bool",
+          "poll_rate_hz": 1,
+          "display_name_default": "Breaker Closed",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "trip_status": {
+          "unit": "none",
+          "type": "bool",
+          "poll_rate_hz": 1,
+          "display_name_default": "Trip Status",
+          "iec_61850_ref": null,
+          "bounds": null,
           "thresholds": null,
           "values": null
         }

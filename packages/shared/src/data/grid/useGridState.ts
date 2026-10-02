@@ -3,7 +3,7 @@
  * scope). Interconnect + curtailment concerns; power quality lives in
  * useGridPowerQuality and protection state in useGridProtection
  * (panel-shaped hooks, kept separate to stay under the 200-line budget).
- * Composes useGridMode (mode, island qualifier, net-at-meter) with:
+ * Composes useGridMode (mode, island qualifier, breaker, net at the POI) with:
  *
  *   - `grid_module_*.grid_frequency`
  *   - `der_dispatch_*.target_active_power` / `event_active` (utility
@@ -27,9 +27,7 @@ import { useAggregateMeasurements } from "../mqtt/useAggregateMeasurements";
 import { useDeploymentIdentity } from "../deployment/useDeploymentIdentity";
 import { measurementTopic, type TopicUnit } from "../topics/topicBuilder";
 import { useGridMode } from "./useGridMode";
-import type { GridMode, IslandQualifier } from "./useGridMode";
-
-export type BreakerState = "OPEN" | "CLOSED" | "TRIPPED";
+import type { BreakerState, GridMode, IslandQualifier } from "./useGridMode";
 /**
  * der_dispatch's real der_event_state enum. Fixed 2026-09-22 — this was
  * wrongly named "dispatch_state" here; the real measurement (and topic)
@@ -52,12 +50,7 @@ export interface GridState {
   /** GRID vs ISLAND, and planned/fault qualifier — from useGridMode. */
   mode: GridMode | null;
   islandQualifier: IslandQualifier | null;
-  /**
-   * Raw PCC breaker position. Same source topic as `mode`
-   * (grid_module.interconnect_state) but kept as the full three-value
-   * enum — collapsing it to a GRID/ISLAND boolean would render an actual
-   * TRIPPED fault as "OPEN", hiding the one distinction that matters most.
-   */
+  /** PCC breaker (OPEN / CLOSED / TRIPPED) — from useGridMode, same source as `mode`. */
   breakerState: BreakerState | null;
   /** Site frequency, Hz. */
   frequencyHz: number | null;
@@ -103,10 +96,7 @@ export function useGridState(): GridState {
 
   const topics = useMemo(() => {
     return [
-      ...topicsFor(view, siteId, "grid_module", [
-        "grid_frequency",
-        "interconnect_state",
-      ]),
+      ...topicsFor(view, siteId, "grid_module", ["grid_frequency"]),
       ...topicsFor(view, siteId, "der_dispatch", [
         "target_active_power",
         "event_active",
@@ -120,7 +110,6 @@ export function useGridState(): GridState {
 
   return useMemo(() => {
     let frequencyHz: number | null = null;
-    let breakerState: BreakerState | null = null;
     let curtailmentActive: boolean | null = null;
     let curtailmentCapW: number | null = null;
     let pvOutputW: number | null = null;
@@ -131,13 +120,6 @@ export function useGridState(): GridState {
       if (!msg) continue;
       if (topic.endsWith("/grid_frequency/hertz")) {
         if (typeof msg.value === "number") frequencyHz = msg.value;
-      } else if (
-        topic.includes("/grid_module") &&
-        topic.endsWith("/interconnect_state/none")
-      ) {
-        if (msg.value === "OPEN" || msg.value === "CLOSED" || msg.value === "TRIPPED") {
-          breakerState = msg.value;
-        }
       } else if (topic.endsWith("/target_active_power/watts")) {
         if (typeof msg.value === "number") curtailmentCapW = msg.value;
       } else if (topic.endsWith("/event_active/none")) {
@@ -156,7 +138,7 @@ export function useGridState(): GridState {
     return {
       mode: gridMode.mode,
       islandQualifier: gridMode.islandQualifier,
-      breakerState,
+      breakerState: gridMode.breakerState,
       frequencyHz,
       netActivePowerW: gridMode.netActivePowerW,
       curtailmentActive,

@@ -98,7 +98,7 @@ export function useFleetKpis(): FleetKpis {
     [view, siteId],
   );
   const gridPowerTopics = useMemo(
-    () => topicsForMeasurement(view, siteId, "grid_module", "net_active_power"),
+    () => topicsForMeasurement(view, siteId, "poi_meter", "active_power"),
     [view, siteId],
   );
   const gridFreqTopics = useMemo(
@@ -118,8 +118,8 @@ export function useFleetKpis(): FleetKpis {
     gpuTopics.map((t) => gpuMessages[t]?.value ?? null),
   );
 
-  // Grid: take the sign of the first grid_tap's active_power. Positive =
-  // power flowing INTO the site from the grid (Import). Negative = export.
+  // Grid: net power at the POI meter. Positive = power flowing INTO the
+  // site from the grid (Import). Negative = export.
   const gridPower = gridPowerTopics
     .map((t) => gridPowerMessages[t]?.value ?? null)
     .find((v): v is number => v !== null);

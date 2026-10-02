@@ -3,9 +3,8 @@
  * ISLAND always carries a qualifier, never rendered bare. Rendered only
  * while state.mode === "ISLAND" (caller's responsibility).
  *
- * Anti-islanding armed/inactive state (rule 5) isn't shown here — that's
- * pending the protective_relay fields power-engineer is building; this
- * note sticks to what interconnect_state alone tells us.
+ * Anti-islanding armed/inactive (rule 5) lives in ProtectionPanel; this
+ * note sticks to what the relay's breaker + trip flags tell us.
  */
 
 import React from "react";

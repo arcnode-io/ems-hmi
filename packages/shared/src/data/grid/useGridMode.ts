@@ -1,17 +1,14 @@
 /**
- * useGridMode — site GRID/ISLAND mode + net-at-meter reading. Subscribes to:
+ * useGridMode — PCC breaker, site GRID/ISLAND mode, and net power at the
+ * POI. Subscribes to:
  *
- *   - `grid_module_*.interconnect_state` (breaker position — GRID/ISLAND is
- *     derived from this; the real device catalog has no separate mode
- *     enum, confirmed against edp-api 2026-09-13)
- *   - `grid_module_*.net_active_power` (net-at-meter reading — poi_meter
- *     has no instantaneous power field, only cumulative energy, so this is
- *     the real source)
+ *   - `protective_relay_*.breaker_closed` / `trip_status` (the SEL relay's
+ *     52A + trip flag — the PCC breaker; GRID/ISLAND derives from it)
+ *   - `poi_meter_*.active_power` (net at the POI, + import / − export)
  *
- * Utility interconnect is IEEE 2030.5 (MirrorUsagePoint compliance
- * reporting via der-control-api → the mock DERMS dispatch_api — see
- * ~/arcnode/ems/readme.md). This hook only reads grid_module; the
- * utility's operating envelope lives in useOperatingEnvelope.
+ * This hook is the single source for the breaker: useGridState reads
+ * breakerState from here. The utility's operating envelope lives in
+ * useOperatingEnvelope.
  */
 
 import { useMemo } from "react";
@@ -24,51 +21,67 @@ export type GridMode = "GRID" | "ISLAND";
 /** Only meaningful when mode === "ISLAND". Handoff rule: ISLAND always
  * carries a qualifier, never rendered bare. */
 export type IslandQualifier = "planned" | "fault";
+export type BreakerState = "OPEN" | "CLOSED" | "TRIPPED";
 
 export interface GridModeState {
-  /** Site mode — GRID (utility-tied) vs ISLAND (utility severed). Derived
-   * from grid_module.interconnect_state (breaker position); the real
-   * device catalog has no separate mode enum. */
+  /** GRID (breaker closed) vs ISLAND (open). */
   mode: GridMode | null;
-  /** Planned (breaker OPEN, ride-through) vs fault (TRIPPED). Null unless islanded. */
+  /** Planned (opened, no trip) vs fault (tripped). Null unless islanded. */
   islandQualifier: IslandQualifier | null;
-  /** Currently active flow direction. null when net-zero or unknown. */
-  direction: "IMP" | "EXP" | null;
   /**
-   * Pre-formatted net-at-meter reading, e.g. "+142 kW IMPORT". Empty
-   * string when net power isn't yet wired. Used by the SLD POI node
-   * primary-value slot. Derived from grid_module.net_active_power.
+   * PCC breaker as three states — collapsing to open/closed would render a
+   * real trip as a plain "OPEN", hiding the distinction that matters most.
    */
+  breakerState: BreakerState | null;
+  /** Net flow direction at the POI; null when ~zero or unknown. */
+  direction: "IMP" | "EXP" | null;
+  /** Pre-formatted net-at-POI reading, e.g. "+142 kW IMPORT"; "" until known. */
   netAtMeter: string;
-  /** Raw grid_module net_active_power in watts, signed (+import/−export). */
+  /** Raw poi_meter active_power in watts, signed (+import/−export). */
   netActivePowerW: number | null;
 }
 
 const DEFAULT_STATE: GridModeState = {
   mode: null,
   islandQualifier: null,
+  breakerState: null,
   direction: null,
   netAtMeter: "",
   netActivePowerW: null,
 };
 
-/**
- * Derive site GRID/ISLAND mode + qualifier from the PCC breaker position.
- * OPEN is an operator/utility-initiated island (ride-through); TRIPPED is
- * an unplanned fault island. Neither maps to a "mode" enum on the real
- * device catalog — interconnect_state is the only real source.
- */
-function fromInterconnectState(
-  raw: string | undefined,
-): { mode: GridMode; islandQualifier: IslandQualifier | null } | null {
-  if (raw === "CLOSED") return { mode: "GRID", islandQualifier: null };
-  if (raw === "OPEN") return { mode: "ISLAND", islandQualifier: "planned" };
-  if (raw === "TRIPPED") return { mode: "ISLAND", islandQualifier: "fault" };
-  return null;
-}
+type Breaker = Pick<GridModeState, "mode" | "islandQualifier" | "breakerState">;
 
 /**
- * Subscribe to grid_module and produce the site's GRID/ISLAND mode.
+ * Derive the PCC breaker from the relay's two flags. A closed breaker is
+ * GRID whatever the (latched) trip flag says; a trip only matters once the
+ * breaker is open, where it separates a fault island from a planned one.
+ * @param closed breaker_closed, undefined until it arrives
+ * @param tripped trip_status, undefined if not (yet) reported
+ * @returns breaker + mode, or null while breaker_closed is unknown
+ */
+export function fromBreaker(closed: boolean | undefined, tripped: boolean | undefined): Breaker | null {
+  if (closed === undefined) return null;
+  if (closed) return { mode: "GRID", islandQualifier: null, breakerState: "CLOSED" };
+  return tripped === true
+    ? { mode: "ISLAND", islandQualifier: "fault", breakerState: "TRIPPED" }
+    : { mode: "ISLAND", islandQualifier: "planned", breakerState: "OPEN" };
+}
+
+/** Watts → "+142 kW IMPORT" / "−1.2 MW EXPORT". */
+function fmtNetAtMeter(watts: number): string {
+  const abs = Math.abs(watts);
+  const magnitude = abs >= 1_000_000 ? `${(abs / 1_000_000).toFixed(1)} MW` : `${(abs / 1000).toFixed(0)} kW`;
+  return `${watts >= 0 ? "+" : "−"}${magnitude} ${watts >= 0 ? "IMPORT" : "EXPORT"}`;
+}
+
+const SOURCES: Readonly<Record<string, readonly string[]>> = {
+  protective_relay: ["breaker_closed", "trip_status"],
+  poi_meter: ["active_power"],
+};
+
+/**
+ * Subscribe to the relay + POI meter and produce the site's grid state.
  * @returns GridModeState (always defined; null fields when not yet wired)
  */
 export function useGridMode(): GridModeState {
@@ -79,78 +92,41 @@ export function useGridMode(): GridModeState {
     if (!view) return [];
     const list: string[] = [];
     for (const [deviceId, device] of Object.entries(view.devices)) {
-      if (device.template !== "grid_module") continue;
       const tpl = view.templates_used[device.template];
-      if (!tpl) continue;
-      for (const meas of ["interconnect_state", "net_active_power"]) {
-        const m = tpl.measurements[meas];
-        if (m)
-          list.push(measurementTopic(siteId, deviceId, meas, m.unit as TopicUnit));
+      for (const meas of SOURCES[device.template] ?? []) {
+        const m = tpl?.measurements[meas];
+        if (m) list.push(measurementTopic(siteId, deviceId, meas, m.unit as TopicUnit));
       }
     }
     return list;
   }, [view, siteId]);
 
-  const messages = useAggregateMeasurements<number | string>(topics);
+  const messages = useAggregateMeasurements<number | boolean>(topics);
 
   return useMemo(() => {
     if (!view || topics.length === 0) return DEFAULT_STATE;
 
-    let interconnectRaw: string | undefined;
+    let closed: boolean | undefined;
+    let tripped: boolean | undefined;
     let netPower: number | null = null;
     for (const topic of topics) {
-      const msg = messages[topic];
-      if (!msg) continue;
-      if (
-        topic.includes("/grid_module") &&
-        topic.endsWith("/interconnect_state/none")
-      ) {
-        if (typeof msg.value === "string") interconnectRaw = msg.value;
-      } else if (
-        topic.includes("/grid_module") &&
-        topic.endsWith("/net_active_power/watts")
-      ) {
-        if (typeof msg.value === "number") netPower = msg.value;
-      }
+      const v = messages[topic]?.value;
+      if (topic.endsWith("/breaker_closed/none") && typeof v === "boolean") closed = v;
+      else if (topic.endsWith("/trip_status/none") && typeof v === "boolean") tripped = v;
+      else if (topic.endsWith("/active_power/watts") && typeof v === "number") netPower = v;
     }
 
-    const interconnect = fromInterconnectState(interconnectRaw);
-    const mode = interconnect?.mode ?? null;
-
-    const netAtMeter = (() => {
-      if (netPower === null) return "";
-      const direction = netPower >= 0 ? "IMPORT" : "EXPORT";
-      const sign = netPower >= 0 ? "+" : "−";
-      const abs = Math.abs(netPower);
-      const magnitude =
-        abs >= 1_000_000
-          ? `${(abs / 1_000_000).toFixed(1)} MW`
-          : `${(abs / 1000).toFixed(0)} kW`;
-      return `${sign}${magnitude} ${direction}`;
-    })();
-
-    if (mode === "ISLAND") {
-      return {
-        mode: "ISLAND",
-        islandQualifier: interconnect?.islandQualifier ?? "fault",
-        direction: null,
-        netAtMeter,
-        netActivePowerW: netPower,
-      };
-    }
-
+    const breaker = fromBreaker(closed, tripped);
+    const islanded = breaker?.mode === "ISLAND";
     const direction: "IMP" | "EXP" | null =
-      netPower === null || Math.abs(netPower) < 100
-        ? null
-        : netPower > 0
-          ? "IMP"
-          : "EXP";
+      islanded || netPower === null || Math.abs(netPower) < 100 ? null : netPower > 0 ? "IMP" : "EXP";
 
     return {
-      mode: mode ?? "GRID",
-      islandQualifier: null,
+      mode: breaker?.mode ?? null,
+      islandQualifier: breaker?.islandQualifier ?? null,
+      breakerState: breaker?.breakerState ?? null,
       direction,
-      netAtMeter,
+      netAtMeter: netPower === null ? "" : fmtNetAtMeter(netPower),
       netActivePowerW: netPower,
     };
   }, [view, topics, messages]);

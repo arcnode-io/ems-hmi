@@ -33,8 +33,8 @@ function fmtPower(watts: number): string {
 export function gridSegment(input: GridSegmentInput): { value: string; sub: string } {
   if (input.mode === "ISLAND") return { value: "ISLAND", sub: "no utility coordination" };
 
-  // Reason: direction comes from grid_module net power, which some DTMs
-  // don't have. Unknown flow defaults to import — a load site's binding side.
+  // Reason: direction comes from POI net power, unknown until the meter
+  // reports. Unknown flow defaults to import — a load site's binding side.
   const exporting = input.direction === "EXP";
   const headroom = exporting ? input.exportHeadroomW : input.importHeadroomW;
   if (headroom !== null && headroom < 0) {
