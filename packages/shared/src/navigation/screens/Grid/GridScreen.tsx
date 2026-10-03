@@ -23,6 +23,7 @@ import { useGridProtection } from "../../../data/grid/useGridProtection";
 import { useDerEventNotice } from "../../../data/grid/useDerEventNotice";
 import { useOperatingEnvelope } from "../../../data/grid/useOperatingEnvelope";
 import { CurtailmentBanner } from "./parts/CurtailmentBanner";
+import { DerRequestBanner } from "./parts/DerRequestBanner";
 import { InterconnectPanel } from "./parts/InterconnectPanel";
 import { EnvelopePanel } from "./parts/EnvelopePanel";
 import { DispatchStatusPanel } from "./parts/DispatchStatusPanel";
@@ -120,6 +121,7 @@ export function GridScreen(): React.ReactElement {
         </View>
       </View>
 
+      <DerRequestBanner state={state} />
       <CurtailmentBanner state={state} envelope={envelope} />
       {state.mode === "ISLAND" ? <IslandNote state={state} /> : null}
       <InterconnectPanel state={state} />
