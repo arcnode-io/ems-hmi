@@ -9,7 +9,6 @@ const COMPUTE_TEMPLATES: ReadonlySet<string> = new Set(["gpu_node", "compute_mod
 // Reason: advisory band starts at 90% of the node PSU cap, read live — never hardcoded.
 const WARN_FRACTION = 0.9;
 
-const pct = (frac: number): string => `${Math.round(frac * 100)}`;
 
 /** Hero strip: throttle count, fleet draw, headroom to P_compute_total_kW. */
 export function heroKpis(
@@ -33,14 +32,17 @@ export function topNodes(
     .map((node) => ({
       deviceId: node.deviceId,
       draw: node.nodePowerW === null ? DASH : `${(node.nodePowerW / 1000).toFixed(1)} kW`,
-      cap: node.capUsed === null ? DASH : `${pct(node.capUsed)}%`,
+      cap: node.gpuCapW === null ? DASH : `${node.gpuCapW.toFixed(0)} W`,
     }));
 }
 
-/** Heatmap cell: % of GPU cap in use; warn when any GPU on the node throttles. */
+/**
+ * Heatmap cell: per-GPU power cap (W). Reason: "% of cap in use" reads 100
+ * even when the cap itself is shed to 200 W — the cap is the honest signal.
+ */
 export function capCell(node: GpuNodeSummary): { label: string; tone: "compute" | "warn" | "idle" } {
-  if (node.capUsed === null) return { label: DASH, tone: "idle" };
-  return { label: pct(node.capUsed), tone: node.throttling > 0 ? "warn" : "compute" };
+  if (node.gpuCapW === null) return { label: DASH, tone: "idle" };
+  return { label: node.gpuCapW.toFixed(0), tone: node.throttling > 0 ? "warn" : "compute" };
 }
 
 /** Histogram input: reported node draws + warn line from the largest reported PSU cap. */

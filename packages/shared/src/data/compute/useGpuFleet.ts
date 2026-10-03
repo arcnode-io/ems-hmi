@@ -38,10 +38,10 @@ export interface GpuNodeSummary {
   nodeLimitW: number | null;
   gpuPowerW: number | null;
   /**
-   * GPU power ÷ summed GPU caps, [0..]. ~1 = running at cap (training at max);
-   * a drop under load = held back. Null until every cap has reported.
+   * Mean per-GPU power cap (gpu_N_power_limit), W — the shed lever: drops
+   * (e.g. 1000 → 200) when the EMS caps GPUs. Null until every cap reports.
    */
-  capUsed: number | null;
+  gpuCapW: number | null;
 }
 
 export interface GpuFleet {
@@ -126,7 +126,7 @@ function sumOrNull(values: readonly (number | null)[]): number | null {
 export function gpuFleetFrom(nodes: readonly GpuNodeReadings[]): GpuFleet {
   const summary = nodes.map((node): GpuNodeSummary => {
     const capsKnown = node.gpuLimitsW.length > 0 && node.gpuLimitsW.every((cap) => cap !== null);
-    const capW = capsKnown ? sumOrNull(node.gpuLimitsW) : null;
+    const capSumW = capsKnown ? sumOrNull(node.gpuLimitsW) : null;
     return {
       deviceId: node.deviceId,
       throttling: node.throttleReasons.filter(
@@ -135,7 +135,7 @@ export function gpuFleetFrom(nodes: readonly GpuNodeReadings[]): GpuFleet {
       nodePowerW: node.nodePowerW,
       nodeLimitW: node.nodeLimitW,
       gpuPowerW: node.gpuPowerW,
-      capUsed: node.gpuPowerW === null || capW === null || capW <= 0 ? null : node.gpuPowerW / capW,
+      gpuCapW: capSumW === null ? null : capSumW / node.gpuLimitsW.length,
     };
   });
   // Reason: per-GPU average only over nodes that have reported, else the

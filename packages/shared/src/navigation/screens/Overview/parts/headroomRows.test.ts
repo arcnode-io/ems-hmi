@@ -45,6 +45,20 @@ describe("runwayRow", () => {
     ]);
   });
 
+  it("reads At reserve floor as a full constraint once SoC is at or under the floor", () => {
+    // Arrange — live: 29.35% of 8 MWh = 2.348 MWh, floor 2.358 → nothing usable left
+    const live = { pack_mwh: 8, reserve_floor_mwh: 2.3579, reserve_floor_pct: 29.47 };
+
+    // Act
+    const rows = [runwayRow(live, 29.35, 0), runwayRow(live, 29.35, 900_000)];
+
+    // Assert
+    expect(rows).toEqual([
+      { val: 1, headline: "At reserve floor", forState: 1 },
+      { val: 1, headline: "At reserve floor", forState: 1 },
+    ]);
+  });
+
   it("is a dash with no BESS sizing or SoC yet", () => {
     // Arrange / Act
     const rows = [runwayRow(null, 50, 1_000_000), runwayRow(BESS, null, 1_000_000)];

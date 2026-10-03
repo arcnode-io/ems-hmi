@@ -47,6 +47,9 @@ export function runwayRow(
   if (usableMwh <= 0) return DASH;
   const aboveFloorMwh = Math.max(0, (socPct / 100) * bess.pack_mwh - bess.reserve_floor_mwh);
   const spent = clamp01(1 - aboveFloorMwh / usableMwh);
+  // Reason: at the floor the gateway stops discharge — that's the binding
+  // constraint, not "idle", whatever the current power reads.
+  if (aboveFloorMwh <= 0) return { val: 1, headline: "At reserve floor", forState: 1 };
   if (bessPowerW === null || bessPowerW <= DISCHARGE_DEADBAND_W) {
     return { val: spent, headline: "Idle", forState: null };
   }

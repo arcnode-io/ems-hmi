@@ -1,8 +1,9 @@
 /**
- * GpuHeatmap — one cell per gpu_node, labelled with % of its GPU caps in use
- * (GPU power ÷ summed gpu_N_power_limit). ~100 = training at max; a drop
- * under load = held back. Compute domain color (Rule 1: load isn't status);
- * only throttling goes warn.
+ * GpuHeatmap — one cell per gpu_node, labelled with its per-GPU power cap
+ * (W, mean gpu_N_power_limit). 1000 = training at full power; a shed shows
+ * as the cap dropping (e.g. 200). Compute domain color (Rule 1: load isn't
+ * status); only throttling goes warn. No fill bar: the template carries no
+ * cap range yet to scale against.
  */
 
 import React from "react";
@@ -44,20 +45,6 @@ function Cell({ node }: { node: GpuNodeSummary }): React.ReactElement {
         overflow: "hidden",
       }}
     >
-      {/* Cap-in-use fill bar at top — reads as % visually */}
-      <View
-        style={{
-          position: "absolute",
-          left: 3,
-          top: 3,
-          height: 3,
-          borderRadius: 1.5,
-          backgroundColor: idle ? t.textFaint : "#fff",
-          opacity: 0.85,
-          width: `${Math.min(1, node.capUsed ?? 0) * 100}%`,
-          maxWidth: "90%",
-        }}
-      />
       <View style={{ position: "absolute", bottom: 3, left: 0, right: 0, alignItems: "center" }}>
         <Text
           style={[
@@ -108,7 +95,7 @@ export function GpuHeatmap({ fleet }: { fleet: GpuFleet }): React.ReactElement {
           { fontSize: 9, color: t.textSoft, marginTop: SPACE[1], letterSpacing: 0.1, textTransform: "uppercase" },
         ]}
       >
-        {fleet.nodes.length} nodes · % of GPU cap in use
+        {fleet.nodes.length} nodes · per-GPU power cap (W)
       </Text>
     </View>
   );

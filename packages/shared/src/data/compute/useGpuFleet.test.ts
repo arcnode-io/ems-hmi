@@ -23,8 +23,8 @@ describe("gpuFleetFrom", () => {
     // Assert
     expect(fleet).toEqual({
       nodes: [
-        { deviceId: "a", throttling: 0, nodePowerW: 10_000, nodeLimitW: 26_400, gpuPowerW: 8_000, capUsed: 1 },
-        { deviceId: "b", throttling: 1, nodePowerW: 11_000, nodeLimitW: null, gpuPowerW: 8_400, capUsed: null },
+        { deviceId: "a", throttling: 0, nodePowerW: 10_000, nodeLimitW: 26_400, gpuPowerW: 8_000, gpuCapW: 4_000 },
+        { deviceId: "b", throttling: 1, nodePowerW: 11_000, nodeLimitW: null, gpuPowerW: 8_400, gpuCapW: null },
       ],
       gpuCount: 4,
       throttlingCount: 1,

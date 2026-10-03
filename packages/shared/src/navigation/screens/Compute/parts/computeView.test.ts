@@ -3,7 +3,7 @@ import type { GpuFleet, GpuNodeSummary } from "../../../../data/compute/useGpuFl
 import type { ActiveAlarm } from "../../../../data/alarms/useAlarms";
 
 function node(deviceId: string, over: Partial<GpuNodeSummary> = {}): GpuNodeSummary {
-  return { deviceId, throttling: 0, nodePowerW: 10_500, nodeLimitW: 26_400, gpuPowerW: 8_000, capUsed: 1, ...over };
+  return { deviceId, throttling: 0, nodePowerW: 10_500, nodeLimitW: 26_400, gpuPowerW: 8_000, gpuCapW: 1000, ...over };
 }
 
 function fleetOf(nodes: GpuNodeSummary[]): GpuFleet {
@@ -28,11 +28,11 @@ describe("heroKpis", () => {
 });
 
 describe("topNodes", () => {
-  it("ranks by node draw, unreported last, with % of GPU cap", () => {
+  it("ranks by node draw, unreported last, with the per-GPU cap", () => {
     // Arrange
     const fleet = fleetOf([
-      node("a", { nodePowerW: 10_000, capUsed: 0.95 }),
-      node("b", { nodePowerW: null, capUsed: null }),
+      node("a", { nodePowerW: 10_000, gpuCapW: 200 }),
+      node("b", { nodePowerW: null, gpuCapW: null }),
       node("c", { nodePowerW: 11_000 }),
     ]);
 
@@ -41,21 +41,21 @@ describe("topNodes", () => {
 
     // Assert
     expect(rows).toEqual([
-      { deviceId: "c", draw: "11.0 kW", cap: "100%" },
-      { deviceId: "a", draw: "10.0 kW", cap: "95%" },
+      { deviceId: "c", draw: "11.0 kW", cap: "1000 W" },
+      { deviceId: "a", draw: "10.0 kW", cap: "200 W" },
     ]);
   });
 });
 
 describe("capCell", () => {
-  it("labels % of cap, goes warn on throttling, idle until reported", () => {
-    // Arrange / Act
-    const cells = [capCell(node("a")), capCell(node("b", { throttling: 2, capUsed: 0.6 })), capCell(node("c", { capUsed: null }))];
+  it("labels the per-GPU cap (W), goes warn on throttling, idle until reported", () => {
+    // Arrange / Act — b: shed to 200 W/GPU with SW_POWER_CAP on 2 GPUs
+    const cells = [capCell(node("a")), capCell(node("b", { throttling: 2, gpuCapW: 200 })), capCell(node("c", { gpuCapW: null }))];
 
     // Assert
     expect(cells).toEqual([
-      { label: "100", tone: "compute" },
-      { label: "60", tone: "warn" },
+      { label: "1000", tone: "compute" },
+      { label: "200", tone: "warn" },
       { label: "—", tone: "idle" },
     ]);
   });

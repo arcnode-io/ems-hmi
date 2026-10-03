@@ -1,5 +1,5 @@
 /**
- * TopNodes — top 5 gpu_nodes by draw, with % of GPU cap in use. Read-only.
+ * TopNodes — top 5 gpu_nodes by draw, with the per-GPU power cap. Read-only.
  */
 
 import React from "react";
