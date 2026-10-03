@@ -126,3 +126,16 @@ export function pointsToPolyline(
   }
   return parts.join(" ");
 }
+
+/**
+ * Y-axis tick label that fits the PAD_L gutter (~5 chars). Reason: a flat
+ * toFixed(1) clipped "1176.0" to "176.0" — a wrong number, not just ugly.
+ * @example formatTick(1176.4) // "1176"; formatTick(12_500) // "12.5k"
+ */
+export function formatTick(value: number): string {
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;
+  if (abs >= 10_000) return `${(value / 1000).toFixed(1)}k`;
+  if (abs >= 1000) return value.toFixed(0);
+  return value.toFixed(1);
+}

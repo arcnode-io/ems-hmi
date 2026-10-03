@@ -96,3 +96,21 @@ describe("gpuFleetFilter", () => {
     expect(filter).toBe("sites/s1/devices/+/measurements/#");
   });
 });
+
+describe("gpuFleetFrom cold start", () => {
+  it("keeps total draw unknown until every node has reported, so a partial sum never reads as a ramp", () => {
+    // Arrange — 2 nodes, only one reported yet
+    const base = { nodeLimitW: null, gpuPowerW: null, gpuLimitsW: [], throttleReasons: [] };
+    const nodes = [
+      { ...base, deviceId: "a", nodePowerW: 10_000 },
+      { ...base, deviceId: "b", nodePowerW: null },
+    ];
+
+    // Act
+    const partial = gpuFleetFrom(nodes).totalDrawW;
+    const full = gpuFleetFrom([nodes[0]!, { ...base, deviceId: "b", nodePowerW: 11_000 }]).totalDrawW;
+
+    // Assert
+    expect([partial, full]).toEqual([null, 21_000]);
+  });
+});

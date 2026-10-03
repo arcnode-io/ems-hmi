@@ -23,7 +23,9 @@ import { GpuClusterStrip } from "./parts/GpuClusterStrip";
 import { StrandedCapacity } from "./parts/StrandedCapacity";
 import { KpiStrip } from "./parts/KpiStrip";
 import { AlarmsPanel } from "./parts/AlarmsPanel";
-import { EnergyChart } from "./parts/EnergyChart";
+import { PowerBalancePanel } from "./parts/PowerBalancePanel";
+import { useFleetKpis } from "../../../data/kpis/useFleetKpis";
+import { usePowerBalance } from "../../../data/history/usePowerBalance";
 
 export function OverviewScreen(): React.ReactElement {
   const t = useTheme();
@@ -32,6 +34,12 @@ export function OverviewScreen(): React.ReactElement {
   const gpuFleet = useGpuFleet();
   const gridState = useGridState();
   const envelope = useOperatingEnvelope();
+  const kpis = useFleetKpis();
+  const balance = usePowerBalance({
+    gridW: kpis.grid.powerKw === null ? null : kpis.grid.powerKw * 1000,
+    bessW: kpis.bess.powerW,
+    gpuW: gpuFleet.totalDrawW,
+  });
   // Reason: constitution rule 3.15 — operator-owned hardware count.
   // Leaf devices (utility-side feeds, sub-components) are surfaced
   // contextually elsewhere and shouldn't pad this number.
@@ -59,13 +67,14 @@ export function OverviewScreen(): React.ReactElement {
     >
       <View>
         <HealthBar headline={headline} detail={detail} accentColor={accent} />
-        {/* Reason: banner above the GPU strip — "site curtailed" reads straight into "GPUs unaffected". */}
+        {/* Reason: story order — the utility's ask, the balance proving the
+            battery covered it and GPU draw held, then the fleet detail. */}
         <CurtailmentBanner state={gridState} envelope={envelope} />
+        <PowerBalancePanel balance={balance} />
         <GpuClusterStrip fleet={gpuFleet} />
         <StrandedCapacity fleet={gpuFleet} />
         <KpiStrip />
         <AlarmsPanel />
-        <EnergyChart />
       </View>
     </ScrollView>
   );

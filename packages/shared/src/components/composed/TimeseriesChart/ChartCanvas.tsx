@@ -16,6 +16,7 @@ import { useTheme } from "../../../theme/ThemeProvider";
 import { seriesColor } from "../ChartRenderer/helpers";
 import {
   PAD_L,
+  formatTick,
   PAD_R,
   PAD_T,
   numericX,
@@ -82,7 +83,7 @@ export function ChartCanvas({
               fontFamily={t.fontLabel}
               textAnchor="end"
             >
-              {value.toFixed(1)}
+              {formatTick(value)}
             </SvgText>
           );
         })}

@@ -147,7 +147,11 @@ export function gpuFleetFrom(nodes: readonly GpuNodeReadings[]): GpuFleet {
     nodes: summary,
     gpuCount: nodes.reduce((acc, node) => acc + node.throttleReasons.length, 0),
     throttlingCount: summary.reduce((acc, node) => acc + node.throttling, 0),
-    totalDrawW: sumOrNull(nodes.map((node) => node.nodePowerW)),
+    // Reason: a partial sum is a wrong number — on cold start it would read
+    // as a load ramp. Unknown until every node has reported.
+    totalDrawW: nodes.some((node) => node.nodePowerW === null)
+      ? null
+      : sumOrNull(nodes.map((node) => node.nodePowerW)),
     perGpuW: gpuPowerW === null || reportingGpus === 0 ? null : gpuPowerW / reportingGpus,
   };
 }

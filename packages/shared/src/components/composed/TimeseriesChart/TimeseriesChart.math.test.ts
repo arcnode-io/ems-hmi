@@ -2,6 +2,7 @@
 
 import {
   numericX,
+  formatTick,
   computeScale,
   pxToDataX,
   nearestPointIndex,
@@ -55,5 +56,18 @@ describe("nearestPointIndex", () => {
 
   it("returns -1 for an empty series", () => {
     expect(nearestPointIndex([], 5)).toBe(-1);
+  });
+});
+
+describe("formatTick", () => {
+  it("keeps y-axis ticks short enough for the left gutter", () => {
+    // Arrange — "1176.0" was clipped to "176.0" in the 36 px gutter
+    const values = [0.25, 56.04, -56.04, 1176.4, 12_500, -1_120_000];
+
+    // Act
+    const ticks = values.map(formatTick);
+
+    // Assert
+    expect(ticks).toEqual(["0.3", "56.0", "-56.0", "1176", "12.5k", "-1.1M"]);
   });
 });
