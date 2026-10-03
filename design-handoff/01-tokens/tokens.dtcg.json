@@ -129,7 +129,7 @@
       "$description": "Thermal measurements — teal"
     },
     "colorGrid": {
-      "$value": "#7a9e87",
+      "$value": "#b07a98",
       "$type": "color",
       "$description": "Grid import/export — sage"
     },
@@ -317,7 +317,7 @@
       "$description": "Thermal measurements — teal"
     },
     "colorGrid": {
-      "$value": "#4a7c5f",
+      "$value": "#8a4a6a",
       "$type": "color",
       "$description": "Grid import/export — sage"
     },

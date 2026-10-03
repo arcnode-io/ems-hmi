@@ -55,7 +55,7 @@ export const SOVEREIGN: Theme = {
   colorBess: "#4a7c5f",
   colorCompute: "#4a7aaa",
   colorThermal: "#4a9a9a",
-  colorGrid: "#7a9e87",
+  colorGrid: "#b07a98", // mauve — distinct from colorBess green (they cross on the power-balance chart)
   colorPv: "#d4a849",
   colorRevenue: "#b89a5e",
 

@@ -363,7 +363,7 @@ export const SOVEREIGN: Theme = {
   colorBess:    '#4a7c5f',
   colorCompute: '#4a7aaa',
   colorThermal: '#4a9a9a',
-  colorGrid:    '#7a9e87',
+  colorGrid:    '#b07a98',
   colorPv:      '#d4a849',
   colorRevenue: '#b89a5e',
 
@@ -460,7 +460,7 @@ export const SOLARPUNK: Theme = {
   colorBess:    '#2d5a44',
   colorCompute: '#3a5a8a',
   colorThermal: '#2d7a7a',
-  colorGrid:    '#4a7c5f',
+  colorGrid:    '#8a4a6a',
   colorPv:      '#a87818',
   colorRevenue: '#7a5e2a',
 

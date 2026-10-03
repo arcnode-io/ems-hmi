@@ -55,7 +55,7 @@ export const SOLARPUNK: Theme = {
   colorBess: "#2d5a44",
   colorCompute: "#3a5a8a",
   colorThermal: "#2d7a7a",
-  colorGrid: "#4a7c5f",
+  colorGrid: "#8a4a6a", // mauve — distinct from colorBess green (they cross on the power-balance chart)
   colorPv: "#a87818",
   colorRevenue: "#7a5e2a",
 
