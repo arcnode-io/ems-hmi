@@ -6,9 +6,9 @@
  * Composes useGridMode (mode, island qualifier, breaker, net at the POI) with:
  *
  *   - `grid_module_*.grid_frequency`
- *   - `der_dispatch_*.target_active_power` / `event_active` (utility
- *     curtailment: the event-scoped cap and whether one is active —
- *     confirmed against backend-engineer 2026-09-13, no new channel)
+ *   - `der_dispatch_*.event_active` / `der_event_state` (is a utility
+ *     curtailment on). The utility's limit itself is the operating
+ *     envelope (useOperatingEnvelope), not target_active_power.
  *   - `pv_inverter_*.active_power` (summed — generation is never signed,
  *     so no sign-convention risk the way BESS/site-load would carry)
  *
@@ -56,9 +56,8 @@ export interface GridState {
   frequencyHz: number | null;
   /** Net power at the meter, watts signed (+import / −export). */
   netActivePowerW: number | null;
-  /** Utility curtailment: active flag + the event-scoped cap (watts). */
+  /** Utility curtailment event active (der_dispatch.event_active). */
   curtailmentActive: boolean | null;
-  curtailmentCapW: number | null;
   /** der_dispatch's real dispatch_state enum. Null until a value arrives. */
   derDispatchState: DerDispatchState | null;
   /** Summed pv_inverter active_power, watts. Null when no PV is registered. */
@@ -98,7 +97,6 @@ export function useGridState(): GridState {
     return [
       ...topicsFor(view, siteId, "grid_module", ["grid_frequency"]),
       ...topicsFor(view, siteId, "der_dispatch", [
-        "target_active_power",
         "event_active",
         "der_event_state",
       ]),
@@ -111,7 +109,6 @@ export function useGridState(): GridState {
   return useMemo(() => {
     let frequencyHz: number | null = null;
     let curtailmentActive: boolean | null = null;
-    let curtailmentCapW: number | null = null;
     let pvOutputW: number | null = null;
     let derDispatchState: DerDispatchState | null = null;
 
@@ -120,8 +117,6 @@ export function useGridState(): GridState {
       if (!msg) continue;
       if (topic.endsWith("/grid_frequency/hertz")) {
         if (typeof msg.value === "number") frequencyHz = msg.value;
-      } else if (topic.endsWith("/target_active_power/watts")) {
-        if (typeof msg.value === "number") curtailmentCapW = msg.value;
       } else if (topic.endsWith("/event_active/none")) {
         if (typeof msg.value === "boolean") curtailmentActive = msg.value;
       } else if (topic.endsWith("/der_event_state/none")) {
@@ -142,7 +137,6 @@ export function useGridState(): GridState {
       frequencyHz,
       netActivePowerW: gridMode.netActivePowerW,
       curtailmentActive,
-      curtailmentCapW: curtailmentActive ? curtailmentCapW : null,
       pvOutputW,
       derDispatchState,
     };

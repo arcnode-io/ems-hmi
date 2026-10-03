@@ -27,11 +27,15 @@ export interface GridModuleRow {
   reading: { v: string; l: string };
 }
 
+type Reading = GridModuleRow["reading"];
+
+/** Numeric reading formatted, or an enum label passed through under `label`. */
+export type RosterSpec =
+  | { role: string; measurement: string; format: (v: number) => Reading }
+  | { role: string; measurement: string; label: string };
+
 /** Per-template: which measurement to show, and how to format it. */
-const ROSTER_SPEC: Record<
-  string,
-  { role: string; measurement: string; format: (v: number) => { v: string; l: string } }
-> = {
+export const ROSTER_SPEC: Record<string, RosterSpec> = {
   grid_module: {
     role: "Site interconnect rollup",
     measurement: "net_active_power",
@@ -42,10 +46,12 @@ const ROSTER_SPEC: Record<
     measurement: "import_limit",
     format: (w) => ({ v: `${(w / 1_000_000).toFixed(2)} MW`, l: "import limit" }),
   },
+  // Reason: not target_active_power — upstream it carries a reduction
+  // magnitude, not a setpoint, until backend fixes it (2026-10-02).
   der_dispatch: {
     role: "Utility DER dispatch feed",
-    measurement: "target_active_power",
-    format: (w) => ({ v: `${(Math.abs(w) / 1_000_000).toFixed(2)} MW`, l: "target" }),
+    measurement: "der_event_state",
+    label: "event",
   },
   pv_inverter: {
     role: "PV string inverter",
@@ -53,6 +59,14 @@ const ROSTER_SPEC: Record<
     format: (w) => ({ v: `${(w / 1_000_000).toFixed(2)} MW`, l: "output" }),
   },
 };
+
+/** One roster cell from a raw value; a value of the wrong kind reads as a dash. */
+export function rosterReading(spec: RosterSpec, value: number | string | boolean | undefined): Reading {
+  if ("label" in spec) {
+    return typeof value === "string" ? { v: value, l: spec.label } : { v: "—", l: spec.measurement };
+  }
+  return typeof value === "number" ? spec.format(value) : { v: "—", l: spec.measurement };
+}
 
 /**
  * Build the Grid page's device roster from a fixed template-name allowlist.
@@ -82,7 +96,7 @@ export function useGridModulesRoster(): GridModuleRow[] {
     return list;
   }, [view, entries, siteId]);
 
-  const messages = useAggregateMeasurements<number>(topics);
+  const messages = useAggregateMeasurements<number | string | boolean>(topics);
 
   return useMemo(() => {
     if (!view) return [];
@@ -93,9 +107,7 @@ export function useGridModulesRoster(): GridModuleRow[] {
       const topic = meas
         ? measurementTopic(siteId, deviceId, spec.measurement, meas.unit as TopicUnit)
         : null;
-      const msg = topic ? messages[topic] : undefined;
-      const reading =
-        msg && typeof msg.value === "number" ? spec.format(msg.value) : { v: "—", l: spec.measurement };
+      const reading = rosterReading(spec, topic ? messages[topic]?.value : undefined);
       return {
         id: deviceId,
         displayName: device.display_name ?? deviceId,

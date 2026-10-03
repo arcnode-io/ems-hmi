@@ -16,6 +16,7 @@ import { useTopologyView } from "../../../data/topology/useTopologyView";
 import { useAlarms } from "../../../data/alarms/useAlarms";
 import { useGpuFleet } from "../../../data/compute/useGpuFleet";
 import { useGridState } from "../../../data/grid/useGridState";
+import { useOperatingEnvelope } from "../../../data/grid/useOperatingEnvelope";
 import { CurtailmentBanner } from "../Grid/parts/CurtailmentBanner";
 import { HealthBar } from "./parts/HealthBar";
 import { GpuClusterStrip } from "./parts/GpuClusterStrip";
@@ -30,6 +31,7 @@ export function OverviewScreen(): React.ReactElement {
   const alarms = useAlarms();
   const gpuFleet = useGpuFleet();
   const gridState = useGridState();
+  const envelope = useOperatingEnvelope();
   // Reason: constitution rule 3.15 — operator-owned hardware count.
   // Leaf devices (utility-side feeds, sub-components) are surfaced
   // contextually elsewhere and shouldn't pad this number.
@@ -58,7 +60,7 @@ export function OverviewScreen(): React.ReactElement {
       <View>
         <HealthBar headline={headline} detail={detail} accentColor={accent} />
         {/* Reason: banner above the GPU strip — "site curtailed" reads straight into "GPUs unaffected". */}
-        <CurtailmentBanner state={gridState} />
+        <CurtailmentBanner state={gridState} envelope={envelope} />
         <GpuClusterStrip fleet={gpuFleet} />
         <StrandedCapacity fleet={gpuFleet} />
         <KpiStrip />

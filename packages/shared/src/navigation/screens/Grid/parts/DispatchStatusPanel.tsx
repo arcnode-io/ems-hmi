@@ -1,6 +1,7 @@
 /**
- * DispatchStatusPanel — der_dispatch's state + the curtailment cap when an
- * event is active. Shown alongside EnvelopePanel.
+ * DispatchStatusPanel — der_dispatch's state. The utility's limit lives in
+ * EnvelopePanel; target_active_power isn't shown until upstream makes it a
+ * real setpoint.
  */
 
 import React from "react";
@@ -23,19 +24,6 @@ export function DispatchStatusPanel({ state }: { state: GridState }): React.Reac
                 : "default"
         }
       />
-      {state.curtailmentActive ? (
-        <GridRow
-          k="Curtailment cap"
-          v={
-            state.curtailmentCapW === null
-              ? "—"
-              : (Math.abs(state.curtailmentCapW) / 1_000_000).toFixed(2)
-          }
-          u={state.curtailmentCapW === null ? "" : "MW"}
-          tone="warn"
-          hint="active event"
-        />
-      ) : null}
     </GridPanel>
   );
 }

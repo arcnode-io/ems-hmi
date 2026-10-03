@@ -120,7 +120,7 @@ export function GridScreen(): React.ReactElement {
         </View>
       </View>
 
-      <CurtailmentBanner state={state} />
+      <CurtailmentBanner state={state} envelope={envelope} />
       {state.mode === "ISLAND" ? <IslandNote state={state} /> : null}
       <InterconnectPanel state={state} />
       <EnvelopePanel envelope={envelope} islanded={state.mode === "ISLAND"} />

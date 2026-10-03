@@ -1,10 +1,8 @@
 /**
  * CurtailmentBanner — shown only while der_dispatch.event_active is true.
- * The cap itself (target_active_power) renders in DispatchStatusPanel;
- * this banner is just the "an event is on" callout. Mirrors
- * grid-features.jsx CurtailmentBanner, minus fields with no real source
- * yet (reductionPct, BESS-covers-it / GPU-impact reassurances — those
- * need the historical/aggregation work still pending on the backend side).
+ * States the utility's ask as the envelope import limit, beside the POI
+ * meter (curtailmentLine). Not target_active_power: upstream it currently
+ * carries a reduction magnitude, not a setpoint (backend, 2026-10-02).
  */
 
 import React from "react";
@@ -13,12 +11,18 @@ import { useTheme } from "../../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
 import type { GridState } from "../../../../data/grid/useGridState";
+import type { OperatingEnvelope } from "../../../../data/grid/useOperatingEnvelope";
+import { curtailmentLine } from "./curtailmentLine";
 
-export function CurtailmentBanner({ state }: { state: GridState }): React.ReactElement | null {
+export function CurtailmentBanner({
+  state,
+  envelope,
+}: {
+  state: GridState;
+  envelope: OperatingEnvelope;
+}): React.ReactElement | null {
   const t = useTheme();
   if (!state.curtailmentActive) return null;
-  const capMw =
-    state.curtailmentCapW === null ? null : Math.abs(state.curtailmentCapW) / 1_000_000;
 
   return (
     <View
@@ -42,7 +46,7 @@ export function CurtailmentBanner({ state }: { state: GridState }): React.ReactE
         Curtailment active
       </Text>
       <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.text, flex: 1 }]}>
-        {capMw === null ? "Utility has requested a cap." : `Held under a ${capMw.toFixed(2)} MW cap.`}
+        {curtailmentLine(envelope.importLimitW, state.netActivePowerW)}
       </Text>
     </View>
   );
