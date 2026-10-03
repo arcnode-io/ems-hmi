@@ -1,7 +1,7 @@
 /**
  * PowerBalancePanel — Overview's story chart: grid import at the POI,
- * battery discharge, GPU draw over time. During a curtailment the grid line
- * drops, the battery line rises to meet it, and GPU draw stays flat.
+ * battery discharge, compute draw over time. During a curtailment the grid
+ * line drops, the battery line rises to meet it, and compute draw stays flat.
  * Replaces the mock 24h EnergyChart.
  */
 
@@ -15,7 +15,7 @@ import { balanceChart } from "./balanceChart";
 
 export function PowerBalancePanel({ balance }: { balance: PowerBalance }): React.ReactElement {
   const t = useTheme();
-  const chart = balanceChart(balance, { grid: t.colorGrid, bess: t.colorBess, gpu: t.colorCompute });
+  const chart = balanceChart(balance, { grid: t.colorGrid, bess: t.colorBess, compute: t.colorCompute });
   return (
     <View dataSet={{ comp: "PowerBalancePanel" }} style={{ marginHorizontal: SPACE[4], marginTop: SPACE[3] }}>
       <TimeseriesChart

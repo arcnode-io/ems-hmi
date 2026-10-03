@@ -1,8 +1,8 @@
 /**
  * usePowerBalance — the Overview's power-balance series: grid import at the
- * POI, BESS discharge, GPU draw. History from analyst-server seeds the
+ * POI, BESS discharge, compute draw. History from analyst-server seeds the
  * window; live values append every SAMPLE_MS. The story it tells: during a
- * curtailment, grid → ~0, battery rises to meet it, GPU draw stays flat.
+ * curtailment, grid → ~0, battery rises to meet it, compute draw stays flat.
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -19,7 +19,7 @@ const SAMPLE_MS = 2000;
 export interface LiveBalance {
   gridW: number | null;
   bessW: number | null;
-  gpuW: number | null;
+  computeW: number | null;
 }
 
 
@@ -37,7 +37,7 @@ export function useLiveSamples(live: LiveBalance): BalanceSeries {
       setSeries((prev) => ({
         grid: appendPoint(prev.grid, { x: now, y: cur.gridW }, WINDOW_MS),
         bess: appendPoint(prev.bess, { x: now, y: cur.bessW }, WINDOW_MS),
-        gpu: appendPoint(prev.gpu, { x: now, y: cur.gpuW }, WINDOW_MS),
+        compute: appendPoint(prev.compute, { x: now, y: cur.computeW }, WINDOW_MS),
       }));
     }, SAMPLE_MS);
     return (): void => clearInterval(timer);
@@ -77,7 +77,7 @@ export function usePowerBalance(live: LiveBalance): PowerBalance {
     series: {
       grid: stitchHistory(history.series.grid, samples.grid),
       bess: stitchHistory(history.series.bess, samples.bess),
-      gpu: stitchHistory(history.series.gpu, samples.gpu),
+      compute: stitchHistory(history.series.compute, samples.compute),
     },
     hasHistory: history.ok,
   };

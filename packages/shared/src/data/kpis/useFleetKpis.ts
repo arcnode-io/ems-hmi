@@ -6,6 +6,7 @@
  * Aggregations (initial set; more land as device templates grow):
  *  - FLEET SoC   — average of every bess_rack `state_of_charge`
  *  - BESS power  — sum of every bess_module `active_power`
+ *  - Compute     — sum of every compute_module `total_power`
  *  - GRID        — label from grid_tap `active_power` sign + frequency
  *  - SITE        — `Nominal` when alarms = 0, otherwise highest-severity label
  *
@@ -32,6 +33,8 @@ export interface FleetKpis {
   fleetSoc: { value: number | null };
   /** Summed bess_module active_power, W (+ discharge / - charge). */
   bess: { powerW: number | null };
+  /** Summed compute_module total_power (PDU input — container total), W. */
+  compute: { powerW: number | null };
   /**
    * Grid telemetry. `label` is the direction; `powerKw` is the magnitude
    * (positive = import / consuming from grid; negative = export / pushing back).
@@ -68,6 +71,12 @@ function topicsForMeasurement(
   return matches;
 }
 
+/** Sum non-null numbers; null if none have reported. */
+function sumOrNull(values: (number | null)[]): number | null {
+  const present = values.filter((v): v is number => v !== null);
+  return present.length === 0 ? null : present.reduce((a, b) => a + b, 0);
+}
+
 /**
  * Average non-null numbers; null if no contributing values yet.
  */
@@ -93,6 +102,10 @@ export function useFleetKpis(): FleetKpis {
     () => topicsForMeasurement(view, siteId, "bess_module", "state_of_charge"),
     [view, siteId],
   );
+  const computePowerTopics = useMemo(
+    () => topicsForMeasurement(view, siteId, "compute_module", "total_power"),
+    [view, siteId],
+  );
   const bessPowerTopics = useMemo(
     () => topicsForMeasurement(view, siteId, "bess_module", "active_power"),
     [view, siteId],
@@ -108,17 +121,17 @@ export function useFleetKpis(): FleetKpis {
 
   const socMessages = useAggregateMeasurements<number>(socTopics);
   const bessPowerMessages = useAggregateMeasurements<number>(bessPowerTopics);
+  const computePowerMessages = useAggregateMeasurements<number>(computePowerTopics);
   const gridPowerMessages = useAggregateMeasurements<number>(gridPowerTopics);
   const gridFreqMessages = useAggregateMeasurements<number>(gridFreqTopics);
 
   const fleetSocAvg = avg(
     socTopics.map((t) => socMessages[t]?.value ?? null),
   );
-  const bessPowers = bessPowerTopics
-    .map((t) => bessPowerMessages[t]?.value ?? null)
-    .filter((v): v is number => v !== null);
-  const bessPowerW =
-    bessPowers.length === 0 ? null : bessPowers.reduce((a, b) => a + b, 0);
+  const bessPowerW = sumOrNull(bessPowerTopics.map((t) => bessPowerMessages[t]?.value ?? null));
+  // Reason: unknown until every module reports — a partial sum would read as a dip.
+  const computePowers = computePowerTopics.map((t) => computePowerMessages[t]?.value ?? null);
+  const computePowerW = computePowers.includes(null) ? null : sumOrNull(computePowers);
   // Grid: net power at the POI meter. Positive = power flowing INTO the
   // site from the grid (Import). Negative = export.
   const gridPower = gridPowerTopics
@@ -148,6 +161,7 @@ export function useFleetKpis(): FleetKpis {
     site: { label: siteLabel },
     fleetSoc: { value: fleetSocAvg },
     bess: { powerW: bessPowerW },
+    compute: { powerW: computePowerW },
     grid: {
       label: gridLabel,
       powerKw: gridPower === undefined ? null : gridPower / 1000,

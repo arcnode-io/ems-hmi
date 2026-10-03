@@ -101,3 +101,19 @@ describe("demo topology — GPU fleet", () => {
     }).toEqual({ nodes: 32, gpusPerNode: 8, capsPerNode: 8, labels: ["NA"] });
   });
 });
+
+describe("demo topology — power balance", () => {
+  it("gives compute_module a total_power the chart's compute line reads", () => {
+    // Arrange
+    const view = TopologyView.parse(VIEW);
+
+    // Act
+    const total = view.templates_used.compute_module?.measurements.total_power;
+
+    // Assert
+    expect({
+      unit: total?.unit,
+      nominalKw: (total?.bounds?.nominal ?? 0) / 1000,
+    }).toEqual({ unit: "watts", nominalKw: 345 });
+  });
+});

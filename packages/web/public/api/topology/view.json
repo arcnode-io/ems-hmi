@@ -500,6 +500,20 @@
             "alarm_max": 600000
           },
           "values": null
+        },
+        "total_power": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Module Total Power",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 340000,
+            "max": 350000,
+            "nominal": 345000
+          },
+          "thresholds": null,
+          "values": null
         }
       },
       "commands": {}

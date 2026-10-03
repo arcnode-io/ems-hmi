@@ -35,12 +35,12 @@ export async function loadHistory(
   const summed = async (template: string, measurement: string): Promise<TimePoint[]> =>
     sumSeries(await Promise.all(idsOf(view, template).map((id) => query(id, measurement))));
   try {
-    const [grid, bess, gpu] = await Promise.all([
+    const [grid, bess, compute] = await Promise.all([
       summed("poi_meter", "active_power"),
       summed("bess_module", "active_power"),
       summed("compute_module", "total_power"),
     ]);
-    return { ok: true, series: { grid, bess, gpu } };
+    return { ok: true, series: { grid, bess, compute } };
   } catch {
     return { ok: false, series: EMPTY_BALANCE };
   }

@@ -38,7 +38,7 @@ export function OverviewScreen(): React.ReactElement {
   const balance = usePowerBalance({
     gridW: kpis.grid.powerKw === null ? null : kpis.grid.powerKw * 1000,
     bessW: kpis.bess.powerW,
-    gpuW: gpuFleet.totalDrawW,
+    computeW: kpis.compute.powerW,
   });
   // Reason: constitution rule 3.15 — operator-owned hardware count.
   // Leaf devices (utility-side feeds, sub-components) are surfaced

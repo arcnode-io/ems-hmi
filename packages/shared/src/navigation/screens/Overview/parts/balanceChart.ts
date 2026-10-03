@@ -7,7 +7,7 @@ import type { TimeseriesSeries } from "../../../../components/composed/Timeserie
 export interface BalanceColors {
   grid: string;
   bess: string;
-  gpu: string;
+  compute: string;
 }
 
 const toKw = (points: readonly TimePoint[]): TimePoint[] =>
@@ -18,13 +18,13 @@ export function balanceChart(
   balance: PowerBalance,
   colors: BalanceColors,
 ): { title: string; series: TimeseriesSeries[] } {
-  const { grid, bess, gpu } = balance.series;
+  const { grid, bess, compute } = balance.series;
   return {
     title: `Power balance · ${balance.hasHistory ? "last 15 min" : "since page load"}`,
     series: [
       { label: "Grid import", color: colors.grid, points: toKw(grid) },
       { label: "Battery discharge", color: colors.bess, points: toKw(bess) },
-      { label: "GPU draw", color: colors.gpu, points: toKw(gpu) },
+      { label: "Compute draw", color: colors.compute, points: toKw(compute) },
     ],
   };
 }

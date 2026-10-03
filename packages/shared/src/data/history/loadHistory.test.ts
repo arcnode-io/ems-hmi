@@ -36,7 +36,7 @@ describe("loadHistory", () => {
     const at = Date.parse("2026-10-02T10:00:00Z");
     expect({ ...history, queried: calls.length, bucket: new URL(calls[0] ?? "", "http://x").searchParams.get("bucket_s") }).toEqual({
       ok: true,
-      series: { grid: [{ x: at, y: 20 }], bess: [{ x: at, y: 1_120_000 }], gpu: [{ x: at, y: 1_029_000 }] },
+      series: { grid: [{ x: at, y: 20 }], bess: [{ x: at, y: 1_120_000 }], compute: [{ x: at, y: 1_029_000 }] },
       queried: 4,
       bucket: "10",
     });
@@ -50,6 +50,6 @@ describe("loadHistory", () => {
     const history = await loadHistory(VIEW, "", failing, 0);
 
     // Assert
-    expect(history).toEqual({ ok: false, series: { grid: [], bess: [], gpu: [] } });
+    expect(history).toEqual({ ok: false, series: { grid: [], bess: [], compute: [] } });
   });
 });

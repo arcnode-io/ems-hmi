@@ -15,11 +15,14 @@ export interface BalanceSeries {
   grid: TimePoint[];
   /** Summed bess_module active_power, W (+discharge). */
   bess: TimePoint[];
-  /** GPU fleet draw, W. */
-  gpu: TimePoint[];
+  /**
+   * Compute container draw, W — summed compute_module.total_power (PDU input:
+   * GPU nodes + CDU + switches). Metered, and the same source live + history.
+   */
+  compute: TimePoint[];
 }
 
-export const EMPTY_BALANCE: BalanceSeries = { grid: [], bess: [], gpu: [] };
+export const EMPTY_BALANCE: BalanceSeries = { grid: [], bess: [], compute: [] };
 
 /** Append a live sample, keeping only points within `windowMs` of it. */
 export function appendPoint(points: readonly TimePoint[], point: TimePoint, windowMs: number): TimePoint[] {
