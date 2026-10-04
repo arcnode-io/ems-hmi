@@ -26,7 +26,7 @@ describe("runwayRow", () => {
   it("divides usable energy above the floor by the discharge rate", () => {
     // Arrange — 50% of 8 MWh = 4 MWh, 2 above the floor, discharging 1 MW → 2 h; 2 of 6 usable MWh left
     // Act
-    const row = runwayRow(BESS, 50, 1_000_000);
+    const row = runwayRow(BESS, 50, 1_000_000, 0);
 
     // Assert
     expect(row).toEqual({ val: 1 - 2 / 6, headline: "2.0 h", forState: 1 - 2 / 6 });
@@ -34,8 +34,8 @@ describe("runwayRow", () => {
 
   it("reads Idle with no runway claim when the battery isn't discharging", () => {
     // Arrange / Act
-    const idle = runwayRow(BESS, 50, 0);
-    const charging = runwayRow(BESS, 50, -300_000);
+    const idle = runwayRow(BESS, 50, 0, 0);
+    const charging = runwayRow(BESS, 50, -300_000, 0);
 
     // Assert
     expect([idle, charging.headline, charging.forState]).toEqual([
@@ -50,7 +50,7 @@ describe("runwayRow", () => {
     const live = { pack_mwh: 8, reserve_floor_mwh: 2.3579, reserve_floor_pct: 29.47 };
 
     // Act
-    const rows = [runwayRow(live, 29.35, 0), runwayRow(live, 29.35, 900_000)];
+    const rows = [runwayRow(live, 29.35, 0, 0), runwayRow(live, 29.35, 900_000, 0)];
 
     // Assert
     expect(rows).toEqual([
@@ -59,9 +59,27 @@ describe("runwayRow", () => {
     ]);
   });
 
+  it("measures against the operator reserve when it's above the supplier floor", () => {
+    // Arrange — supplier floor 2 MWh, operator keeps back 3 MWh; 50% of 8 = 4 MWh → 1 MWh above, 5 usable
+    // Act
+    const row = runwayRow(BESS, 50, 1_000_000, 3);
+
+    // Assert
+    expect(row).toEqual({ val: 1 - 1 / 5, headline: "1.0 h", forState: 1 - 1 / 5 });
+  });
+
+  it("names the operator reserve as what's holding the battery when it binds", () => {
+    // Arrange — backend's live check: 6 MWh reserve, SoC frozen at 54.15% (4.33 MWh)
+    // Act
+    const row = runwayRow(BESS, 54.15, 0, 6);
+
+    // Assert
+    expect(row).toEqual({ val: 1, headline: "At operator reserve", forState: 1 });
+  });
+
   it("is a dash with no BESS sizing or SoC yet", () => {
     // Arrange / Act
-    const rows = [runwayRow(null, 50, 1_000_000), runwayRow(BESS, null, 1_000_000)];
+    const rows = [runwayRow(null, 50, 1_000_000, 0), runwayRow(BESS, null, 1_000_000, 0)];
 
     // Assert
     expect(rows.map((row) => row.headline)).toEqual(["—", "—"]);

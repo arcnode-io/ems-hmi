@@ -1,5 +1,6 @@
 /**
- * BessTile — Overview KPI tile: fleet SoC gauge + live charge/discharge.
+ * BessTile — Overview KPI tile: fleet SoC gauge + live charge/discharge +
+ * the operator's battery reserve (ReserveControl).
  * The flow line is what carries the demo's "battery covers the curtailment".
  */
 
@@ -13,6 +14,7 @@ import { IconBess } from "../../../../components/icons/IconBess";
 import { RadialGauge } from "./RadialGauge";
 import { cardStyle } from "./kpiCard";
 import { bessFlow } from "./bessFlow";
+import { ReserveControl } from "./ReserveControl";
 
 export function BessTile(): React.ReactElement {
   const t = useTheme();
@@ -98,6 +100,7 @@ export function BessTile(): React.ReactElement {
           </Text>
         </View>
       </View>
+      <ReserveControl />
     </View>
   );
 }

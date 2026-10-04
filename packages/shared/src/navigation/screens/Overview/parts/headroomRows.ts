@@ -33,7 +33,8 @@ export function powerRow(drawW: number | null, capacityKw: number): HeadroomRow 
 }
 
 /**
- * Hours left above the reserve floor at the current discharge rate. Bar =
+ * Hours left above the effective floor (max of supplier floor and operator
+ * reserve) at the current discharge rate. Bar =
  * share of usable (above-floor) energy already spent. Only a live
  * constraint while discharging.
  */
@@ -41,15 +42,21 @@ export function runwayRow(
   bess: TopologyViewType["bess"],
   socPct: number | null,
   bessPowerW: number | null,
+  operatorReserveMwh: number,
 ): HeadroomRow {
   if (bess === null || socPct === null) return DASH;
-  const usableMwh = bess.pack_mwh - bess.reserve_floor_mwh;
-  if (usableMwh <= 0) return DASH;
-  const aboveFloorMwh = Math.max(0, (socPct / 100) * bess.pack_mwh - bess.reserve_floor_mwh);
+  // Reason: the gateway holds the battery at the greater of the two floors —
+  // supplier (warranty, immutable) and operator reserve (soft, settable).
+  const operatorBinds = operatorReserveMwh > bess.reserve_floor_mwh;
+  const floorMwh = operatorBinds ? operatorReserveMwh : bess.reserve_floor_mwh;
+  const aboveFloorMwh = Math.max(0, (socPct / 100) * bess.pack_mwh - floorMwh);
+  // At the floor the gateway stops discharge — that's the binding constraint,
+  // not "idle", whatever the current power reads.
+  if (aboveFloorMwh <= 0) {
+    return { val: 1, headline: operatorBinds ? "At operator reserve" : "At reserve floor", forState: 1 };
+  }
+  const usableMwh = bess.pack_mwh - floorMwh;
   const spent = clamp01(1 - aboveFloorMwh / usableMwh);
-  // Reason: at the floor the gateway stops discharge — that's the binding
-  // constraint, not "idle", whatever the current power reads.
-  if (aboveFloorMwh <= 0) return { val: 1, headline: "At reserve floor", forState: 1 };
   if (bessPowerW === null || bessPowerW <= DISCHARGE_DEADBAND_W) {
     return { val: spent, headline: "Idle", forState: null };
   }

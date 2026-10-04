@@ -17,6 +17,7 @@ import { useOperatingEnvelope } from "../../../../data/grid/useOperatingEnvelope
 import { useGridMode } from "../../../../data/grid/useGridMode";
 import { useTopologyView } from "../../../../data/topology/useTopologyView";
 import { useFleetKpis } from "../../../../data/kpis/useFleetKpis";
+import { useOperatorReserve } from "../../../../data/bess/useOperatorReserve";
 import type { GpuFleet } from "../../../../data/compute/useGpuFleet";
 import { gridHeadroomRow } from "./gridHeadroomRow";
 import { constraintSummary, powerRow, runwayRow, type CapacityState } from "./headroomRows";
@@ -91,7 +92,8 @@ export function StrandedCapacity({ fleet }: { fleet: GpuFleet }): React.ReactEle
   const envelope = useOperatingEnvelope();
   const gridMode = useGridMode();
   const power = powerRow(fleet.totalDrawW, view?.sizing_params.P_compute_total_kW ?? 0);
-  const runway = runwayRow(view?.bess ?? null, kpis.fleetSoc.value, kpis.bess.powerW);
+  const { reserveMwh } = useOperatorReserve();
+  const runway = runwayRow(view?.bess ?? null, kpis.fleetSoc.value, kpis.bess.powerW, reserveMwh);
   const grid = gridHeadroomRow(envelope, gridMode.mode === "ISLAND");
   const { state, footer } = constraintSummary([
     { limit: "POWER LIMITED", label: "Power", ratio: power.forState },

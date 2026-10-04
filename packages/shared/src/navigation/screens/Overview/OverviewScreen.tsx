@@ -18,7 +18,6 @@ import { useGpuFleet } from "../../../data/compute/useGpuFleet";
 import { useGridState } from "../../../data/grid/useGridState";
 import { useOperatingEnvelope } from "../../../data/grid/useOperatingEnvelope";
 import { CurtailmentBanner } from "../Grid/parts/CurtailmentBanner";
-import { DerRequestBanner } from "../Grid/parts/DerRequestBanner";
 import { HealthBar } from "./parts/HealthBar";
 import { GpuClusterStrip } from "./parts/GpuClusterStrip";
 import { StrandedCapacity } from "./parts/StrandedCapacity";
@@ -70,7 +69,6 @@ export function OverviewScreen(): React.ReactElement {
         <HealthBar headline={headline} detail={detail} accentColor={accent} />
         {/* Reason: story order — the utility's ask, the balance proving the
             battery covered it and GPU draw held, then the fleet detail. */}
-        <DerRequestBanner state={gridState} />
         <CurtailmentBanner state={gridState} envelope={envelope} />
         <PowerBalancePanel balance={balance} />
         <GpuClusterStrip fleet={gpuFleet} />
