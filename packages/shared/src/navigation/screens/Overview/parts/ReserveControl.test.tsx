@@ -1,7 +1,7 @@
 /** ReserveControl — operator battery reserve: shown in MWh, sent in Wh, only after confirm. AAA. */
 
 import React from "react";
-import { fireEvent } from "@testing-library/react";
+import { act, fireEvent } from "@testing-library/react";
 import { ReserveControl } from "./ReserveControl";
 import { BASE_VIEW, renderWithScreen, SITE_ID, type Published } from "../../screenTestHarness";
 import type { TopologyViewType } from "../../../../data/topology/topology.schema";
@@ -80,5 +80,35 @@ describe("ReserveControl", () => {
 
     // Assert — [capped+active, uncapped+active (Demo A), capped+idle]
     expect([shown(true, true), shown(false, true), shown(true, false)]).toEqual([true, false, false]);
+  });
+
+  it("shows waiting until the controller echoes the value, then clears", () => {
+    // Arrange — live controller: the set command echoes onto the state topic
+    const { getByTestId, getByText, queryByText } = renderWithScreen(<ReserveControl gpusCapped={false} />, [], { [STATE]: 0 }, VIEW, { [COMMAND]: STATE });
+    fireEvent.click(getByTestId("reserve-up"));
+    fireEvent.click(getByText("Set"));
+
+    // Act
+    fireEvent.click(getByText("Send"));
+
+    // Assert — the echo landed synchronously, so no waiting text remains
+    expect([getByTestId("reserve-value").textContent, queryByText(/Waiting for controller/), queryByText(/Not confirmed/)]).toEqual(["0.5 MWh", null, null]);
+  });
+
+  it("flags a command the controller never confirms after 10 s", () => {
+    // Arrange — dead controller: no echo
+    jest.useFakeTimers();
+    const { getByTestId, getByText, queryByText } = renderWithScreen(<ReserveControl gpusCapped={false} />, [], { [STATE]: 0 }, VIEW);
+    fireEvent.click(getByTestId("reserve-up"));
+    fireEvent.click(getByText("Set"));
+    fireEvent.click(getByText("Send"));
+    const waiting = queryByText(/Waiting for controller/) !== null;
+
+    // Act
+    act(() => { jest.advanceTimersByTime(10_000); });
+
+    // Assert
+    expect([waiting, queryByText(/Not confirmed by controller · sent 0.5 MWh/) !== null, getByTestId("reserve-value").textContent]).toEqual([true, true, "0.0 MWh"]);
+    jest.useRealTimers();
   });
 });

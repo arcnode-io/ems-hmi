@@ -44,3 +44,27 @@ export function stepReserveMwh(currentMwh: number, direction: 1 | -1, packMwh: n
       : Math.ceil(currentMwh / STEP_MWH) * STEP_MWH - STEP_MWH;
   return Math.min(packMwh, Math.max(0, snapped));
 }
+
+export type ReserveConfirmation = "idle" | "waiting" | "confirmed" | "unconfirmed";
+
+/**
+ * Idle → 10 s window. Reason: the idle round trip (send → controller →
+ * retained echo → tile) measures ~2 s; 5× that is long enough to never
+ * false-alarm and short enough that a dead subscriber shows within a glance.
+ */
+export const CONFIRM_TIMEOUT_MS = 10_000;
+
+/**
+ * Has the controller acknowledged what the operator sent? Confirmed = the
+ * retained echo equals the sent value (Wh-rounded, the wire precision).
+ * Without this, a dead controller subscriber leaves the tile silently stale.
+ */
+export function reserveConfirmation(
+  pending: { mwh: number; sentAtMs: number } | null,
+  reserveMwh: number,
+  nowMs: number,
+): ReserveConfirmation {
+  if (pending === null) return "idle";
+  if (Math.round(pending.mwh * 1_000_000) === Math.round(reserveMwh * 1_000_000)) return "confirmed";
+  return nowMs - pending.sentAtMs >= CONFIRM_TIMEOUT_MS ? "unconfirmed" : "waiting";
+}

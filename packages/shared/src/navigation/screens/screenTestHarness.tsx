@@ -7,7 +7,7 @@ import { DeploymentIdentityProvider } from "../../data/deployment/DeploymentIden
 import { TopologyContext } from "../../data/topology/TopologyProvider";
 import { MqttClientContext } from "../../data/mqtt/MqttProvider";
 import { TopologyView, type TopologyViewType } from "../../data/topology/topology.schema";
-import type { MqttClient, MqttMessage } from "../../data/mqtt/MqttClient";
+import type { MessageListener, MqttClient, MqttMessage } from "../../data/mqtt/MqttClient";
 
 export const SITE_ID = "s1";
 
@@ -23,20 +23,29 @@ export type Published = [string, MqttMessage<unknown>][];
 
 /**
  * Render inside the providers screen parts need. `retained` replays a value to
- * any subscriber of that topic (like the broker's retained state).
+ * any subscriber of that topic (like the broker's retained state). `echoes`
+ * maps a command topic → the state topic a live controller would republish
+ * the commanded value on; omit a command to simulate a dead controller.
  */
 export function renderWithScreen(
   node: React.ReactElement,
   published: Published,
   retained: Record<string, unknown> = {},
   view: TopologyViewType = BASE_VIEW,
+  echoes: Record<string, string> = {},
 ): ReturnType<typeof render> {
+  const listeners = new Map<string, MessageListener<unknown>[]>();
   const client: MqttClient = {
     subscribe: (topic, listener) => {
+      listeners.set(topic, [...(listeners.get(topic) ?? []), listener as MessageListener<unknown>]);
       if (topic in retained) listener({ ts: "t", value: retained[topic] as never }, topic);
       return () => undefined;
     },
-    publish: (topic, msg) => void published.push([topic, msg]),
+    publish: (topic, msg) => {
+      published.push([topic, msg]);
+      const state = echoes[topic];
+      if (state !== undefined) for (const listener of listeners.get(state) ?? []) listener(msg, state);
+    },
   };
   return render(
     <ThemeProvider>

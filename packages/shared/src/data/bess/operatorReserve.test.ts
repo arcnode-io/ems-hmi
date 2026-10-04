@@ -1,4 +1,4 @@
-import { operatorReserveTopics, parseReserveWh, stepReserveMwh } from "./operatorReserve";
+import { operatorReserveTopics, parseReserveWh, reserveConfirmation, stepReserveMwh } from "./operatorReserve";
 import type { MeasurementViewType, TopologyViewType } from "../topology/topology.schema";
 
 const RESERVE: MeasurementViewType = {
@@ -48,5 +48,23 @@ describe("stepReserveMwh", () => {
 
     // Assert
     expect(steps).toEqual([2.5, 0, 8, 1.5]);
+  });
+});
+
+describe("reserveConfirmation", () => {
+  it("waits for the controller's echo, confirms on a match, and flags no echo after 10 s", () => {
+    // Arrange — operator sent 0.5 MWh at t = 1000 ms
+    const pending = { mwh: 0.5, sentAtMs: 1000 };
+
+    // Act
+    const states = [
+      reserveConfirmation(null, 6, 5000),
+      reserveConfirmation(pending, 6, 3000),
+      reserveConfirmation(pending, 0.5, 3000),
+      reserveConfirmation(pending, 6, 11_000),
+    ];
+
+    // Assert
+    expect(states).toEqual(["idle", "waiting", "confirmed", "unconfirmed"]);
   });
 });

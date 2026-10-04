@@ -5,14 +5,18 @@
  * console only (Rule 3.1) and always through ConfirmationModal.
  */
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, Pressable } from "react-native";
 import { useTheme } from "../../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
 import { useOperatorReserve } from "../../../../data/bess/useOperatorReserve";
 import { useDerEventActive } from "../../../../data/grid/useDerEventActive";
-import { stepReserveMwh } from "../../../../data/bess/operatorReserve";
+import {
+  CONFIRM_TIMEOUT_MS,
+  reserveConfirmation,
+  stepReserveMwh,
+} from "../../../../data/bess/operatorReserve";
 import { useTopologyView } from "../../../../data/topology/useTopologyView";
 import { useBreakpoint } from "../../../../hooks/useBreakpoint";
 import { ConfirmationModal } from "../../../../components/composed/ConfirmationModal/ConfirmationModal";
@@ -42,6 +46,19 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
   const curtailed = useDerEventActive();
   const [draft, setDraft] = useState<number | null>(null);
   const [confirming, setConfirming] = useState(false);
+  // What the operator sent, until the controller's retained echo matches it.
+  const [pending, setPending] = useState<{ mwh: number; sentAtMs: number } | null>(null);
+  const [, setTick] = useState(0);
+  const status = reserveConfirmation(pending, reserveMwh, Date.now());
+  useEffect(() => {
+    if (status === "confirmed") setPending(null);
+  }, [status]);
+  useEffect(() => {
+    if (pending === null) return undefined;
+    // Re-evaluate once the confirm window lapses (no echo = no re-render otherwise).
+    const timer = setTimeout(() => setTick((tick) => tick + 1), CONFIRM_TIMEOUT_MS);
+    return (): void => clearTimeout(timer);
+  }, [pending]);
   if (setReserveMwh === null || !view?.bess) return null;
   const packMwh = view.bess.pack_mwh;
   const target = draft ?? reserveMwh;
@@ -63,6 +80,16 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
           {target !== reserveMwh ? <SmallButton label="Set" testID="reserve-set" onPress={() => setConfirming(true)} /> : null}
         </View>
       ) : null}
+      {status === "waiting" || status === "unconfirmed" ? (
+        <Text
+          testID="reserve-confirmation"
+          style={[resolveTypeStyle(t, "bodyDense"), { color: status === "unconfirmed" ? t.statusWarn : t.textSoft }]}
+        >
+          {status === "waiting"
+            ? `Waiting for controller… (${mwh(pending?.mwh ?? 0)} sent)`
+            : `Not confirmed by controller · sent ${mwh(pending?.mwh ?? 0)}`}
+        </Text>
+      ) : null}
       {/* Reason: the gateway's shed holds until stand-down (it can't prove the
           battery would absorb released compute). Raising the reserve still
           bites at once; lowering it can't lift caps already applied. */}
@@ -78,6 +105,7 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
         simMode={view.ems_mode === "sim"}
         onConfirm={() => {
           setReserveMwh(target);
+          setPending({ mwh: target, sentAtMs: Date.now() });
           setDraft(null);
           setConfirming(false);
         }}
