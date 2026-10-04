@@ -1,7 +1,8 @@
 /**
  * Guards the baked cfg.yml profiles. Every MQTT topic is keyed by siteId, so
  * a profile whose siteId drifts from what the backend publishes renders an
- * empty UI with no error anywhere.
+ * empty UI with no error anywhere. Real-backend sites are NOT baked: the
+ * `deployed` image takes its site from the runtime /cfg.customer.yml.
  */
 
 import { readFileSync } from "fs";
@@ -11,8 +12,6 @@ import { parse } from "yaml";
 interface Profile {
   loginPrefill?: { username: string; password: string };
   siteId: string;
-  mqttUri: string;
-  deviceApiUri: string;
 }
 
 const CFG: Record<string, Profile> = parse(
@@ -20,62 +19,32 @@ const CFG: Record<string, Profile> = parse(
 ) as Record<string, Profile>;
 
 describe("web cfg.yml", () => {
-  it("has exactly the four deployment profiles", () => {
+  it("bakes only the mock profiles — real sites come from the deployer's overlay", () => {
     // Arrange + Act
     const names = Object.keys(CFG);
 
     // Assert
-    expect(names).toEqual(["local", "beta", "ai-demo", "device-demo"]);
+    expect(names).toEqual(["local", "ai-demo"]);
   });
 
-  it("keys device-demo to device_demo_site, the id the compose stack publishes on", () => {
-    // Arrange + Act
-    const siteId = CFG["device-demo"]?.siteId;
-
-    // Assert
-    expect(siteId).toBe("device_demo_site");
-  });
-
-  it("gives local its own site id so it can't collide with device-demo", () => {
-    // Arrange + Act
-    const siteId = CFG.local?.siteId;
-
-    // Assert
-    expect(siteId).toBe("local_site");
-  });
-
-  it("uses ADR-002 §16 snake_case site ids for local and device-demo", () => {
+  it("gives local an ADR-002 §16 snake_case site id of its own", () => {
     // Arrange
     const SITE_ID = /^[a-z][a-z0-9_]{0,62}[a-z0-9]$/;
 
     // Act
-    const ids = [CFG.local?.siteId, CFG["device-demo"]?.siteId];
+    const siteId = CFG.local?.siteId ?? "";
 
     // Assert
-    expect(ids.every((id) => SITE_ID.test(id ?? ""))).toBe(true);
+    expect([siteId, SITE_ID.test(siteId)]).toEqual(["local_site", true]);
   });
 
-  it("points device-demo at the same-origin compose proxy", () => {
+  it("bakes no login prefill anywhere — a demo login can only come from the device-demo launcher", () => {
     // Arrange + Act
-    const { mqttUri, deviceApiUri } = CFG["device-demo"] ?? {
-      mqttUri: "x",
-      deviceApiUri: "x",
-    };
+    const prefilled = Object.values(CFG).filter(
+      (profile) => profile.loginPrefill !== undefined,
+    );
 
     // Assert
-    expect({ mqttUri, deviceApiUri }).toEqual({
-      mqttUri: "",
-      deviceApiUri: "/api",
-    });
-  });
-
-  it("prefills the operator login on device-demo only — never on a real deployment", () => {
-    // Arrange + Act
-    const prefilled = Object.entries(CFG)
-      .filter(([, profile]) => profile.loginPrefill !== undefined)
-      .map(([name, profile]) => `${name}:${profile.loginPrefill?.username}`);
-
-    // Assert
-    expect(prefilled).toEqual(["device-demo:operator"]);
+    expect(prefilled).toEqual([]);
   });
 });

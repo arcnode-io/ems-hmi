@@ -1,3 +1,9 @@
+# Baked profiles for the builds that have no deployer: the dev server and the
+# public S3 demo (both run on in-browser mock data). The container image is
+# built `deployed` and bakes NO site — whoever deploys it mounts
+# /cfg.customer.yml (platform-api UserData for cloud/ISO, the device-demo
+# launcher), and it fails closed without one. See src/resolveConfig.ts.
+
 local:
   logLevel: DEBUG
   e2e: false
@@ -7,16 +13,6 @@ local:
   mqttUri: "ws://localhost:8083/mqtt"
   deviceApiUri: "/api"
   chatApiUri: "http://localhost:8000"
-
-beta:
-  logLevel: INFO
-  e2e: true
-  deploymentName: "Beta Sandbox"
-  deploymentHost: "beta.arcnode.io"
-  siteId: "beta_site"
-  mqttUri: "wss://beta-broker.example.com:8083/mqtt"
-  deviceApiUri: "https://beta-device-api.example.com"
-  chatApiUri: "https://analyst-api.example.com"
 
 # Public S3 web demo: mock devices + fixture topology, hosted analyst.
 ai-demo:
@@ -28,21 +24,3 @@ ai-demo:
   mqttUri: ""
   deviceApiUri: "/api"
   chatApiUri: "https://analyst.arcnode.io"
-
-# End-to-end device demo against the local compose stack. Same-origin URIs
-# mirror the overlay platform-api writes: /api → nginx → device-api, empty
-# chatApiUri → /analyst/chat, empty mqttUri → ws(s)://<host>/mqtt.
-device-demo:
-  logLevel: INFO
-  e2e: true
-  deploymentName: "Brookside DC-1"
-  deploymentHost: "localhost"
-  siteId: "device_demo_site"
-  mqttUri: ""
-  deviceApiUri: "/api"
-  chatApiUri: ""
-  # Public demo login — the device-demo stack sets AUTH_OPERATOR_PW to this.
-  # A sim, not hardware; never set this on a real deployment.
-  loginPrefill:
-    username: "operator"
-    password: "demo-operator-pw"

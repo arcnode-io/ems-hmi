@@ -1,62 +1,24 @@
-import { match } from "ts-pattern";
+/**
+ * Web config I/O: the bundled cfg.yml (baked mock profiles) + the runtime
+ * `/cfg.customer.yml` overlay, resolved by resolveConfig (pure, tested).
+ */
+
 import { z } from "zod";
-import {
-  parseDeploymentMode,
-  type DeploymentMode,
-} from "@ems-hmi/shared/data/deployment/deploymentMode";
 import { parse } from "yaml";
+import { parseDeploymentMode } from "@ems-hmi/shared/data/deployment/deploymentMode";
 import configYamlRaw from "../cfg.yml?raw";
+import { Config, resolveConfig, type ConfigType } from "./resolveConfig";
 
-enum LogLevel {
-  ERROR = "ERROR",
-  WARN = "WARN",
-  INFO = "INFO",
-  DEBUG = "DEBUG",
-}
-
-const Config = z.object({
-  logLevel: z.enum([
-    LogLevel.ERROR,
-    LogLevel.WARN,
-    LogLevel.INFO,
-    LogLevel.DEBUG,
-  ]),
-  e2e: z.boolean(),
-  /** Human-readable deployment / site name. Shown in chrome (TopBar, Sidebar). */
-  deploymentName: z.string(),
-  /** Deployment hostname / URL fragment. Shown under the deployment name. */
-  deploymentHost: z.string(),
-  /** Site identifier — MUST match analyst-server's `SITE_ID` env var. Sent in `context.siteId`. */
-  siteId: z.string(),
-  /** MQTT broker URL — `ws://` / `wss://` for browser MQTT-over-WebSocket. Empty in demo. */
-  mqttUri: z.string(),
-  /** Base URL for ems-device-api (`/topology/view`, `/asyncapi`). */
-  deviceApiUri: z.string(),
-  /** Base URL for the analyst chat backend. */
-  chatApiUri: z.string(),
-  /** Public demo login prefilled on the sign-in form. device-demo only. */
-  loginPrefill: z
-    .object({ username: z.string(), password: z.string() })
-    .optional(),
-});
-
-export type ConfigType = z.infer<typeof Config> & { mode: DeploymentMode };
-
-const ConfigMap = z.object({
-  local: Config,
-  beta: Config,
-  "ai-demo": Config,
-  "device-demo": Config,
-});
+const BakedProfiles = z.object({ local: Config, "ai-demo": Config });
 
 /** Path the deployed nginx serves the per-deployment runtime overlay from. */
 const OVERLAY_URL = "/cfg.customer.yml";
 
 /**
- * Fetch + parse the runtime overlay. Returns a partial config object, or null
- * when the overlay is absent (404), unreachable (offline/dev), or not an
- * object — every one of which means "use the baked block".
- * @returns parsed overlay object, or null to signal "use baked"
+ * Fetch + parse the runtime overlay. Null when absent (404), unreachable
+ * (offline/dev), or not an object — resolveConfig decides what that means:
+ * fine for a baked build, fatal for `deployed`.
+ * @returns parsed overlay object, or null
  */
 async function fetchOverlay(): Promise<Record<string, unknown> | null> {
   try {
@@ -72,26 +34,18 @@ async function fetchOverlay(): Promise<Record<string, unknown> | null> {
 }
 
 /**
- * Loads configuration from cfg.yml based on `VITE_ENV` (defaults to `local`),
- * then overlays the deployed `/cfg.customer.yml` on top so the running HMI
- * learns its real siteId + same-origin URLs at runtime. Falls back to the baked
- * block when the overlay is absent (demo/local/offline).
+ * Load the active config for this build (`VITE_ENV`: local | ai-demo | deployed).
  * @returns Active config with `mode` attached
- * @throws if cfg.yml is unparseable, VITE_ENV names no profile, or the merged
- * config fails validation
+ * @throws if cfg.yml is unparseable, VITE_ENV names no web build, or a
+ * deployed build has no complete /cfg.customer.yml
  */
 export async function loadConfig(): Promise<ConfigType> {
-  const configYaml: unknown = parse(configYamlRaw);
-  const map = ConfigMap.parse(configYaml);
-  const environment = parseDeploymentMode(import.meta.env.VITE_ENV);
-  const baked = match(environment)
-    .with("local", () => map.local)
-    .with("beta", () => map.beta)
-    .with("ai-demo", () => map["ai-demo"])
-    .with("device-demo", () => map["device-demo"])
-    .exhaustive();
-
-  const overlay = await fetchOverlay();
-  const block = overlay ? Config.parse({ ...baked, ...overlay }) : baked;
-  return { ...block, mode: environment };
+  const baked = BakedProfiles.parse(parse(configYamlRaw));
+  const build = parseDeploymentMode(import.meta.env.VITE_ENV);
+  return resolveConfig(
+    build,
+    baked,
+    await fetchOverlay(),
+    window.location.host,
+  );
 }

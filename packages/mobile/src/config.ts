@@ -62,6 +62,11 @@ export function loadConfig(): ConfigType {
     .with("beta", () => config.beta)
     .with("ai-demo", () => config["ai-demo"])
     .with("device-demo", () => config["device-demo"])
+    .with("deployed", () => {
+      // Reason: `deployed` reads its site from a runtime-mounted file a native
+      // app never receives — mobile must bake a profile.
+      throw new Error("'deployed' is web-only; build mobile with a baked profile");
+    })
     .exhaustive();
   return { ...block, mode: environment };
 }
