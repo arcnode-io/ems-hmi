@@ -123,7 +123,8 @@ function NetPowerTile(): React.ReactElement {
   );
 }
 
-export function KpiStrip(): React.ReactElement {
+/** @param gpusCapped any GPU currently throttled (feeds the reserve note) */
+export function KpiStrip({ gpusCapped }: { gpusCapped: boolean }): React.ReactElement {
   return (
     <ScrollView
       horizontal
@@ -135,7 +136,7 @@ export function KpiStrip(): React.ReactElement {
         paddingRight: SPACE[2],
       }}
     >
-      <BessTile />
+      <BessTile gpusCapped={gpusCapped} />
       <NetPowerTile />
       <PueTile />
     </ScrollView>

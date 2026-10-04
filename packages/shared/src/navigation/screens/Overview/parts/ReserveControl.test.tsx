@@ -37,7 +37,7 @@ describe("ReserveControl", () => {
   it("shows the retained reserve and publishes the stepped value in Wh only after confirm", () => {
     // Arrange
     const published: Published = [];
-    const { getByText, getByTestId } = renderWithScreen(<ReserveControl />, published, { [STATE]: 2_000_000 }, VIEW);
+    const { getByText, getByTestId } = renderWithScreen(<ReserveControl gpusCapped={false} />, published, { [STATE]: 2_000_000 }, VIEW);
     const shown = getByTestId("reserve-value").textContent;
 
     // Act
@@ -57,26 +57,28 @@ describe("ReserveControl", () => {
   it("is read-only on phones and absent where the template has no operator_reserve", () => {
     // Arrange
     layout = "phone";
-    const phone = renderWithScreen(<ReserveControl />, [], { [STATE]: 0 }, VIEW);
+    const phone = renderWithScreen(<ReserveControl gpusCapped={false} />, [], { [STATE]: 0 }, VIEW);
     const phoneButtons = phone.queryByTestId("reserve-up");
     phone.unmount();
     layout = "desktop";
 
     // Act
-    const unsupported = renderWithScreen(<ReserveControl />, []);
+    const unsupported = renderWithScreen(<ReserveControl gpusCapped={false} />, []);
 
     // Assert
     expect([phoneButtons, unsupported.container.textContent]).toEqual([null, ""]);
   });
 
-  it("warns mid-curtailment that a lower reserve won't lift existing GPU caps", () => {
+  it("warns only while a curtailment has GPUs capped — never in Demo A where nothing is", () => {
     // Arrange / Act
-    const during = renderWithScreen(<ReserveControl />, [], { [STATE]: 6_000_000, [EVENT_ACTIVE]: true }, VIEW);
-    const shownDuring = during.queryByText(NOTE) !== null;
-    during.unmount();
-    const outside = renderWithScreen(<ReserveControl />, [], { [STATE]: 6_000_000, [EVENT_ACTIVE]: false }, VIEW);
+    const shown = (capped: boolean, active: boolean): boolean => {
+      const view = renderWithScreen(<ReserveControl gpusCapped={capped} />, [], { [STATE]: 6_000_000, [EVENT_ACTIVE]: active }, VIEW);
+      const hit = view.queryByText(NOTE) !== null;
+      view.unmount();
+      return hit;
+    };
 
-    // Assert
-    expect([shownDuring, outside.queryByText(NOTE)]).toEqual([true, null]);
+    // Assert — [capped+active, uncapped+active (Demo A), capped+idle]
+    expect([shown(true, true), shown(false, true), shown(true, false)]).toEqual([true, false, false]);
   });
 });

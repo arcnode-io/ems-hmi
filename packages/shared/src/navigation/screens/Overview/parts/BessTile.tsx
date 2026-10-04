@@ -16,7 +16,7 @@ import { cardStyle } from "./kpiCard";
 import { bessFlow } from "./bessFlow";
 import { ReserveControl } from "./ReserveControl";
 
-export function BessTile(): React.ReactElement {
+export function BessTile({ gpusCapped }: { gpusCapped: boolean }): React.ReactElement {
   const t = useTheme();
   const { fleetSoc, bess } = useFleetKpis();
   const soc = fleetSoc.value;
@@ -100,7 +100,7 @@ export function BessTile(): React.ReactElement {
           </Text>
         </View>
       </View>
-      <ReserveControl />
+      <ReserveControl gpusCapped={gpusCapped} />
     </View>
   );
 }

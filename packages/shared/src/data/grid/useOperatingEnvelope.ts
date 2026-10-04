@@ -47,6 +47,16 @@ export interface RawEnvelope {
  * @param raw latest value per topic role
  * @returns OperatingEnvelope
  */
+// Reason: the gateway holds POI *at* the limit; its control loop settles up
+// to ~1 kW either side (measured −930…+477 W at a 0 W limit). Calling that
+// "over limit" is noise, not a breach. 2 kW ≈ 0.2% of a ~1 MW site.
+const AT_LIMIT_TOLERANCE_W = 2000;
+
+/** True only for a real breach — headroom more than the jitter tolerance below zero. */
+export function isOverLimit(headroomW: number): boolean {
+  return headroomW <= -AT_LIMIT_TOLERANCE_W;
+}
+
 export function envelopeFrom(raw: RawEnvelope): OperatingEnvelope {
   const status = match<string | undefined, EnvelopeStatus | null>(raw.status)
     .with("OK", () => "ok")

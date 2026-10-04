@@ -6,6 +6,8 @@
  * showing and the status routes to the alarm panel.
  */
 
+import { isOverLimit } from "../data/grid/useOperatingEnvelope";
+
 export interface GridSegmentInput {
   mode: "GRID" | "ISLAND" | null;
   /** Net flow direction at the POI; null when ~zero or unknown. */
@@ -37,6 +39,10 @@ export function gridSegment(input: GridSegmentInput): { value: string; sub: stri
   // reports. Unknown flow defaults to import — a load site's binding side.
   const exporting = input.direction === "EXP";
   const headroom = exporting ? input.exportHeadroomW : input.importHeadroomW;
+  if (headroom !== null && headroom < 0 && !isOverLimit(headroom)) {
+    const which = exporting ? "export" : "import";
+    return { value: "AT LIMIT", sub: input.curtailed ? `Curtailed · held at ${which} limit` : `Held at ${which} limit` };
+  }
   if (headroom !== null && headroom < 0) {
     // Reason: over the envelope. Never render the magnitude as headroom.
     const over = `${fmtPower(headroom)} over ${exporting ? "export" : "import"} limit`;

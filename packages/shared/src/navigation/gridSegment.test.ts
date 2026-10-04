@@ -65,4 +65,13 @@ describe("gridSegment", () => {
     // Assert
     expect(seg).toEqual({ value: "OVER LIMIT", sub: "1.1 MW over import limit" });
   });
+
+  it("reads AT LIMIT, not OVER, when the control loop jitters a few watts past it", () => {
+    // Arrange — live Demo A: POI held at a 0 W limit, samples like −57 W
+    // Act
+    const seg = gridSegment({ ...BASE, curtailed: true, importHeadroomW: -57 });
+
+    // Assert
+    expect(seg).toEqual({ value: "AT LIMIT", sub: "Curtailed · held at import limit" });
+  });
 });

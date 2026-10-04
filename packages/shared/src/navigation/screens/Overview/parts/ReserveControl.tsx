@@ -33,7 +33,8 @@ function SmallButton({ label, testID, onPress }: { label: string; testID: string
   );
 }
 
-export function ReserveControl(): React.ReactElement | null {
+/** @param gpusCapped any GPU currently throttled — the note only matters when caps exist */
+export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.ReactElement | null {
   const t = useTheme();
   const { view } = useTopologyView();
   const { reserveMwh, setReserveMwh } = useOperatorReserve();
@@ -65,7 +66,7 @@ export function ReserveControl(): React.ReactElement | null {
       {/* Reason: the gateway's shed holds until stand-down (it can't prove the
           battery would absorb released compute). Raising the reserve still
           bites at once; lowering it can't lift caps already applied. */}
-      {curtailed ? (
+      {curtailed && gpusCapped ? (
         <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.textSoft }]}>
           GPU caps hold until this curtailment ends — set the reserve before one starts.
         </Text>

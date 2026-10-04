@@ -73,7 +73,7 @@ export function OverviewScreen(): React.ReactElement {
         <PowerBalancePanel balance={balance} />
         <GpuClusterStrip fleet={gpuFleet} />
         <StrandedCapacity fleet={gpuFleet} />
-        <KpiStrip />
+        <KpiStrip gpusCapped={gpuFleet.throttlingCount > 0} />
         <AlarmsPanel />
       </View>
     </ScrollView>

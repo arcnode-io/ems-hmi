@@ -64,4 +64,13 @@ describe("gridHeadroomRow", () => {
     // Assert
     expect(row).toEqual({ val: 1, headline: "1.1 MW over limit", forState: 1 });
   });
+
+  it("reads At limit (fully used) inside the jitter tolerance, not 0 kW over", () => {
+    // Arrange — 0 W limit, POI at 13 W
+    // Act
+    const row = gridHeadroomRow({ ...LIVE, importLimitW: 0, importHeadroomW: -13, usedFraction: 1 }, false);
+
+    // Assert
+    expect(row).toEqual({ val: 1, headline: "At limit", forState: 1 });
+  });
 });

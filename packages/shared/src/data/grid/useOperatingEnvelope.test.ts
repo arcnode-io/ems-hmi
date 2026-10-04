@@ -1,4 +1,4 @@
-import { envelopeFrom } from "./useOperatingEnvelope";
+import { envelopeFrom, isOverLimit } from "./useOperatingEnvelope";
 
 describe("envelopeFrom", () => {
   it("passes limits + headroom through and derives used fraction from them", () => {
@@ -58,5 +58,15 @@ describe("envelopeFrom", () => {
 
     // Assert
     expect(used).toBe(1);
+  });
+});
+
+describe("isOverLimit", () => {
+  it("ignores control-loop jitter under 2 kW past the limit (measured −930 W)", () => {
+    // Arrange / Act
+    const verdicts = [-57, -930, -1_999, -2_000, -492_800, 0, 150_000].map(isOverLimit);
+
+    // Assert
+    expect(verdicts).toEqual([false, false, false, true, true, false, false]);
   });
 });

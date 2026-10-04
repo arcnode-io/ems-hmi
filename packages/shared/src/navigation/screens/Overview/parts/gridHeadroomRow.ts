@@ -6,7 +6,7 @@
  *          drops the row out of the worst-constraint pick.
  */
 
-import type { OperatingEnvelope } from "../../../../data/grid/useOperatingEnvelope";
+import { isOverLimit, type OperatingEnvelope } from "../../../../data/grid/useOperatingEnvelope";
 
 export interface GridHeadroomRow {
   /** Bar fill, [0..1]. */
@@ -34,6 +34,9 @@ export function gridHeadroomRow(envelope: OperatingEnvelope, islanded: boolean):
   const degraded = status !== null && status !== "ok";
   if (degraded || usedFraction === null || importHeadroomW === null) {
     return { val: 0, headline: "—", forState: null };
+  }
+  if (importHeadroomW < 0 && !isOverLimit(importHeadroomW)) {
+    return { val: 1, headline: "At limit", forState: 1 };
   }
   if (importHeadroomW < 0) {
     return { val: 1, headline: `${fmtPower(importHeadroomW)} over limit`, forState: 1 };
