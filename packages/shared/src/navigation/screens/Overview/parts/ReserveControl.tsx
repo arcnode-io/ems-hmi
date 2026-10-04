@@ -11,6 +11,7 @@ import { useTheme } from "../../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
 import { useOperatorReserve } from "../../../../data/bess/useOperatorReserve";
+import { useDerEventActive } from "../../../../data/grid/useDerEventActive";
 import { stepReserveMwh } from "../../../../data/bess/operatorReserve";
 import { useTopologyView } from "../../../../data/topology/useTopologyView";
 import { useBreakpoint } from "../../../../hooks/useBreakpoint";
@@ -37,6 +38,7 @@ export function ReserveControl(): React.ReactElement | null {
   const { view } = useTopologyView();
   const { reserveMwh, setReserveMwh } = useOperatorReserve();
   const isDesktop = useBreakpoint().layout === "desktop";
+  const curtailed = useDerEventActive();
   const [draft, setDraft] = useState<number | null>(null);
   const [confirming, setConfirming] = useState(false);
   if (setReserveMwh === null || !view?.bess) return null;
@@ -59,6 +61,14 @@ export function ReserveControl(): React.ReactElement | null {
           <SmallButton label="+" testID="reserve-up" onPress={() => step(1)} />
           {target !== reserveMwh ? <SmallButton label="Set" testID="reserve-set" onPress={() => setConfirming(true)} /> : null}
         </View>
+      ) : null}
+      {/* Reason: the gateway's shed holds until stand-down (it can't prove the
+          battery would absorb released compute). Raising the reserve still
+          bites at once; lowering it can't lift caps already applied. */}
+      {curtailed ? (
+        <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.textSoft }]}>
+          GPU caps hold until this curtailment ends — set the reserve before one starts.
+        </Text>
       ) : null}
       <ConfirmationModal
         visible={confirming}
