@@ -2,11 +2,12 @@
  * ReserveControl — the operator's battery reserve, inside the BESS tile.
  * The battery is held at max(supplier floor, this reserve); whatever it
  * doesn't cover during a curtailment, the compute shed does. Edits are desk
- * console only (Rule 3.1) and always through ConfirmationModal.
+ * console only (Rule 3.1): "Edit reserve" opens one ConfirmationModal with
+ * a typed MWh value (−/+ to nudge) — edit and confirm in a single step.
  */
 
 import React, { useEffect, useState } from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text, Pressable, TextInput } from "react-native";
 import { useTheme } from "../../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
@@ -44,8 +45,8 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
   const { reserveMwh, setReserveMwh } = useOperatorReserve();
   const isDesktop = useBreakpoint().layout === "desktop";
   const curtailed = useDerEventActive();
-  const [draft, setDraft] = useState<number | null>(null);
-  const [confirming, setConfirming] = useState(false);
+  // Dialog state: null = closed; otherwise the text in the MWh field.
+  const [input, setInput] = useState<string | null>(null);
   // What the operator sent, until the controller's retained echo matches it.
   const [pending, setPending] = useState<{ mwh: number; sentAtMs: number } | null>(null);
   const [, setTick] = useState(0);
@@ -61,8 +62,11 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
   }, [pending]);
   if (setReserveMwh === null || !view?.bess) return null;
   const packMwh = view.bess.pack_mwh;
-  const target = draft ?? reserveMwh;
-  const step = (direction: 1 | -1): void => setDraft(stepReserveMwh(target, direction, packMwh));
+  const typed = Number.parseFloat(input ?? "");
+  // Reason: clamp to the pack so a fat-fingered 99 can't read as nonsense;
+  // the gateway would also just treat it as "hold everything".
+  const target = Number.isFinite(typed) ? Math.min(packMwh, Math.max(0, typed)) : reserveMwh;
+  const step = (direction: 1 | -1): void => setInput(stepReserveMwh(target, direction, packMwh).toFixed(1));
 
   return (
     <View dataSet={{ comp: "ReserveControl" }} style={{ marginTop: SPACE[2], gap: 4 }}>
@@ -73,11 +77,8 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
         </Text>
       </View>
       {isDesktop ? (
-        <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE[1] }}>
-          <SmallButton label="−" testID="reserve-down" onPress={() => step(-1)} />
-          <Text style={[resolveTypeStyle(t, "label"), { color: t.textMid, flex: 1, textAlign: "center" }]}>{mwh(target)}</Text>
-          <SmallButton label="+" testID="reserve-up" onPress={() => step(1)} />
-          {target !== reserveMwh ? <SmallButton label="Set" testID="reserve-set" onPress={() => setConfirming(true)} /> : null}
+        <View style={{ alignItems: "flex-end" }}>
+          <SmallButton label="Edit reserve" testID="reserve-edit" onPress={() => setInput(reserveMwh.toFixed(1))} />
         </View>
       ) : null}
       {status === "waiting" || status === "unconfirmed" ? (
@@ -99,18 +100,34 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
         </Text>
       ) : null}
       <ConfirmationModal
-        visible={confirming}
+        visible={input !== null}
         commandSummary={`Hold ${mwh(target)} in reserve — below it, GPUs throttle instead`}
         targetDevices={[{ id: "bess", name: "Site battery", currentState: `Reserve ${mwh(reserveMwh)}` }]}
         simMode={view.ems_mode === "sim"}
         onConfirm={() => {
           setReserveMwh(target);
           setPending({ mwh: target, sentAtMs: Date.now() });
-          setDraft(null);
-          setConfirming(false);
+          setInput(null);
         }}
-        onCancel={() => setConfirming(false)}
-      />
+        onCancel={() => setInput(null)}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE[2] }}>
+          <SmallButton label="−" testID="reserve-down" onPress={() => step(-1)} />
+          <TextInput
+            testID="reserve-input"
+            accessibilityLabel="Reserve in MWh"
+            inputMode="decimal"
+            value={input ?? ""}
+            onChangeText={setInput}
+            style={[
+              resolveTypeStyle(t, "label"),
+              { flex: 1, textAlign: "center", color: t.text, borderWidth: 1, borderColor: t.border, borderRadius: RADIUS[2], paddingVertical: 4 },
+            ]}
+          />
+          <SmallButton label="+" testID="reserve-up" onPress={() => step(1)} />
+          <Text style={[resolveTypeStyle(t, "label"), { color: t.textMid }]}>{`MWh (0–${packMwh})`}</Text>
+        </View>
+      </ConfirmationModal>
     </View>
   );
 }

@@ -59,4 +59,18 @@ describe("ConfirmationModal", () => {
     fireEvent.click(getByText("Cancel"));
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
+
+  it("renders an editor slot between the target and the Send/Cancel footer", () => {
+    // Arrange / Act
+    const { getByText } = render(
+      withTheme(
+        <ConfirmationModal {...BASE_PROPS}>
+          <span>editor here</span>
+        </ConfirmationModal>,
+      ),
+    );
+
+    // Assert
+    expect(getByText("editor here")).toBeTruthy();
+  });
 });

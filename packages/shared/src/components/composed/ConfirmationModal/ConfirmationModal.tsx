@@ -27,6 +27,7 @@ export function ConfirmationModal({
   simMode = false,
   onConfirm,
   onCancel,
+  children,
 }: ConfirmationModalProps): React.ReactElement {
   const t = useTheme();
   const draggable = useBreakpoint().layout === "desktop";
@@ -128,6 +129,10 @@ export function ConfirmationModal({
               <TargetRow key={d.id} target={d} />
             ))}
           </View>
+
+          {children === undefined ? null : (
+            <View style={{ paddingHorizontal: SPACE[3], paddingBottom: SPACE[3] }}>{children}</View>
+          )}
 
           {/* Footer */}
           <View

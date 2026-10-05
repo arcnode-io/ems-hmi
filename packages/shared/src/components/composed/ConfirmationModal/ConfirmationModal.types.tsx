@@ -1,5 +1,7 @@
 /** Public types for ConfirmationModal. Split out to avoid import cycles. */
 
+import type React from "react";
+
 export interface ConfirmationTarget {
   id: string;
   name: string;
@@ -16,4 +18,6 @@ export interface ConfirmationModalProps {
   simMode?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
+  /** Optional editor (e.g. a value input) shown above Send — confirm what you edit, in one step. */
+  children?: React.ReactNode;
 }

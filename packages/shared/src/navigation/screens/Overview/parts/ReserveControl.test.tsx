@@ -34,15 +34,15 @@ beforeEach(() => {
 });
 
 describe("ReserveControl", () => {
-  it("shows the retained reserve and publishes the stepped value in Wh only after confirm", () => {
+  it("Edit opens one dialog; nudging with + then Send publishes the value in Wh", () => {
     // Arrange
     const published: Published = [];
     const { getByText, getByTestId } = renderWithScreen(<ReserveControl gpusCapped={false} />, published, { [STATE]: 2_000_000 }, VIEW);
     const shown = getByTestId("reserve-value").textContent;
 
     // Act
+    fireEvent.click(getByTestId("reserve-edit"));
     fireEvent.click(getByTestId("reserve-up"));
-    fireEvent.click(getByText("Set"));
     const beforeConfirm = published.length;
     fireEvent.click(getByText("Send"));
 
@@ -54,11 +54,28 @@ describe("ReserveControl", () => {
     });
   });
 
+  it("accepts a typed value, clamped to the pack", () => {
+    // Arrange
+    const published: Published = [];
+    const { getByText, getByTestId } = renderWithScreen(<ReserveControl gpusCapped={false} />, published, { [STATE]: 0 }, VIEW);
+    fireEvent.click(getByTestId("reserve-edit"));
+
+    // Act
+    fireEvent.change(getByTestId("reserve-input"), { target: { value: "6" } });
+    fireEvent.click(getByText("Send"));
+    fireEvent.click(getByTestId("reserve-edit"));
+    fireEvent.change(getByTestId("reserve-input"), { target: { value: "99" } });
+    fireEvent.click(getByText("Send"));
+
+    // Assert — 8 MWh pack
+    expect(published.map(([, msg]) => msg.value)).toEqual([6_000_000, 8_000_000]);
+  });
+
   it("is read-only on phones and absent where the template has no operator_reserve", () => {
     // Arrange
     layout = "phone";
     const phone = renderWithScreen(<ReserveControl gpusCapped={false} />, [], { [STATE]: 0 }, VIEW);
-    const phoneButtons = phone.queryByTestId("reserve-up");
+    const phoneButtons = phone.queryByTestId("reserve-edit");
     phone.unmount();
     layout = "desktop";
 
@@ -85,8 +102,8 @@ describe("ReserveControl", () => {
   it("shows waiting until the controller echoes the value, then clears", () => {
     // Arrange — live controller: the set command echoes onto the state topic
     const { getByTestId, getByText, queryByText } = renderWithScreen(<ReserveControl gpusCapped={false} />, [], { [STATE]: 0 }, VIEW, { [COMMAND]: STATE });
+    fireEvent.click(getByTestId("reserve-edit"));
     fireEvent.click(getByTestId("reserve-up"));
-    fireEvent.click(getByText("Set"));
 
     // Act
     fireEvent.click(getByText("Send"));
@@ -99,8 +116,8 @@ describe("ReserveControl", () => {
     // Arrange — dead controller: no echo
     jest.useFakeTimers();
     const { getByTestId, getByText, queryByText } = renderWithScreen(<ReserveControl gpusCapped={false} />, [], { [STATE]: 0 }, VIEW);
+    fireEvent.click(getByTestId("reserve-edit"));
     fireEvent.click(getByTestId("reserve-up"));
-    fireEvent.click(getByText("Set"));
     fireEvent.click(getByText("Send"));
     const waiting = queryByText(/Waiting for controller/) !== null;
 
