@@ -18,6 +18,7 @@ import { useBreakpoint } from "../hooks/useBreakpoint";
 import { useDeploymentIdentity } from "../data/deployment/useDeploymentIdentity";
 import { useTopologyView } from "../data/topology/useTopologyView";
 import { useFleetKpis } from "../data/kpis/useFleetKpis";
+import { useSidebarCollapsed } from "../hooks/useSidebarCollapsed";
 import { useGpuFleet } from "../data/compute/useGpuFleet";
 import { gpuStripMetrics } from "./screens/Overview/parts/gpuStripMetrics";
 import { useAlarmCount } from "../data/alarms/useAlarmCount";
@@ -64,6 +65,7 @@ export function AppLayout({
   const activeSpec = routeByName(activeName);
   const emsMode = topology.view?.ems_mode ?? "sim";
   const kpis = useFleetKpis();
+  const sidebar = useSidebarCollapsed();
   const gpuFleet = useGpuFleet();
   const gridMode = useGridMode();
   const envelope = useOperatingEnvelope();
@@ -136,6 +138,8 @@ export function AppLayout({
       >
         <Sidebar
           route={activeSpec.sidebar}
+          collapsed={sidebar.collapsed}
+          onToggleCollapsed={sidebar.toggle}
           deploymentName={identity.name}
           deploymentHost={identity.host}
           badges={{ "/modules": alarmCount }}

@@ -30,6 +30,7 @@ import {
   IconCompute,
   IconAnalyst,
 } from "../../icons";
+import { SidebarToggle } from "./SidebarToggle";
 
 export type SidebarRoute =
   | "/overview"
@@ -56,6 +57,8 @@ export interface SidebarProps {
   user: { initials: string; name: string; role: string };
   /** Called when a nav item is tapped. */
   onNavigate: (route: SidebarRoute) => void;
+  /** When set, renders a collapse/expand chevron above the user footer. */
+  onToggleCollapsed?: () => void;
 }
 
 const WIDTH_EXPANDED = 220;
@@ -490,6 +493,7 @@ export function Sidebar({
   badges,
   user,
   onNavigate,
+  onToggleCollapsed,
 }: SidebarProps): React.ReactElement {
   const t = useTheme();
   const identity = useDeploymentIdentity();
@@ -533,6 +537,7 @@ export function Sidebar({
           />
         ))}
       </ScrollView>
+      {onToggleCollapsed ? <SidebarToggle collapsed={collapsed} onToggle={onToggleCollapsed} /> : null}
       <UserFooter
         t={t}
         user={user}
