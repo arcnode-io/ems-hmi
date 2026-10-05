@@ -16,6 +16,7 @@ import { useDerEventActive } from "../../../../data/grid/useDerEventActive";
 import {
   CONFIRM_TIMEOUT_MS,
   reserveConfirmation,
+  reserveSummary,
   stepReserveMwh,
 } from "../../../../data/bess/operatorReserve";
 import { useTopologyView } from "../../../../data/topology/useTopologyView";
@@ -101,7 +102,7 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
       ) : null}
       <ConfirmationModal
         visible={input !== null}
-        commandSummary={`Hold ${mwh(target)} in reserve — below it, GPUs throttle instead`}
+        commandSummary={reserveSummary(target, view.bess.reserve_floor_mwh)}
         targetDevices={[{ id: "bess", name: "Site battery", currentState: `Reserve ${mwh(reserveMwh)}` }]}
         simMode={view.ems_mode === "sim"}
         onConfirm={() => {
