@@ -142,7 +142,7 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
             ]}
           />
           <PrimaryButton label="+" testID="reserve-up" onPress={() => step(1)} />
-          <Text style={[resolveTypeStyle(t, "label"), { color: t.textMid }]}>{`MWh (0–${packMwh})`}</Text>
+          <Text style={[resolveTypeStyle(t, "label"), { color: t.textMid }]}>{`MWh (0–${packMwh.toFixed(1)})`}</Text>
         </View>
         {/* Reason: a toggletip, not a hover tooltip — works on touch and keyboard. */}
         <Pressable

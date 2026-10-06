@@ -141,4 +141,16 @@ describe("ReserveControl", () => {
     // Assert — VIEW: supplier floor 2.36 MWh = 29.5 %
     expect([hiddenAtFirst, queryByText(/lowest state of charge the battery supplier's warranty allows — 2\.4 MWh \(30%\) here/) !== null]).toEqual([true, true]);
   });
+
+  it("states the range with the pack size rounded like every other MWh value", () => {
+    // Arrange — ems.arcnode.io's pack is 7.708 MWh; raw it read "0–7.708"
+    const odd: TopologyViewType = { ...VIEW, bess: { pack_mwh: 7.708, reserve_floor_mwh: 2.36, reserve_floor_pct: 30.6 } };
+    const { getByTestId, queryByText } = renderWithScreen(<ReserveControl gpusCapped={false} />, [], { [STATE]: 0 }, odd);
+
+    // Act
+    fireEvent.click(getByTestId("reserve-edit"));
+
+    // Assert
+    expect(queryByText("MWh (0–7.7)") !== null).toBe(true);
+  });
 });
