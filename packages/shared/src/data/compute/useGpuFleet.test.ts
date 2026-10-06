@@ -1,4 +1,4 @@
-import { gpuFleetFilter, gpuFleetFrom, gpuNodeTopics } from "./useGpuFleet";
+import { gpuFleetFilters, gpuFleetFrom, gpuNodeTopics } from "./useGpuFleet";
 import type { MeasurementViewType, TopologyViewType } from "../topology/topology.schema";
 
 function meas(unit: string, type: MeasurementViewType["type"]): MeasurementViewType {
@@ -7,6 +7,27 @@ function meas(unit: string, type: MeasurementViewType["type"]): MeasurementViewT
 
 function device(deviceId: string, template: string): TopologyViewType["devices"][string] {
   return { device_id: deviceId, template, parent: null, display_name: null, extra_measurements: null };
+}
+
+function viewWithGpuTemplate(): Pick<TopologyViewType, "devices" | "templates_used"> {
+  return {
+    devices: { gpu_node_01: device("gpu_node_01", "gpu_node"), pdu_01: device("pdu_01", "pdu") },
+    templates_used: {
+      gpu_node: {
+        template: "gpu_node", kind: "leaf", equipment_id: null, vendor: null, model: null, description: "", commands: {},
+        measurements: {
+          power_consumed: meas("watts", "float"),
+          gpu_power_watts: meas("watts", "float"),
+          gpu_2_throttle_reason: meas("none", "enum"),
+          gpu_1_throttle_reason: meas("none", "enum"),
+          gpu_1_power: meas("watts", "float"),
+          power_limit: meas("watts", "float"),
+          gpu_2_power_limit: meas("watts", "float"),
+          gpu_1_power_limit: meas("watts", "float"),
+        },
+      },
+    },
+  };
 }
 
 describe("gpuFleetFrom", () => {
@@ -50,24 +71,7 @@ describe("gpuFleetFrom", () => {
 describe("gpuNodeTopics", () => {
   it("builds the per-node topics to read out of the fleet subscription, per template GPU", () => {
     // Arrange — template with 2 GPUs; a pdu in the view must be ignored
-    const view: Pick<TopologyViewType, "devices" | "templates_used"> = {
-      devices: { gpu_node_01: device("gpu_node_01", "gpu_node"), pdu_01: device("pdu_01", "pdu") },
-      templates_used: {
-        gpu_node: {
-          template: "gpu_node", kind: "leaf", equipment_id: null, vendor: null, model: null, description: "", commands: {},
-          measurements: {
-            power_consumed: meas("watts", "float"),
-            gpu_power_watts: meas("watts", "float"),
-            gpu_2_throttle_reason: meas("none", "enum"),
-            gpu_1_throttle_reason: meas("none", "enum"),
-            gpu_1_power: meas("watts", "float"),
-            power_limit: meas("watts", "float"),
-            gpu_2_power_limit: meas("watts", "float"),
-            gpu_1_power_limit: meas("watts", "float"),
-          },
-        },
-      },
-    };
+    const view = viewWithGpuTemplate();
     const prefix = "sites/s1/devices/gpu_node_01/measurements";
 
     // Act
@@ -87,13 +91,25 @@ describe("gpuNodeTopics", () => {
   });
 });
 
-describe("gpuFleetFilter", () => {
-  it("is one site-wide wildcard, so dispatch matches each message once, not per node", () => {
-    // Arrange / Act
-    const filter = gpuFleetFilter("s1");
+describe("gpuFleetFilters", () => {
+  it("subscribes only the measurements the fold reads — one cross-device filter per name, never the whole site", () => {
+    // Arrange — template with 2 GPUs plus gpu_1_power, which the fold doesn't read
+    const view = viewWithGpuTemplate();
+
+    // Act
+    const filters = gpuFleetFilters(view, "s1");
 
     // Assert
-    expect(filter).toBe("sites/s1/devices/+/measurements/#");
+    const f = (name: string, unit: string): string => `sites/s1/devices/+/measurements/${name}/${unit}`;
+    expect(filters).toEqual([
+      f("power_consumed", "watts"),
+      f("power_limit", "watts"),
+      f("gpu_power_watts", "watts"),
+      f("gpu_1_throttle_reason", "none"),
+      f("gpu_2_throttle_reason", "none"),
+      f("gpu_1_power_limit", "watts"),
+      f("gpu_2_power_limit", "watts"),
+    ]);
   });
 });
 

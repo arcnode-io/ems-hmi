@@ -45,7 +45,7 @@ import type {
   DispatchProposal,
   DispatchState,
 } from "../dispatch/dispatch.types";
-import { isWildcard, topicMatches } from "./topicMatches";
+import { assertSubscribable, isWildcard, topicMatches } from "./topicMatches";
 import {
   useDemoCurtailmentToggle,
   DEMO_CURTAILMENT_CAP_W,
@@ -61,6 +61,8 @@ export class MockMqttClientImpl implements MqttClient {
     topic: string,
     listener: MessageListener<T>,
   ): Unsubscribe {
+    // Reason: same rule as the real client, so mock-mode dev can't hide a broad filter.
+    assertSubscribable(topic);
     if (!this.listeners.has(topic)) this.listeners.set(topic, new Set());
     if (isWildcard(topic)) this.wildcards.add(topic);
     const set = this.listeners.get(topic)!;

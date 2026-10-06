@@ -5,7 +5,7 @@
  * lifecycle (no client-side simulation). One command in flight per provider.
  */
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { MqttClient, Unsubscribe } from "./MqttClient";
 import { commandTopic, dispatchStateTopic } from "../topics/topicBuilder";
 import { correlationId } from "./correlationId";
@@ -81,6 +81,10 @@ export function useRealDispatch(
     },
     [client, publishFrame, siteId, teardown],
   );
+
+  // Reason: every subscription ends with its owner — an unmount mid-dispatch
+  // (e.g. logout) must not leave the dispatch-state listener behind.
+  useEffect(() => teardown, [teardown]);
 
   const cancel = useCallback((): void => {
     teardown();

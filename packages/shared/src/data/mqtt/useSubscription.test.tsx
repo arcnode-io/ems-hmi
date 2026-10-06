@@ -30,3 +30,29 @@ describe("useSubscription", () => {
     expect({ latest: result.current, topics: client.topics }).toEqual({ latest: null, topics: [] });
   });
 });
+
+describe("useSubscription unmount", () => {
+  it("unsubscribes when the component unmounts", () => {
+    // Arrange
+    const live = new Set<string>();
+    const client = {
+      subscribe: (topic: string) => {
+        live.add(topic);
+        return () => live.delete(topic);
+      },
+      publish: () => undefined,
+    } as MqttClient;
+    const { unmount } = renderHook(() => useSubscription<number>("sites/s1/devices/d/measurements/p/watts"), {
+      wrapper: ({ children }: { children: React.ReactNode }) => (
+        <MqttClientContext.Provider value={client}>{children}</MqttClientContext.Provider>
+      ),
+    });
+    const mounted = live.size;
+
+    // Act
+    unmount();
+
+    // Assert
+    expect([mounted, live.size]).toEqual([1, 0]);
+  });
+});

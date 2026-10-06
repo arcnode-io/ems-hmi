@@ -21,3 +21,29 @@ export function topicMatches(filter: string, topic: string): boolean {
   }
   return fLevels.length === tLevels.length;
 }
+
+/**
+ * The browser subscribes only to what it renders (Joe, 2026-10-06). Allowed:
+ * concrete topics, and a `+` in the device position of a fully named
+ * measurement — `sites/{site}/devices/+/measurements/{name}/{unit}`, i.e.
+ * "this one measurement across every device". Anything broader (`#`, `+` on
+ * site / name / unit) pulls traffic the page never uses: a site-wide `#` was
+ * ~3.5k msgs/s and 76% of the main thread on ems.arcnode.io.
+ * @throws Error naming the filter, before it reaches the broker
+ */
+export function assertSubscribable(filter: string): void {
+  if (!isWildcard(filter)) return;
+  const levels = filter.split("/");
+  const deviceLevelOnly =
+    levels.length === 7 &&
+    levels[0] === "sites" &&
+    levels[2] === "devices" &&
+    levels[3] === "+" &&
+    levels[4] === "measurements" &&
+    [levels[1], levels[5], levels[6]].every((level) => level !== "+" && level !== "#");
+  if (!deviceLevelOnly) {
+    throw new Error(
+      `MQTT filter "${filter}" is too broad — only a device-level + on a named measurement is allowed (no wildcard-everything subscriptions)`,
+    );
+  }
+}

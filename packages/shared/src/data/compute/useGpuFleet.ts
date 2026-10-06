@@ -73,6 +73,17 @@ function perGpuNames(measurements: Record<string, unknown>, pattern: RegExp): st
     .map((entry) => entry.name);
 }
 
+/** Every measurement the fold reads, in a fixed order — the single source for both subscribing and reading. */
+function readMeasurements(measurements: Record<string, unknown>): { name: string; unit: TopicUnit }[] {
+  return [
+    { name: "power_consumed", unit: "watts" },
+    { name: "power_limit", unit: "watts" },
+    { name: "gpu_power_watts", unit: "watts" },
+    ...perGpuNames(measurements, THROTTLE_KEY).map((name) => ({ name, unit: "none" as const })),
+    ...perGpuNames(measurements, GPU_LIMIT_KEY).map((name) => ({ name, unit: "watts" as const })),
+  ];
+}
+
 /**
  * Per-node read keys (concrete topics) for every gpu_node in the view. GPU
  * count comes from the template's `gpu_N_*` keys, not a hardcoded 8.
@@ -102,13 +113,21 @@ export function gpuNodeTopics(
 }
 
 /**
- * The fleet's one subscription. Reason: per-node `…/<node>/measurements/#`
- * filters cost a match per filter per message — 98 filters × ~2.7k msgs/s
- * measured ~2.9 s CPU per second of traffic, and the browser fell ~45 s behind.
- * One site-wide filter matches each message once.
+ * The fleet subscription: one cross-device filter per measurement the fold
+ * reads (`devices/+/measurements/<name>/<unit>`). Reason: a site-wide `#`
+ * pulled every measurement on site — ~3.5k msgs/s, 76% of the browser's main
+ * thread on ems.arcnode.io (2026-10-06) — for ~19 names per node it uses.
+ * Per-node filters cost a match per filter per message instead (98 × 2.7k/s).
  */
-export function gpuFleetFilter(siteId: string): string {
-  return `sites/${siteId}/devices/+/measurements/#`;
+export function gpuFleetFilters(
+  view: Pick<TopologyViewType, "devices" | "templates_used">,
+  siteId: string,
+): string[] {
+  const template = view.templates_used[GPU_NODE_TEMPLATE];
+  if (template === undefined) return [];
+  return readMeasurements(template.measurements).map(
+    ({ name, unit }) => `sites/${siteId}/devices/+/measurements/${name}/${unit}`,
+  );
 }
 
 const NOT_THROTTLING = "NA";
@@ -161,7 +180,7 @@ export function useGpuFleet(): GpuFleet {
   const { view } = useTopologyView();
   const { siteId } = useDeploymentIdentity();
   const nodes = useMemo(() => (view ? gpuNodeTopics(view, siteId) : []), [view, siteId]);
-  const filters = useMemo(() => [gpuFleetFilter(siteId)], [siteId]);
+  const filters = useMemo(() => (view ? gpuFleetFilters(view, siteId) : []), [view, siteId]);
   const msgs = useAggregateMeasurements<number | string>(filters, { flushMs: FLUSH_MS });
   const num = (topic: string): number | null => {
     const val = msgs[topic]?.value;

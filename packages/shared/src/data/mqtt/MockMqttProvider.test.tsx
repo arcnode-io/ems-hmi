@@ -131,13 +131,13 @@ describe("MockMqttClientImpl", () => {
     // Arrange
     const client = new MockMqttClientImpl();
     const seen: [string, unknown][] = [];
-    client.subscribe("s/devices/n1/measurements/#", (msg, topic) => seen.push([topic, msg.value]));
+    client.subscribe("sites/s/devices/+/measurements/p/watts", (msg, topic) => seen.push([topic, msg.value]));
 
     // Act
-    client.broadcast("s/devices/n1/measurements/p/watts", { ts: "2026-01-01T00:00:00Z", value: 8000 });
-    client.broadcast("s/devices/n2/measurements/p/watts", { ts: "2026-01-01T00:00:00Z", value: 1 });
+    client.broadcast("sites/s/devices/n1/measurements/p/watts", { ts: "2026-01-01T00:00:00Z", value: 8000 });
+    client.broadcast("sites/s/devices/n1/measurements/q/watts", { ts: "2026-01-01T00:00:00Z", value: 1 });
 
     // Assert
-    expect(seen).toEqual([["s/devices/n1/measurements/p/watts", 8000]]);
+    expect(seen).toEqual([["sites/s/devices/n1/measurements/p/watts", 8000]]);
   });
 });

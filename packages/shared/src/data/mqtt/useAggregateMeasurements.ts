@@ -18,11 +18,20 @@ import type { MqttMessage } from "./MqttClient";
 
 export type MessagesByTopic<T = unknown> = Record<string, MqttMessage<T>>;
 
+/**
+ * Default batch window. Reason: these hooks sit high in the tree (fleet KPIs,
+ * alarms, grid state in AppLayout/Overview), so a render per message
+ * re-rendered the whole app ~17×/s at real site rates and pinned the main
+ * thread (measured A/B on ems.arcnode.io, 2026-10-06). 500 ms caps it at ~2/s;
+ * nothing on these screens needs faster than twice a second.
+ */
+export const DEFAULT_FLUSH_MS = 500;
+
 export interface AggregateOptions {
   /**
    * Batch window: collect messages and re-render at most once per window.
-   * For high-rate fan-ins (e.g. ~1k GPU topics/s) where a render per
-   * message would swamp React. Omit for a render per message.
+   * Defaults to DEFAULT_FLUSH_MS. Pass 0 to re-render per message (only for
+   * a component that genuinely needs it — never one high in the tree).
    */
   flushMs?: number;
 }
@@ -32,7 +41,7 @@ export interface AggregateOptions {
  * Re-subscribes when the topic list changes (membership-based, not identity).
  *
  * @param topics List of MQTT topic strings to subscribe to
- * @param options flushMs to batch renders for high-rate topic sets
+ * @param options flushMs batch window (default DEFAULT_FLUSH_MS; 0 = per message)
  * @returns Map keyed by topic with the latest envelope; topics with no
  *          messages yet are absent from the map
  * @throws Error if used outside MqttProvider
@@ -41,7 +50,7 @@ export function useAggregateMeasurements<T = unknown>(
   topics: readonly string[],
   options: AggregateOptions = {},
 ): MessagesByTopic<T> {
-  const { flushMs } = options;
+  const { flushMs = DEFAULT_FLUSH_MS } = options;
   const pending = useRef<MessagesByTopic<T>>({});
   const client = useContext(MqttClientContext);
   if (client === null) {
@@ -62,12 +71,12 @@ export function useAggregateMeasurements<T = unknown>(
     // concrete topics into one subscription.
     const unsubs = topics.map((filter) =>
       client.subscribe<T>(filter, (msg, topic) => {
-        if (flushMs === undefined) setMessages((prev) => ({ ...prev, [topic]: msg }));
+        if (flushMs === 0) setMessages((prev) => ({ ...prev, [topic]: msg }));
         else pending.current[topic] = msg;
       }),
     );
     const timer =
-      flushMs === undefined
+      flushMs === 0
         ? undefined
         : setInterval(() => {
             const batch = pending.current;

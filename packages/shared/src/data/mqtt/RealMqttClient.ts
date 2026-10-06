@@ -15,7 +15,7 @@ import type {
   MqttMessage,
   Unsubscribe,
 } from "./MqttClient";
-import { isWildcard, topicMatches } from "./topicMatches";
+import { assertSubscribable, isWildcard, topicMatches } from "./topicMatches";
 
 /** Minimal surface of an mqtt.js client we depend on (injectable for tests). */
 export interface RawMqtt {
@@ -95,6 +95,7 @@ export class RealMqttClient implements MqttClient {
     // whole connection, and the reconnect loop blanks every panel with no
     // error anywhere. Fail loud at the caller instead.
     if (topic === "") throw new Error("RealMqttClient.subscribe: empty topic");
+    assertSubscribable(topic);
     let set = this.listeners.get(topic);
     if (!set) {
       set = new Set();
