@@ -73,4 +73,15 @@ describe("ConfirmationModal", () => {
     // Assert
     expect(getByText("editor here")).toBeTruthy();
   });
+
+  it("takes a custom heading and confirm label for an edit step, defaulting to Confirm command / Send", () => {
+    // Arrange / Act
+    const custom = render(withTheme(<ConfirmationModal {...BASE_PROPS} heading="Edit battery reserve" confirmLabel="Review" />));
+    const labels = [custom.queryByText("Edit battery reserve") !== null, custom.queryByText("Review") !== null];
+    custom.unmount();
+    const plain = render(withTheme(<ConfirmationModal {...BASE_PROPS} />));
+
+    // Assert
+    expect([...labels, plain.queryByText("Confirm command") !== null, plain.queryByText("Send") !== null]).toEqual([true, true, true, true]);
+  });
 });

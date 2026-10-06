@@ -28,6 +28,8 @@ export function ConfirmationModal({
   onConfirm,
   onCancel,
   children,
+  heading = "Confirm command",
+  confirmLabel = "Send",
 }: ConfirmationModalProps): React.ReactElement {
   const t = useTheme();
   const draggable = useBreakpoint().layout === "desktop";
@@ -106,7 +108,7 @@ export function ConfirmationModal({
                 },
               ]}
             >
-              Confirm command
+              {heading}
             </Text>
             <Text
               style={[
@@ -151,7 +153,7 @@ export function ConfirmationModal({
               onPress={onCancel}
             />
             <ModalButton
-              label="Send"
+              label={confirmLabel}
               variant="accent"
               action="confirm"
               onPress={onConfirm}

@@ -68,14 +68,3 @@ export function reserveConfirmation(
   if (Math.round(pending.mwh * 1_000_000) === Math.round(reserveMwh * 1_000_000)) return "confirmed";
   return nowMs - pending.sentAtMs >= CONFIRM_TIMEOUT_MS ? "unconfirmed" : "waiting";
 }
-
-/**
- * Plain-language effect of a reserve value: where the battery actually stops,
- * i.e. the greater of the operator reserve and the supplier warranty floor.
- * @example reserveSummary(0, 2.36) // "…down to 2.4 MWh (warranty floor)…"
- */
-export function reserveSummary(reserveMwh: number, supplierFloorMwh: number): string {
-  const operatorBinds = reserveMwh > supplierFloorMwh;
-  const floor = operatorBinds ? reserveMwh : supplierFloorMwh;
-  return `Battery covers curtailments down to ${floor.toFixed(1)} MWh (${operatorBinds ? "your reserve" : "minimum SoC"}), then GPUs throttle`;
-}

@@ -2,8 +2,9 @@
  * ReserveControl — the operator's battery reserve, inside the BESS tile.
  * The battery is held at max(supplier floor, this reserve); whatever it
  * doesn't cover during a curtailment, the compute shed does. Edits are desk
- * console only (Rule 3.1): "Edit reserve" opens one ConfirmationModal with
- * a typed MWh value (−/+ to nudge) — edit and confirm in a single step.
+ * console only (Rule 3.1), two steps: "Edit reserve" opens the edit dialog
+ * (typed MWh, −/+, minimum SoC always stated) → Review → a ConfirmationModal
+ * stating the action and its GPU impact → Send.
  */
 
 import React, { useEffect, useState } from "react";
@@ -16,12 +17,12 @@ import { useDerEventActive } from "../../../../data/grid/useDerEventActive";
 import {
   CONFIRM_TIMEOUT_MS,
   reserveConfirmation,
-  reserveSummary,
   stepReserveMwh,
 } from "../../../../data/bess/operatorReserve";
 import { useTopologyView } from "../../../../data/topology/useTopologyView";
 import { useBreakpoint } from "../../../../hooks/useBreakpoint";
 import { ConfirmationModal } from "../../../../components/composed/ConfirmationModal/ConfirmationModal";
+import { IconChevron } from "../../../../components/icons/IconChevron";
 
 const mwh = (value: number): string => `${value.toFixed(1)} MWh`;
 
@@ -51,6 +52,8 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
   const [input, setInput] = useState<string | null>(null);
   const [inputFocused, setInputFocused] = useState(false);
   const [explainFloor, setExplainFloor] = useState(false);
+  // Two steps: edit the value (Review) → confirm the action and its GPU impact (Send).
+  const [reviewing, setReviewing] = useState(false);
   // What the operator sent, until the controller's retained echo matches it.
   const [pending, setPending] = useState<{ mwh: number; sentAtMs: number } | null>(null);
   const [, setTick] = useState(0);
@@ -70,6 +73,10 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
   // Reason: clamp to the pack so a fat-fingered 99 can't read as nonsense;
   // the gateway would also just treat it as "hold everything".
   const target = Number.isFinite(typed) ? Math.min(packMwh, Math.max(0, typed)) : reserveMwh;
+  const close = (): void => {
+    setInput(null);
+    setReviewing(false);
+  };
   const step = (direction: 1 | -1): void => setInput(stepReserveMwh(target, direction, packMwh).toFixed(1));
 
   return (
@@ -104,16 +111,14 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
         </Text>
       ) : null}
       <ConfirmationModal
-        visible={input !== null}
-        commandSummary={reserveSummary(target, view.bess.reserve_floor_mwh)}
+        visible={input !== null && !reviewing}
+        heading="Edit battery reserve"
+        commandSummary={`Battery reserve: ${mwh(target)}`}
         targetDevices={[{ id: "bess", name: "Site battery", currentState: `Reserve ${mwh(reserveMwh)}` }]}
         simMode={view.ems_mode === "sim"}
-        onConfirm={() => {
-          setReserveMwh(target);
-          setPending({ mwh: target, sentAtMs: Date.now() });
-          setInput(null);
-        }}
-        onCancel={() => setInput(null)}
+        confirmLabel="Review"
+        onConfirm={() => setReviewing(true)}
+        onCancel={close}
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE[2] }}>
           <PrimaryButton label="−" testID="reserve-down" onPress={() => step(-1)} />
@@ -144,22 +149,43 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
           <PrimaryButton label="+" testID="reserve-up" onPress={() => step(1)} />
           <Text style={[resolveTypeStyle(t, "label"), { color: t.textMid }]}>{`MWh (0–${packMwh.toFixed(1)})`}</Text>
         </View>
-        {/* Reason: a toggletip, not a hover tooltip — works on touch and keyboard. */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityState={{ expanded: explainFloor }}
-          onPress={() => setExplainFloor((open) => !open)}
-          style={{ marginTop: SPACE[2], alignSelf: "flex-start" }}
-        >
-          <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.textMid, textDecorationLine: "underline" }]}>
-            What's minimum SoC?
+        {/* Minimum SoC is always stated; a chevron discloses its definition (works on touch + keyboard). */}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE[2], marginTop: SPACE[2] }}>
+          <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.textMid }]}>
+            {`Minimum SoC: ${view.bess.reserve_floor_mwh.toFixed(1)} MWh`}
           </Text>
-        </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="What is minimum SoC?"
+            accessibilityState={{ expanded: explainFloor }}
+            testID="min-soc-info"
+            onPress={() => setExplainFloor((open) => !open)}
+            hitSlop={8}
+          >
+            <IconChevron size={14} color={t.textMid} dir={explainFloor ? "up" : "down"} />
+          </Pressable>
+        </View>
         {explainFloor ? (
           <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.textMid, marginTop: 4 }]}>
             {`Minimum SoC: the lowest state of charge the battery supplier's warranty allows — ${view.bess.reserve_floor_mwh.toFixed(1)} MWh (${Math.round(view.bess.reserve_floor_pct)}%) here. The system never discharges below it. A reserve above it keeps more energy back.`}
           </Text>
         ) : null}
+      </ConfirmationModal>
+      <ConfirmationModal
+        visible={input !== null && reviewing}
+        commandSummary={`Set battery reserve to ${mwh(target)}`}
+        targetDevices={[{ id: "bess", name: "Site battery", currentState: `Reserve ${mwh(reserveMwh)}` }]}
+        simMode={view.ems_mode === "sim"}
+        onConfirm={() => {
+          setReserveMwh(target);
+          setPending({ mwh: target, sentAtMs: Date.now() });
+          close();
+        }}
+        onCancel={close}
+      >
+        <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.statusWarn }]}>
+          During curtailment at this reserve, GPU performance will be affected
+        </Text>
       </ConfirmationModal>
     </View>
   );

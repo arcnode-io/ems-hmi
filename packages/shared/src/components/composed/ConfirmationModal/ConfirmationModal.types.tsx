@@ -18,6 +18,10 @@ export interface ConfirmationModalProps {
   simMode?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
-  /** Optional editor (e.g. a value input) shown above Send — confirm what you edit, in one step. */
+  /** Optional body (e.g. a value editor, or an impact line) shown above the buttons. */
   children?: React.ReactNode;
+  /** Header eyebrow; default "Confirm command". An edit step uses its own (e.g. "Edit battery reserve"). */
+  heading?: string;
+  /** Confirm button label; default "Send". An edit step that leads to a confirmation uses "Review". */
+  confirmLabel?: string;
 }
