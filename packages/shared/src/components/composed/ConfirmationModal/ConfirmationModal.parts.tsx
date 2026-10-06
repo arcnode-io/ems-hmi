@@ -51,12 +51,9 @@ export function TargetRow({
       style={{
         flexDirection: "row",
         justifyContent: "space-between",
-        backgroundColor: t.bg,
-        borderWidth: 1,
-        borderColor: t.border,
-        borderRadius: RADIUS[2],
-        paddingVertical: SPACE[2],
-        paddingHorizontal: SPACE[3],
+        // Reason: read-only facts, so no field look (no inset fill or box) —
+        // otherwise it reads as an input next to real ones (Joe, 2026-10-06).
+        paddingVertical: SPACE[1],
       }}
     >
       <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.text }]}>

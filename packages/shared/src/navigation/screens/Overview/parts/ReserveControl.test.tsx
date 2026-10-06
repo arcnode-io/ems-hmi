@@ -128,4 +128,17 @@ describe("ReserveControl", () => {
     expect([waiting, queryByText(/Not confirmed by controller · sent 0.5 MWh/) !== null, getByTestId("reserve-value").textContent]).toEqual([true, true, "0.0 MWh"]);
     jest.useRealTimers();
   });
+
+  it("explains minimum SoC on request, with this site's value", () => {
+    // Arrange
+    const { getByTestId, getByText, queryByText } = renderWithScreen(<ReserveControl gpusCapped={false} />, [], { [STATE]: 0 }, VIEW);
+    fireEvent.click(getByTestId("reserve-edit"));
+    const hiddenAtFirst = queryByText(/lowest state of charge/) === null;
+
+    // Act
+    fireEvent.click(getByText("What's minimum SoC?"));
+
+    // Assert — VIEW: supplier floor 2.36 MWh = 29.5 %
+    expect([hiddenAtFirst, queryByText(/lowest state of charge the battery supplier's warranty allows — 2\.4 MWh \(30%\) here/) !== null]).toEqual([true, true]);
+  });
 });

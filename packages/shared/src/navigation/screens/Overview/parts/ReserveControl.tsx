@@ -25,16 +25,17 @@ import { ConfirmationModal } from "../../../../components/composed/ConfirmationM
 
 const mwh = (value: number): string => `${value.toFixed(1)} MWh`;
 
-function SmallButton({ label, testID, onPress }: { label: string; testID: string; onPress: () => void }): React.ReactElement {
+/** Primary action — same accent fill + inverse label as the dialog's Send. */
+function PrimaryButton({ label, testID, onPress }: { label: string; testID: string; onPress: () => void }): React.ReactElement {
   const t = useTheme();
   return (
     <Pressable
       accessibilityRole="button"
       testID={testID}
       onPress={onPress}
-      style={{ paddingVertical: 2, paddingHorizontal: 8, borderRadius: RADIUS[2], borderWidth: 1, borderColor: t.border }}
+      style={{ paddingVertical: 4, paddingHorizontal: 10, borderRadius: RADIUS[2], backgroundColor: t.accent }}
     >
-      <Text style={[resolveTypeStyle(t, "label"), { color: t.text }]}>{label}</Text>
+      <Text style={[resolveTypeStyle(t, "label"), { color: t.textInverse, fontWeight: "700" }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -48,6 +49,8 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
   const curtailed = useDerEventActive();
   // Dialog state: null = closed; otherwise the text in the MWh field.
   const [input, setInput] = useState<string | null>(null);
+  const [inputFocused, setInputFocused] = useState(false);
+  const [explainFloor, setExplainFloor] = useState(false);
   // What the operator sent, until the controller's retained echo matches it.
   const [pending, setPending] = useState<{ mwh: number; sentAtMs: number } | null>(null);
   const [, setTick] = useState(0);
@@ -79,7 +82,7 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
       </View>
       {isDesktop ? (
         <View style={{ alignItems: "flex-end" }}>
-          <SmallButton label="Edit reserve" testID="reserve-edit" onPress={() => setInput(reserveMwh.toFixed(1))} />
+          <PrimaryButton label="Edit reserve" testID="reserve-edit" onPress={() => setInput(reserveMwh.toFixed(1))} />
         </View>
       ) : null}
       {status === "waiting" || status === "unconfirmed" ? (
@@ -113,21 +116,50 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
         onCancel={() => setInput(null)}
       >
         <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE[2] }}>
-          <SmallButton label="−" testID="reserve-down" onPress={() => step(-1)} />
+          <PrimaryButton label="−" testID="reserve-down" onPress={() => step(-1)} />
           <TextInput
             testID="reserve-input"
             accessibilityLabel="Reserve in MWh"
             inputMode="decimal"
             value={input ?? ""}
             onChangeText={setInput}
+            onFocus={() => setInputFocused(true)}
+            onBlur={() => setInputFocused(false)}
             style={[
               resolveTypeStyle(t, "label"),
-              { flex: 1, textAlign: "center", color: t.text, borderWidth: 1, borderColor: t.border, borderRadius: RADIUS[2], paddingVertical: 4 },
+              {
+                flex: 1,
+                textAlign: "center",
+                color: t.text,
+                // Reason: the one editable thing in the dialog gets the field look
+                // (lightest surface + border); the read-only target row has neither.
+                backgroundColor: t.bg,
+                borderWidth: 1,
+                borderColor: inputFocused ? t.borderFocus : t.border,
+                borderRadius: RADIUS[2],
+                paddingVertical: 4,
+              },
             ]}
           />
-          <SmallButton label="+" testID="reserve-up" onPress={() => step(1)} />
+          <PrimaryButton label="+" testID="reserve-up" onPress={() => step(1)} />
           <Text style={[resolveTypeStyle(t, "label"), { color: t.textMid }]}>{`MWh (0–${packMwh})`}</Text>
         </View>
+        {/* Reason: a toggletip, not a hover tooltip — works on touch and keyboard. */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ expanded: explainFloor }}
+          onPress={() => setExplainFloor((open) => !open)}
+          style={{ marginTop: SPACE[2], alignSelf: "flex-start" }}
+        >
+          <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.textMid, textDecorationLine: "underline" }]}>
+            What's minimum SoC?
+          </Text>
+        </Pressable>
+        {explainFloor ? (
+          <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.textMid, marginTop: 4 }]}>
+            {`Minimum SoC: the lowest state of charge the battery supplier's warranty allows — ${view.bess.reserve_floor_mwh.toFixed(1)} MWh (${Math.round(view.bess.reserve_floor_pct)}%) here. The system never discharges below it. A reserve above it keeps more energy back.`}
+          </Text>
+        ) : null}
       </ConfirmationModal>
     </View>
   );

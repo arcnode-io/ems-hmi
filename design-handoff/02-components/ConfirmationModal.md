@@ -12,7 +12,8 @@ See it live in the [gallery](./index.html#confirmationmodal).
 |--------|-------|------|
 | Header bar | `t.borderSoft divider · grab cursor` | draggable |
 | Command summary | `t.text · fontBody · bold` | human-readable |
-| Target panel | `t.bg inset · t.border` | name + current state |
+| Target panel | plain row on `t.surface` · no fill, no border | name + current state; read-only, so it must not look like a field |
+| Editor slot (optional) | field: `t.bg` fill · `t.border` → `t.borderFocus` on focus | the value being confirmed (e.g. reserve MWh); the only field-styled element |
 | SIM badge | `t.statusSim` | only when sim=true |
 | Cancel | `ghost button` | — |
 | Confirm | `t.accent (or t.statusSim if sim)` | "Send (SIM)" in sim mode |

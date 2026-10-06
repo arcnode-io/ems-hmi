@@ -77,5 +77,5 @@ export function reserveConfirmation(
 export function reserveSummary(reserveMwh: number, supplierFloorMwh: number): string {
   const operatorBinds = reserveMwh > supplierFloorMwh;
   const floor = operatorBinds ? reserveMwh : supplierFloorMwh;
-  return `Battery covers curtailments down to ${floor.toFixed(1)} MWh (${operatorBinds ? "your reserve" : "warranty floor"}), then GPUs throttle`;
+  return `Battery covers curtailments down to ${floor.toFixed(1)} MWh (${operatorBinds ? "your reserve" : "minimum SoC"}), then GPUs throttle`;
 }

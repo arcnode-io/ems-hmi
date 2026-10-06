@@ -70,16 +70,16 @@ describe("reserveConfirmation", () => {
 });
 
 describe("reserveSummary", () => {
-  it("names whichever floor actually binds — the warranty floor or the operator's reserve", () => {
+  it("names whichever floor actually binds — minimum SoC (warranty) or the operator's reserve", () => {
     // Arrange — supplier (warranty) floor 2.36 MWh
     // Act
     const lines = [reserveSummary(0, 2.36), reserveSummary(6, 2.36), reserveSummary(2.36, 2.36)];
 
     // Assert
     expect(lines).toEqual([
-      "Battery covers curtailments down to 2.4 MWh (warranty floor), then GPUs throttle",
+      "Battery covers curtailments down to 2.4 MWh (minimum SoC), then GPUs throttle",
       "Battery covers curtailments down to 6.0 MWh (your reserve), then GPUs throttle",
-      "Battery covers curtailments down to 2.4 MWh (warranty floor), then GPUs throttle",
+      "Battery covers curtailments down to 2.4 MWh (minimum SoC), then GPUs throttle",
     ]);
   });
 });
