@@ -8,7 +8,7 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { View, Text, Pressable, TextInput } from "react-native";
+import { View, Text, TextInput } from "react-native";
 import { useTheme } from "../../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
@@ -16,33 +16,31 @@ import { useOperatorReserve } from "../../../../data/bess/useOperatorReserve";
 import { useDerEventActive } from "../../../../data/grid/useDerEventActive";
 import {
   CONFIRM_TIMEOUT_MS,
+  coverHours,
   reserveConfirmation,
   stepReserveMwh,
+  toAboveFloorMwh,
+  toAbsoluteMwh,
 } from "../../../../data/bess/operatorReserve";
 import { useTopologyView } from "../../../../data/topology/useTopologyView";
 import { useBreakpoint } from "../../../../hooks/useBreakpoint";
 import { ConfirmationModal } from "../../../../components/composed/ConfirmationModal/ConfirmationModal";
-import { IconChevron } from "../../../../components/icons/IconChevron";
+import { PrimaryButton, coverLine } from "./reserveParts";
 
 const mwh = (value: number): string => `${value.toFixed(1)} MWh`;
 
-/** Primary action — same accent fill + inverse label as the dialog's Send. */
-function PrimaryButton({ label, testID, onPress }: { label: string; testID: string; onPress: () => void }): React.ReactElement {
-  const t = useTheme();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      testID={testID}
-      onPress={onPress}
-      style={{ paddingVertical: 4, paddingHorizontal: 10, borderRadius: RADIUS[2], backgroundColor: t.accent }}
-    >
-      <Text style={[resolveTypeStyle(t, "label"), { color: t.textInverse, fontWeight: "700" }]}>{label}</Text>
-    </Pressable>
-  );
+/** Live inputs for the cover estimate, from the tile's fleet KPIs. */
+export interface ReserveLive {
+  socPct: number | null;
+  /** Site load the battery must carry at full curtailment: POI import + battery output, W. */
+  siteLoadW: number | null;
 }
 
-/** @param gpusCapped any GPU currently throttled — the note only matters when caps exist */
-export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.ReactElement | null {
+/**
+ * @param gpusCapped any GPU currently throttled — the note only matters when caps exist
+ * @param live SoC + site load for the live cover estimate
+ */
+export function ReserveControl({ gpusCapped, live }: { gpusCapped: boolean; live: ReserveLive }): React.ReactElement | null {
   const t = useTheme();
   const { view } = useTopologyView();
   const { reserveMwh, setReserveMwh } = useOperatorReserve();
@@ -51,7 +49,6 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
   // Dialog state: null = closed; otherwise the text in the MWh field.
   const [input, setInput] = useState<string | null>(null);
   const [inputFocused, setInputFocused] = useState(false);
-  const [explainFloor, setExplainFloor] = useState(false);
   // Two steps: edit the value (Review) → confirm the action and its GPU impact (Send).
   const [reviewing, setReviewing] = useState(false);
   // What the operator sent, until the controller's retained echo matches it.
@@ -69,27 +66,31 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
   }, [pending]);
   if (setReserveMwh === null || !view?.bess) return null;
   const packMwh = view.bess.pack_mwh;
+  const floorMwh = view.bess.reserve_floor_mwh;
+  // Reason: the operator works in MWh above minimum SoC (the effective zero —
+  // a reserve below it does nothing); the controller stores the absolute.
+  const usableMwh = packMwh - floorMwh;
+  const reserveAboveMwh = toAboveFloorMwh(reserveMwh, floorMwh);
   const typed = Number.parseFloat(input ?? "");
-  // Reason: clamp to the pack so a fat-fingered 99 can't read as nonsense;
-  // the gateway would also just treat it as "hold everything".
-  const target = Number.isFinite(typed) ? Math.min(packMwh, Math.max(0, typed)) : reserveMwh;
+  const target = Number.isFinite(typed) ? Math.min(usableMwh, Math.max(0, typed)) : reserveAboveMwh;
+  const hours = coverHours(live.socPct, packMwh, floorMwh, target, live.siteLoadW);
   const close = (): void => {
     setInput(null);
     setReviewing(false);
   };
-  const step = (direction: 1 | -1): void => setInput(stepReserveMwh(target, direction, packMwh).toFixed(1));
+  const step = (direction: 1 | -1): void => setInput(stepReserveMwh(target, direction, usableMwh).toFixed(1));
 
   return (
     <View dataSet={{ comp: "ReserveControl" }} style={{ marginTop: SPACE[2], gap: 4 }}>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" }}>
         <Text style={[resolveTypeStyle(t, "kpiLabel"), { color: t.textSoft }]}>Reserve</Text>
         <Text testID="reserve-value" style={[resolveTypeStyle(t, "label"), { color: t.text, fontWeight: "600" }]}>
-          {mwh(reserveMwh)}
+          {mwh(reserveAboveMwh)}
         </Text>
       </View>
       {isDesktop ? (
         <View style={{ alignItems: "flex-end" }}>
-          <PrimaryButton label="Edit reserve" testID="reserve-edit" onPress={() => setInput(reserveMwh.toFixed(1))} />
+          <PrimaryButton label="Edit reserve" testID="reserve-edit" onPress={() => setInput(reserveAboveMwh.toFixed(1))} />
         </View>
       ) : null}
       {status === "waiting" || status === "unconfirmed" ? (
@@ -98,8 +99,8 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
           style={[resolveTypeStyle(t, "bodyDense"), { color: status === "unconfirmed" ? t.statusWarn : t.textSoft }]}
         >
           {status === "waiting"
-            ? `Waiting for controller… (${mwh(pending?.mwh ?? 0)} sent)`
-            : `Not confirmed by controller · sent ${mwh(pending?.mwh ?? 0)}`}
+            ? `Waiting for controller… (${mwh(toAboveFloorMwh(pending?.mwh ?? 0, floorMwh))} sent)`
+            : `Not confirmed by controller · sent ${mwh(toAboveFloorMwh(pending?.mwh ?? 0, floorMwh))}`}
         </Text>
       ) : null}
       {/* Reason: the gateway's shed holds until stand-down (it can't prove the
@@ -114,7 +115,7 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
         visible={input !== null && !reviewing}
         heading="Edit battery reserve"
         commandSummary={`Battery reserve: ${mwh(target)}`}
-        targetDevices={[{ id: "bess", name: "Site battery", currentState: `Reserve ${mwh(reserveMwh)}` }]}
+        targetDevices={[{ id: "bess", name: "Site battery", currentState: `Reserve ${mwh(reserveAboveMwh)}` }]}
         simMode={view.ems_mode === "sim"}
         confirmLabel="Review"
         onConfirm={() => setReviewing(true)}
@@ -147,38 +148,23 @@ export function ReserveControl({ gpusCapped }: { gpusCapped: boolean }): React.R
             ]}
           />
           <PrimaryButton label="+" testID="reserve-up" onPress={() => step(1)} />
-          <Text style={[resolveTypeStyle(t, "label"), { color: t.textMid }]}>{`MWh (0–${packMwh.toFixed(1)})`}</Text>
+          <Text style={[resolveTypeStyle(t, "label"), { color: t.textMid }]}>{`MWh (0–${usableMwh.toFixed(1)})`}</Text>
         </View>
-        {/* Minimum SoC is always stated; a chevron discloses its definition (works on touch + keyboard). */}
-        <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE[2], marginTop: SPACE[2] }}>
-          <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.textMid }]}>
-            {`Minimum SoC: ${view.bess.reserve_floor_mwh.toFixed(1)} MWh`}
+        {hours === null ? null : (
+          <Text testID="reserve-cover" style={[resolveTypeStyle(t, "bodyDense"), { color: hours <= 0 ? t.statusWarn : t.text, marginTop: SPACE[2] }]}>
+            {coverLine(hours)}
           </Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="What is minimum SoC?"
-            accessibilityState={{ expanded: explainFloor }}
-            testID="min-soc-info"
-            onPress={() => setExplainFloor((open) => !open)}
-            hitSlop={8}
-          >
-            <IconChevron size={14} color={t.textMid} dir={explainFloor ? "up" : "down"} />
-          </Pressable>
-        </View>
-        {explainFloor ? (
-          <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.textMid, marginTop: 4 }]}>
-            {`Minimum SoC: the lowest state of charge the battery supplier's warranty allows — ${view.bess.reserve_floor_mwh.toFixed(1)} MWh (${Math.round(view.bess.reserve_floor_pct)}%) here. The system never discharges below it. A reserve above it keeps more energy back.`}
-          </Text>
-        ) : null}
+        )}
       </ConfirmationModal>
       <ConfirmationModal
         visible={input !== null && reviewing}
         commandSummary={`Set battery reserve to ${mwh(target)}`}
-        targetDevices={[{ id: "bess", name: "Site battery", currentState: `Reserve ${mwh(reserveMwh)}` }]}
+        targetDevices={[{ id: "bess", name: "Site battery", currentState: `Reserve ${mwh(reserveAboveMwh)}` }]}
         simMode={view.ems_mode === "sim"}
         onConfirm={() => {
-          setReserveMwh(target);
-          setPending({ mwh: target, sentAtMs: Date.now() });
+          const absoluteMwh = toAbsoluteMwh(target, floorMwh, packMwh);
+          setReserveMwh(absoluteMwh);
+          setPending({ mwh: absoluteMwh, sentAtMs: Date.now() });
           close();
         }}
         onCancel={close}

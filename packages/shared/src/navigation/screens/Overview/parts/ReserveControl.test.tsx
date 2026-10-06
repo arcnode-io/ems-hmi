@@ -1,4 +1,8 @@
-/** ReserveControl — operator battery reserve: shown in MWh, sent in Wh, only after confirm. AAA. */
+/**
+ * ReserveControl — operator reserve, shown as MWh ABOVE minimum SoC (0 = use the
+ * battery down to minimum SoC), sent as the absolute Wh the controller stores,
+ * only after Review → Send. AAA.
+ */
 
 import React from "react";
 import { act, fireEvent } from "@testing-library/react";
@@ -29,16 +33,30 @@ const VIEW: TopologyViewType = {
   },
 };
 
+// 8 MWh pack, minimum SoC 2.36 → 0–5.6 MWh above it. 71% charged, 1.12 MW site load.
+const LIVE = { socPct: 71, siteLoadW: 1_120_000 };
+const control = (gpusCapped = false): React.ReactElement => <ReserveControl gpusCapped={gpusCapped} live={LIVE} />;
+
 beforeEach(() => {
   layout = "desktop";
 });
 
 describe("ReserveControl", () => {
-  it("Edit → nudge with + → Review → Send publishes the value in Wh, and nothing before Send", () => {
+  it("shows the stored reserve as MWh above minimum SoC — a stored value at or below it reads 0", () => {
+    // Arrange / Act
+    const low = renderWithScreen(control(), [], { [STATE]: 0 }, VIEW);
+    const lowValue = low.getByTestId("reserve-value").textContent;
+    low.unmount();
+    const high = renderWithScreen(control(), [], { [STATE]: 5_360_000 }, VIEW);
+
+    // Assert
+    expect([lowValue, high.getByTestId("reserve-value").textContent]).toEqual(["0.0 MWh", "3.0 MWh"]);
+  });
+
+  it("Edit → + → Review → Send publishes the absolute reserve in Wh, nothing before Send", () => {
     // Arrange
     const published: Published = [];
-    const { getByText, getByTestId } = renderWithScreen(<ReserveControl gpusCapped={false} />, published, { [STATE]: 2_000_000 }, VIEW);
-    const shown = getByTestId("reserve-value").textContent;
+    const { getByText, getByTestId } = renderWithScreen(control(), published, { [STATE]: 0 }, VIEW);
 
     // Act
     fireEvent.click(getByTestId("reserve-edit"));
@@ -47,43 +65,88 @@ describe("ReserveControl", () => {
     const beforeConfirm = published.length;
     fireEvent.click(getByText("Send"));
 
-    // Assert
-    expect({ shown, beforeConfirm, sent: published[0] }).toEqual({
-      shown: "2.0 MWh",
+    // Assert — 0.5 above a 2.36 floor
+    expect({ beforeConfirm, sent: published[0] }).toEqual({
       beforeConfirm: 0,
-      sent: [COMMAND, expect.objectContaining({ value: 2_500_000 })],
+      sent: [COMMAND, expect.objectContaining({ value: 2_860_000 })],
     });
   });
 
-  it("accepts a typed value, clamped to the pack", () => {
+  it("accepts a typed value above minimum SoC, clamped to the usable range", () => {
     // Arrange
     const published: Published = [];
-    const { getByText, getByTestId } = renderWithScreen(<ReserveControl gpusCapped={false} />, published, { [STATE]: 0 }, VIEW);
-    fireEvent.click(getByTestId("reserve-edit"));
+    const { getByText, getByTestId } = renderWithScreen(control(), published, { [STATE]: 0 }, VIEW);
+    const send = (typed: string): void => {
+      fireEvent.click(getByTestId("reserve-edit"));
+      fireEvent.change(getByTestId("reserve-input"), { target: { value: typed } });
+      fireEvent.click(getByText("Review"));
+      fireEvent.click(getByText("Send"));
+    };
 
     // Act
-    fireEvent.change(getByTestId("reserve-input"), { target: { value: "6" } });
-    fireEvent.click(getByText("Review"));
-    fireEvent.click(getByText("Send"));
-    fireEvent.click(getByTestId("reserve-edit"));
-    fireEvent.change(getByTestId("reserve-input"), { target: { value: "99" } });
-    fireEvent.click(getByText("Review"));
-    fireEvent.click(getByText("Send"));
+    send("3");
+    send("99");
 
-    // Assert — 8 MWh pack
-    expect(published.map(([, msg]) => msg.value)).toEqual([6_000_000, 8_000_000]);
+    // Assert — 2.36 + 3; and the full pack
+    expect(published.map(([, msg]) => msg.value)).toEqual([5_360_000, 8_000_000]);
+  });
+
+  it("states the usable range, not the absolute pack", () => {
+    // Arrange
+    const { getByTestId, queryByText } = renderWithScreen(control(), [], { [STATE]: 0 }, VIEW);
+
+    // Act
+    fireEvent.click(getByTestId("reserve-edit"));
+
+    // Assert — 8 − 2.36
+    expect(queryByText("MWh (0–5.6)") !== null).toBe(true);
+  });
+
+  it("shows, live, how long a full curtailment is covered before GPUs throttle", () => {
+    // Arrange
+    const { getByTestId, getByText } = renderWithScreen(control(), [], { [STATE]: 0 }, VIEW);
+    fireEvent.click(getByTestId("reserve-edit"));
+    const atZero = getByTestId("reserve-cover").textContent;
+
+    // Act
+    fireEvent.change(getByTestId("reserve-input"), { target: { value: "3" } });
+    const atThree = getByTestId("reserve-cover").textContent;
+    fireEvent.change(getByTestId("reserve-input"), { target: { value: "5" } });
+
+    // Assert — (5.68−2.36)/1.12 h, (5.68−5.36)/1.12 h, nothing left
+    expect([atZero, atThree, getByText(/throttle as soon as/) !== null]).toEqual([
+      "Covers ~3.0 h of full curtailment before GPUs throttle",
+      "Covers ~17 min of full curtailment before GPUs throttle",
+      true,
+    ]);
+  });
+
+  it("the confirmation states the action and the GPU impact", () => {
+    // Arrange
+    const { getByTestId, getByText, queryByText } = renderWithScreen(control(), [], { [STATE]: 0 }, VIEW);
+    fireEvent.click(getByTestId("reserve-edit"));
+    fireEvent.click(getByTestId("reserve-up"));
+
+    // Act
+    fireEvent.click(getByText("Review"));
+
+    // Assert
+    expect([
+      queryByText("Set battery reserve to 0.5 MWh") !== null,
+      queryByText("During curtailment at this reserve, GPU performance will be affected") !== null,
+    ]).toEqual([true, true]);
   });
 
   it("is read-only on phones and absent where the template has no operator_reserve", () => {
     // Arrange
     layout = "phone";
-    const phone = renderWithScreen(<ReserveControl gpusCapped={false} />, [], { [STATE]: 0 }, VIEW);
+    const phone = renderWithScreen(control(), [], { [STATE]: 0 }, VIEW);
     const phoneButtons = phone.queryByTestId("reserve-edit");
     phone.unmount();
     layout = "desktop";
 
     // Act
-    const unsupported = renderWithScreen(<ReserveControl gpusCapped={false} />, []);
+    const unsupported = renderWithScreen(control(), []);
 
     // Assert
     expect([phoneButtons, unsupported.container.textContent]).toEqual([null, ""]);
@@ -92,7 +155,7 @@ describe("ReserveControl", () => {
   it("warns only while a curtailment has GPUs capped — never in Demo A where nothing is", () => {
     // Arrange / Act
     const shown = (capped: boolean, active: boolean): boolean => {
-      const view = renderWithScreen(<ReserveControl gpusCapped={capped} />, [], { [STATE]: 6_000_000, [EVENT_ACTIVE]: active }, VIEW);
+      const view = renderWithScreen(control(capped), [], { [STATE]: 6_000_000, [EVENT_ACTIVE]: active }, VIEW);
       const hit = view.queryByText(NOTE) !== null;
       view.unmount();
       return hit;
@@ -104,22 +167,22 @@ describe("ReserveControl", () => {
 
   it("shows waiting until the controller echoes the value, then clears", () => {
     // Arrange — live controller: the set command echoes onto the state topic
-    const { getByTestId, getByText, queryByText } = renderWithScreen(<ReserveControl gpusCapped={false} />, [], { [STATE]: 0 }, VIEW, { [COMMAND]: STATE });
+    const { getByTestId, getByText, queryByText } = renderWithScreen(control(), [], { [STATE]: 0 }, VIEW, { [COMMAND]: STATE });
     fireEvent.click(getByTestId("reserve-edit"));
     fireEvent.click(getByTestId("reserve-up"));
+    fireEvent.click(getByText("Review"));
 
     // Act
-    fireEvent.click(getByText("Review"));
     fireEvent.click(getByText("Send"));
 
-    // Assert — the echo landed synchronously, so no waiting text remains
+    // Assert
     expect([getByTestId("reserve-value").textContent, queryByText(/Waiting for controller/), queryByText(/Not confirmed/)]).toEqual(["0.5 MWh", null, null]);
   });
 
   it("flags a command the controller never confirms after 10 s", () => {
     // Arrange — dead controller: no echo
     jest.useFakeTimers();
-    const { getByTestId, getByText, queryByText } = renderWithScreen(<ReserveControl gpusCapped={false} />, [], { [STATE]: 0 }, VIEW);
+    const { getByTestId, getByText, queryByText } = renderWithScreen(control(), [], { [STATE]: 0 }, VIEW);
     fireEvent.click(getByTestId("reserve-edit"));
     fireEvent.click(getByTestId("reserve-up"));
     fireEvent.click(getByText("Review"));
@@ -132,47 +195,5 @@ describe("ReserveControl", () => {
     // Assert
     expect([waiting, queryByText(/Not confirmed by controller · sent 0.5 MWh/) !== null, getByTestId("reserve-value").textContent]).toEqual([true, true, "0.0 MWh"]);
     jest.useRealTimers();
-  });
-
-  it("always states minimum SoC under the input, and explains it on request", () => {
-    // Arrange
-    const { getByTestId, queryByText } = renderWithScreen(<ReserveControl gpusCapped={false} />, [], { [STATE]: 0 }, VIEW);
-    fireEvent.click(getByTestId("reserve-edit"));
-    const stated = queryByText("Minimum SoC: 2.4 MWh") !== null;
-    const hiddenAtFirst = queryByText(/lowest state of charge/) === null;
-
-    // Act
-    fireEvent.click(getByTestId("min-soc-info"));
-
-    // Assert — VIEW: supplier floor 2.36 MWh = 29.5 %
-    expect([stated, hiddenAtFirst, queryByText(/lowest state of charge the battery supplier's warranty allows — 2\.4 MWh \(30%\) here/) !== null]).toEqual([true, true, true]);
-  });
-
-  it("the second confirmation states the action and the GPU impact", () => {
-    // Arrange
-    const { getByTestId, getByText, queryByText } = renderWithScreen(<ReserveControl gpusCapped={false} />, [], { [STATE]: 2_000_000 }, VIEW);
-    fireEvent.click(getByTestId("reserve-edit"));
-    fireEvent.click(getByTestId("reserve-up"));
-
-    // Act
-    fireEvent.click(getByText("Review"));
-
-    // Assert
-    expect([
-      queryByText("Set battery reserve to 2.5 MWh") !== null,
-      queryByText("During curtailment at this reserve, GPU performance will be affected") !== null,
-    ]).toEqual([true, true]);
-  });
-
-  it("states the range with the pack size rounded like every other MWh value", () => {
-    // Arrange — ems.arcnode.io's pack is 7.708 MWh; raw it read "0–7.708"
-    const odd: TopologyViewType = { ...VIEW, bess: { pack_mwh: 7.708, reserve_floor_mwh: 2.36, reserve_floor_pct: 30.6 } };
-    const { getByTestId, queryByText } = renderWithScreen(<ReserveControl gpusCapped={false} />, [], { [STATE]: 0 }, odd);
-
-    // Act
-    fireEvent.click(getByTestId("reserve-edit"));
-
-    // Assert
-    expect(queryByText("MWh (0–7.7)") !== null).toBe(true);
   });
 });

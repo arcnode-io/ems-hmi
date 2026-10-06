@@ -1,4 +1,4 @@
-import { operatorReserveTopics, parseReserveWh, reserveConfirmation, stepReserveMwh } from "./operatorReserve";
+import { coverHours, operatorReserveTopics, parseReserveWh, reserveConfirmation, stepReserveMwh, toAboveFloorMwh, toAbsoluteMwh } from "./operatorReserve";
 import type { MeasurementViewType, TopologyViewType } from "../topology/topology.schema";
 
 const RESERVE: MeasurementViewType = {
@@ -66,5 +66,34 @@ describe("reserveConfirmation", () => {
 
     // Assert
     expect(states).toEqual(["idle", "waiting", "confirmed", "unconfirmed"]);
+  });
+});
+
+describe("reserve measured above minimum SoC", () => {
+  it("converts between the operator's above-floor value and the absolute reserve the controller stores", () => {
+    // Arrange — 7.7 MWh pack, 2.36 MWh minimum SoC → 0–5.34 MWh usable
+    // Act
+    const above = [toAboveFloorMwh(0, 2.36), toAboveFloorMwh(3, 2.36), toAboveFloorMwh(5.36, 2.36)];
+    const absolute = [toAbsoluteMwh(0, 2.36, 7.7), toAbsoluteMwh(3, 2.36, 7.7), toAbsoluteMwh(99, 2.36, 7.7), toAbsoluteMwh(-1, 2.36, 7.7)];
+
+    // Assert — a stored reserve below the floor is just "0 above it"
+    expect([above.map((mwh) => +mwh.toFixed(2)), absolute.map((mwh) => +mwh.toFixed(2))]).toEqual([[0, 0.64, 3], [2.36, 5.36, 7.7, 2.36]]);
+  });
+});
+
+describe("coverHours", () => {
+  it("is stored energy above the effective floor ÷ the load the battery must carry at full curtailment", () => {
+    // Arrange — 71% of 8 MWh = 5.68 MWh stored; floor 2.36; site load 1.12 MW
+    // Act
+    const hours = [
+      coverHours(71, 8, 2.36, 0, 1_120_000),
+      coverHours(71, 8, 2.36, 3, 1_120_000),
+      coverHours(71, 8, 2.36, 5, 1_120_000),
+      coverHours(null, 8, 2.36, 0, 1_120_000),
+      coverHours(71, 8, 2.36, 0, 0),
+    ];
+
+    // Assert — (5.68−2.36)/1.12, (5.68−5.36)/1.12, nothing above a 7.36 floor, unknowns → null
+    expect(hours.map((h) => (h === null ? null : +h.toFixed(2)))).toEqual([2.96, 0.29, 0, null, null]);
   });
 });

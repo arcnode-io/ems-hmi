@@ -18,7 +18,7 @@ import { ReserveControl } from "./ReserveControl";
 
 export function BessTile({ gpusCapped }: { gpusCapped: boolean }): React.ReactElement {
   const t = useTheme();
-  const { fleetSoc, bess } = useFleetKpis();
+  const { fleetSoc, bess, grid } = useFleetKpis();
   const soc = fleetSoc.value;
   const flow = bessFlow(bess.powerW);
   return (
@@ -100,7 +100,14 @@ export function BessTile({ gpusCapped }: { gpusCapped: boolean }): React.ReactEl
           </Text>
         </View>
       </View>
-      <ReserveControl gpusCapped={gpusCapped} />
+      <ReserveControl
+        gpusCapped={gpusCapped}
+        // Reason: at full curtailment the battery carries the whole site load = POI import + its own output.
+        live={{
+          socPct: fleetSoc.value,
+          siteLoadW: grid.powerKw === null || bess.powerW === null ? null : grid.powerKw * 1000 + bess.powerW,
+        }}
+      />
     </View>
   );
 }

@@ -68,3 +68,38 @@ export function reserveConfirmation(
   if (Math.round(pending.mwh * 1_000_000) === Math.round(reserveMwh * 1_000_000)) return "confirmed";
   return nowMs - pending.sentAtMs >= CONFIRM_TIMEOUT_MS ? "unconfirmed" : "waiting";
 }
+
+/**
+ * The operator thinks in "how much to keep above minimum SoC" (0 = use the
+ * battery down to minimum SoC); the controller stores an absolute reserve.
+ * Reason: minimum SoC is the effective zero — a reserve below it does
+ * nothing (the gateway holds max(floor, reserve)), so the UI never offers it.
+ * @example toAboveFloorMwh(0, 2.36) // 0 (a stored 0 is "nothing above the floor")
+ */
+export function toAboveFloorMwh(absoluteMwh: number, floorMwh: number): number {
+  return Math.max(0, absoluteMwh - floorMwh);
+}
+
+/** @example toAbsoluteMwh(3, 2.36, 7.7) // 5.36, clamped to [floor, pack] */
+export function toAbsoluteMwh(aboveMwh: number, floorMwh: number, packMwh: number): number {
+  return Math.min(packMwh, Math.max(floorMwh, floorMwh + aboveMwh));
+}
+
+/**
+ * Hours a full curtailment can run before GPUs throttle: stored energy above
+ * the effective floor (minimum SoC + reserve) ÷ the load the battery must
+ * then carry (site load = POI import + battery output). Null when unknown.
+ * @example coverHours(71, 8, 2.36, 0, 1_120_000) // ≈ 2.96
+ */
+export function coverHours(
+  socPct: number | null,
+  packMwh: number,
+  floorMwh: number,
+  aboveMwh: number,
+  siteLoadW: number | null,
+): number | null {
+  if (socPct === null || siteLoadW === null || siteLoadW <= 0) return null;
+  const storedMwh = (socPct / 100) * packMwh;
+  const spareMwh = Math.max(0, storedMwh - toAbsoluteMwh(aboveMwh, floorMwh, packMwh));
+  return (spareMwh * 1_000_000) / siteLoadW;
+}
