@@ -1,7 +1,8 @@
 /**
  * CurtailmentBanner — shown only while der_dispatch.event_active is true.
  * States the utility's ask as the envelope import limit, beside the POI
- * meter (curtailmentLine). Not target_active_power: upstream it currently
+ * meter (curtailmentLine). The title names the program it came through
+ * (curtailmentTitle) — ERCOT flex call vs line constraint. Not target_active_power: upstream it currently
  * carries a reduction magnitude, not a setpoint (backend, 2026-10-02).
  */
 
@@ -12,7 +13,7 @@ import { resolveTypeStyle } from "../../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
 import type { GridState } from "../../../../data/grid/useGridState";
 import type { OperatingEnvelope } from "../../../../data/grid/useOperatingEnvelope";
-import { curtailmentLine } from "./curtailmentLine";
+import { curtailmentLine, curtailmentTitle } from "./curtailmentLine";
 
 export function CurtailmentBanner({
   state,
@@ -43,7 +44,7 @@ export function CurtailmentBanner({
     >
       <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: t.statusWarn }} />
       <Text style={[resolveTypeStyle(t, "kpiLabel"), { color: t.statusWarn }]}>
-        Curtailment active
+        {curtailmentTitle(state.curtailmentProgram)}
       </Text>
       <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.text, flex: 1 }]}>
         {curtailmentLine(envelope.importLimitW, state.netActivePowerW)}

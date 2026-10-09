@@ -4,6 +4,9 @@
  * compliance: part of the site load can't be capped, so the two can disagree.
  */
 
+import { match } from "ts-pattern";
+import type { CurtailmentProgram } from "../../../../data/grid/useGridState";
+
 const DASH = "—";
 
 function fmtPower(watts: number): string {
@@ -19,4 +22,16 @@ export function curtailmentLine(importLimitW: number | null, netW: number | null
   const site =
     netW === null ? DASH : `${netW < 0 ? "exporting" : "importing"} ${fmtPower(netW)}`;
   return `Utility limit: ${limit} · site ${site}`;
+}
+
+/** Banner title: which DERProgram the curtailment came through, when known. */
+export function curtailmentTitle(program: CurtailmentProgram | null): string {
+  const TITLE = "Curtailment active";
+  // Reason: label the program, not the physics — the site only ever sees a
+  // limit from a program; it can't know a dynamic line rating is behind it.
+  return match(program)
+    .with("ERCOT_FLEX", () => `${TITLE} · ERCOT flex call`)
+    .with("DLR_LINE_CONSTRAINT", () => `${TITLE} · Line constraint`)
+    .with("NONE", null, () => TITLE)
+    .exhaustive();
 }

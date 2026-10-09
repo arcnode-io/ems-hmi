@@ -7,7 +7,7 @@
  *
  *   - `grid_module_*.grid_frequency`
  *   - `der_dispatch_*.event_active` / `der_event_state` (is a utility
- *     curtailment on). The utility's limit itself is the operating
+ *     curtailment on) / `der_event_program` (which program it came through). The utility's limit itself is the operating
  *     envelope (useOperatingEnvelope), not target_active_power.
  *   - `pv_inverter_*.active_power` (summed — generation is never signed,
  *     so no sign-convention risk the way BESS/site-load would carry)
@@ -46,6 +46,20 @@ const DER_DISPATCH_STATES: readonly DerDispatchState[] = [
   "REJECTED",
 ];
 
+/**
+ * Which DERProgram the governing event came through (der_dispatch.der_event_program,
+ * edp-api f1ac141). IEEE 2030.5 carries purpose on the program, not the control.
+ * NONE = no event in force.
+ */
+export type CurtailmentProgram = "NONE" | "DLR_LINE_CONSTRAINT" | "ERCOT_FLEX";
+
+const CURTAILMENT_PROGRAMS: readonly CurtailmentProgram[] = ["NONE", "DLR_LINE_CONSTRAINT", "ERCOT_FLEX"];
+
+/** Narrow a der_event_program wire value; anything off-enum → null (unknown). */
+export function curtailmentProgramFrom(value: number | string | boolean): CurtailmentProgram | null {
+  return CURTAILMENT_PROGRAMS.find((p) => p === value) ?? null;
+}
+
 export interface GridState {
   /** GRID vs ISLAND, and planned/fault qualifier — from useGridMode. */
   mode: GridMode | null;
@@ -58,6 +72,8 @@ export interface GridState {
   netActivePowerW: number | null;
   /** Utility curtailment event active (der_dispatch.event_active). */
   curtailmentActive: boolean | null;
+  /** Program the governing event came through. Null until a value arrives. */
+  curtailmentProgram: CurtailmentProgram | null;
   /** der_dispatch's real dispatch_state enum. Null until a value arrives. */
   derDispatchState: DerDispatchState | null;
   /** Summed pv_inverter active_power, watts. Null when no PV is registered. */
@@ -99,6 +115,7 @@ export function useGridState(): GridState {
       ...topicsFor(view, siteId, "der_dispatch", [
         "event_active",
         "der_event_state",
+        "der_event_program",
       ]),
       ...topicsFor(view, siteId, "pv_inverter", ["active_power"]),
     ];
@@ -111,6 +128,7 @@ export function useGridState(): GridState {
     let curtailmentActive: boolean | null = null;
     let pvOutputW: number | null = null;
     let derDispatchState: DerDispatchState | null = null;
+    let curtailmentProgram: CurtailmentProgram | null = null;
 
     for (const topic of topics) {
       const msg = messages[topic];
@@ -122,6 +140,8 @@ export function useGridState(): GridState {
       } else if (topic.endsWith("/der_event_state/none")) {
         const match = DER_DISPATCH_STATES.find((s) => s === msg.value);
         if (match) derDispatchState = match;
+      } else if (topic.endsWith("/der_event_program/none")) {
+        curtailmentProgram = curtailmentProgramFrom(msg.value);
       } else if (
         topic.includes("/pv_inverter") &&
         topic.endsWith("/active_power/watts")
@@ -137,6 +157,7 @@ export function useGridState(): GridState {
       frequencyHz,
       netActivePowerW: gridMode.netActivePowerW,
       curtailmentActive,
+      curtailmentProgram,
       pvOutputW,
       derDispatchState,
     };
