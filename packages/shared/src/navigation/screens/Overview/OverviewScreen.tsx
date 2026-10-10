@@ -22,11 +22,12 @@ import { HealthBar } from "./parts/HealthBar";
 import { GpuClusterStrip } from "./parts/GpuClusterStrip";
 import { StrandedCapacity } from "./parts/StrandedCapacity";
 import { KpiStrip } from "./parts/KpiStrip";
-import { AlarmsPanel } from "./parts/AlarmsPanel";
+import { EventHistoryPanel } from "./parts/EventHistoryPanel";
 import { PowerBalancePanel } from "./parts/PowerBalancePanel";
 import { useFleetKpis } from "../../../data/kpis/useFleetKpis";
 import { useCurtailmentPhase } from "../../../data/grid/curtailmentPhase";
 import { usePowerBalance } from "../../../data/history/usePowerBalance";
+import { useEventHistory } from "../../../data/events/useEventHistory";
 
 export function OverviewScreen(): React.ReactElement {
   const t = useTheme();
@@ -36,6 +37,7 @@ export function OverviewScreen(): React.ReactElement {
   const gridState = useGridState();
   const envelope = useOperatingEnvelope();
   const kpis = useFleetKpis();
+  const events = useEventHistory();
   const curtailment = useCurtailmentPhase(
     gridState.curtailmentActive,
     envelope.importHeadroomW !== null && isAtLimit(envelope.importHeadroomW),
@@ -80,7 +82,7 @@ export function OverviewScreen(): React.ReactElement {
         <GpuClusterStrip fleet={gpuFleet} />
         <KpiStrip gpusCapped={gpuFleet.throttlingCount > 0} />
         <StrandedCapacity fleet={gpuFleet} />
-        <AlarmsPanel />
+        <EventHistoryPanel history={events} floorMwh={view?.bess?.reserve_floor_mwh ?? 0} />
       </View>
     </ScrollView>
   );

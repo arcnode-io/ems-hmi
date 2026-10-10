@@ -7,6 +7,7 @@ local:
   mqttUri: "ws://localhost:8083/mqtt"
   deviceApiUri: "http://localhost:3000"
   chatApiUri: "http://localhost:8000"
+  derControlUri: "http://localhost:8080"
 
 beta:
   logLevel: "INFO"
@@ -17,6 +18,7 @@ beta:
   mqttUri: "wss://beta-broker.example.com:8083/mqtt"
   deviceApiUri: "https://beta-device-api.example.com"
   chatApiUri: "https://analyst-api.example.com"
+  derControlUri: "https://beta-der-control.example.com"
 
 # Web-demo counterpart: mock devices + fixture topology, hosted analyst.
 ai-demo:
@@ -28,6 +30,7 @@ ai-demo:
   mqttUri: ""
   deviceApiUri: ""
   chatApiUri: "https://sandbox-analyst.arcnode.io"
+  derControlUri: ""
 
 # End-to-end device demo against the local compose stack, through its nginx
 # (same paths as web). Absolute URLs so Settings' host override can repoint
@@ -41,6 +44,7 @@ device-demo:
   mqttUri: ""
   deviceApiUri: "http://localhost/api"
   chatApiUri: "http://localhost"
+  derControlUri: "http://localhost/der-control"
   # Public demo login — the device-demo stack sets AUTH_OPERATOR_PW to this.
   # A sim, not hardware; never set this on a real deployment.
   loginPrefill:

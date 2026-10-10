@@ -9,6 +9,7 @@ const LOCAL = {
   mqttUri: "ws://localhost:8083/mqtt",
   deviceApiUri: "/api",
   chatApiUri: "http://localhost:8000",
+  derControlUri: "/der-control",
 };
 const BAKED: BakedProfiles = {
   local: LOCAL,
@@ -21,6 +22,7 @@ const PLATFORM_OVERLAY = {
   deploymentName: "acme_site_1",
   deviceApiUri: "/api",
   chatApiUri: "",
+  derControlUri: "/der-control",
   mqttUri: "",
 };
 
@@ -63,6 +65,20 @@ describe("resolveConfig — deployed (the container image)", () => {
     // Act / Assert
     expect(() => resolveConfig("deployed", BAKED, noSite, "h")).toThrow(
       /siteId/,
+    );
+  });
+
+  it("fails closed on an overlay with no derControlUri — events history has nowhere to read from", () => {
+    // Arrange
+    const noDerControl = Object.fromEntries(
+      Object.entries(PLATFORM_OVERLAY).filter(
+        ([key]) => key !== "derControlUri",
+      ),
+    );
+
+    // Act / Assert
+    expect(() => resolveConfig("deployed", BAKED, noDerControl, "h")).toThrow(
+      /derControlUri/,
     );
   });
 

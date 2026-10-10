@@ -3,7 +3,7 @@
  *
  * Initial values come from each platform's cfg.yml. Native callers can
  * override the host at runtime via `setHost()`; the override persists via
- * `data/storage/persisted` and is applied to chatApiUri + deviceApiUri.
+ * `data/storage/persisted` and is applied to every API base URI.
  */
 
 import React, { createContext, useCallback, useEffect, useMemo, useState } from "react";
@@ -19,6 +19,7 @@ export interface DeploymentIdentity {
   mode: DeploymentMode;
   chatApiUri: string;
   deviceApiUri: string;
+  derControlUri: string;
   /** Set or clear the runtime host override; persisted across launches. */
   setHost: (host: string | null) => void;
 }
@@ -33,6 +34,7 @@ export interface DeploymentIdentityBase {
   mode: DeploymentMode;
   chatApiUri: string;
   deviceApiUri: string;
+  derControlUri: string;
 }
 
 interface DeploymentIdentityProviderProps {
@@ -84,6 +86,7 @@ export function DeploymentIdentityProvider({
       mode: base.mode,
       chatApiUri: applyHostOverride(base.chatApiUri, override),
       deviceApiUri: applyHostOverride(base.deviceApiUri, override),
+      derControlUri: applyHostOverride(base.derControlUri, override),
       setHost,
     }),
     [base, override, setHost],

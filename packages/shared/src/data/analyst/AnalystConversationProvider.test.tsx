@@ -29,6 +29,7 @@ const BASE = {
   mode: "local" as const,
   chatApiUri: "http://localhost:8000",
   deviceApiUri: "/api",
+  derControlUri: "/der-control",
 };
 
 function Probe({ onState }: { onState: (s: AnalystConversation) => void }): null {

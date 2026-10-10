@@ -38,12 +38,16 @@ export function bannerTitle(phase: Exclude<CurtailmentPhase, null>, program: Cur
 
 /** Banner title: which DERProgram the curtailment came through, when known. */
 export function curtailmentTitle(program: CurtailmentProgram | null): string {
-  const TITLE = "Curtailment active";
+  return `Curtailment active${programSuffix(program)}`;
+}
+
+/** " · <program>" for a known program, "" otherwise. Shared by the banner and event history. */
+export function programSuffix(program: CurtailmentProgram | null): string {
   // Reason: label the program, not the physics — the site only ever sees a
   // limit from a program; it can't know a dynamic line rating is behind it.
   return match(program)
-    .with("ERCOT_FLEX", () => `${TITLE} · ERCOT flex call`)
-    .with("DLR_LINE_CONSTRAINT", () => `${TITLE} · Line constraint`)
-    .with("NONE", null, () => TITLE)
+    .with("ERCOT_FLEX", () => " · ERCOT flex call")
+    .with("DLR_LINE_CONSTRAINT", () => " · Line constraint")
+    .with("NONE", null, () => "")
     .exhaustive();
 }

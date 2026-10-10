@@ -13,6 +13,7 @@ local:
   mqttUri: "ws://localhost:8083/mqtt"
   deviceApiUri: "/api"
   chatApiUri: "http://localhost:8000"
+  derControlUri: "/der-control"
 
 # Public S3 web demo: mock devices + fixture topology, hosted analyst.
 ai-demo:
@@ -24,3 +25,4 @@ ai-demo:
   mqttUri: ""
   deviceApiUri: "/api"
   chatApiUri: "https://analyst.arcnode.io"
+  derControlUri: "/der-control"

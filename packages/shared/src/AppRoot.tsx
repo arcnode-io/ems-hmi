@@ -36,6 +36,7 @@ export interface AppRootCfg {
   mode: DeploymentMode;
   chatApiUri: string;
   deviceApiUri: string;
+  derControlUri: string;
   mqttUri: string;
   /** Public demo login, prefilled on the sign-in form (device-demo only). */
   loginPrefill?: LoginPrefill;
@@ -116,6 +117,7 @@ export function AppRoot({
         mode: cfg.mode,
         chatApiUri: cfg.chatApiUri,
         deviceApiUri: cfg.deviceApiUri,
+        derControlUri: cfg.derControlUri,
       }}
     >
       {inner}

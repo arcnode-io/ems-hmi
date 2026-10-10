@@ -28,6 +28,8 @@ export const Config = z.object({
   deviceApiUri: z.string(),
   /** Base URL for the analyst backend; empty = same-origin /analyst/. */
   chatApiUri: z.string(),
+  /** Base URL for ems-der-control-api reads (`/events`); same-origin "/der-control" behind nginx. */
+  derControlUri: z.string(),
   /** Demo login prefilled on the sign-in form. Only ever from the device-demo launcher's overlay. */
   loginPrefill: z
     .object({ username: z.string(), password: z.string() })

@@ -17,7 +17,7 @@ export const BASE_VIEW: TopologyViewType = TopologyView.parse({
   devices: { der_dispatch: { device_id: "der_dispatch", template: "der_dispatch", parent: null, display_name: null, extra_measurements: null } },
 });
 
-const BASE = { name: "T", host: "localhost", siteId: SITE_ID, mode: "device-demo" as const, chatApiUri: "", deviceApiUri: "/api" };
+const BASE = { name: "T", host: "localhost", siteId: SITE_ID, mode: "device-demo" as const, chatApiUri: "", deviceApiUri: "/api", derControlUri: "/der-control" };
 
 export type Published = [string, MqttMessage<unknown>][];
 

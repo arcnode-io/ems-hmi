@@ -22,6 +22,7 @@ const BASE: DeploymentIdentityBase = {
   mode: "local",
   chatApiUri: "http://localhost:3000/analyst",
   deviceApiUri: "http://localhost:3000/device",
+  derControlUri: "http://localhost:8080/der-control",
 };
 
 function Probe({ onValue }: { onValue: (v: DeploymentIdentity) => void }): null {
@@ -40,7 +41,7 @@ beforeEach(async () => {
 });
 
 describe("DeploymentIdentityProvider override", () => {
-  it("rewrites hostname in chatApiUri + deviceApiUri when setHost is called", async () => {
+  it("rewrites hostname in every API base URI when setHost is called", async () => {
     let captured: DeploymentIdentity | null = null;
 
     render(
@@ -58,6 +59,7 @@ describe("DeploymentIdentityProvider override", () => {
     expect(captured!.host).toBe("192.168.1.100");
     expect(captured!.chatApiUri).toBe("http://192.168.1.100:3000/analyst");
     expect(captured!.deviceApiUri).toBe("http://192.168.1.100:3000/device");
+    expect(captured!.derControlUri).toBe("http://192.168.1.100:8080/der-control");
   });
 
   it("persists the override to the kv store", async () => {

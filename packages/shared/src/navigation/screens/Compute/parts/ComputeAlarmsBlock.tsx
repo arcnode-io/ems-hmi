@@ -1,6 +1,6 @@
 /**
  * ComputeAlarmsBlock — live alarms on gpu_node / compute_module devices.
- * Reuses the canonical AlarmRow (Layer 7), same as the Overview AlarmsPanel.
+ * Reuses the canonical AlarmRow (Layer 7), same as BessAlarmsPanel.
  */
 
 import React from "react";
@@ -11,7 +11,7 @@ import { AlarmRow } from "../../../../components/composed/AlarmRow/AlarmRow";
 import { resolveTypeStyle } from "../../../../theme/tokens";
 import { useAlarms } from "../../../../data/alarms/useAlarms";
 import { useTopologyView } from "../../../../data/topology/useTopologyView";
-import { relativeAge } from "../../Overview/parts/AlarmsPanel";
+import { relativeAge } from "../../Overview/parts/relativeAge";
 import { computeAlarms } from "./computeView";
 
 export function ComputeAlarmsBlock(): React.ReactElement {

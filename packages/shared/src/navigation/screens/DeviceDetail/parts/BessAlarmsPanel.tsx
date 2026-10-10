@@ -1,7 +1,7 @@
 /**
  * BessAlarmsPanel — active alarms for a bess_module and its bess_rack
- * children, reusing the same useAlarms + AlarmRow pattern as Overview's
- * AlarmsPanel. No BMS-specific alarm codes exist for real (no cell-level
+ * children, reusing the same useAlarms + AlarmRow pattern as
+ * ComputeAlarmsBlock. No BMS-specific alarm codes exist for real (no cell-level
  * telemetry) — these are the same generic threshold-crossing alarms
  * every device gets.
  */

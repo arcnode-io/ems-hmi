@@ -20,6 +20,7 @@ const BASE: DeploymentIdentityBase = {
   mode: "beta",
   chatApiUri: "http://localhost:3000/analyst",
   deviceApiUri: "http://localhost:3000/device",
+  derControlUri: "http://localhost:8080/der-control",
 };
 
 /** Unsigned JWT for fixtures. */

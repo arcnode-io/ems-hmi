@@ -23,6 +23,7 @@ const BASE = {
   mode: "local" as const,
   chatApiUri: "http://localhost:8000",
   deviceApiUri: "/api",
+  derControlUri: "/der-control",
 };
 
 function Trigger({ deviceId }: { deviceId: string }): React.ReactElement {
