@@ -34,6 +34,12 @@ export interface AggregateOptions {
    * a component that genuinely needs it — never one high in the tree).
    */
   flushMs?: number;
+  /**
+   * Max age per arrival topic, ms; null = never expires (on-change state).
+   * A topic silent longer than this drops out of the result — absent reads as
+   * unknown ("—"), never as its last value. Checked on the flush tick.
+   */
+  staleAfterMs?: (topic: string) => number | null;
 }
 
 /**
@@ -50,8 +56,14 @@ export function useAggregateMeasurements<T = unknown>(
   topics: readonly string[],
   options: AggregateOptions = {},
 ): MessagesByTopic<T> {
-  const { flushMs = DEFAULT_FLUSH_MS } = options;
+  const { flushMs = DEFAULT_FLUSH_MS, staleAfterMs } = options;
   const pending = useRef<MessagesByTopic<T>>({});
+  // Local arrival time per topic (not the payload ts — no clock-skew games).
+  const receivedAt = useRef<Record<string, number>>({});
+  // Reason: callers pass inline closures; read through a ref so a new
+  // identity each render doesn't resubscribe everything.
+  const maxAge = useRef(staleAfterMs);
+  maxAge.current = staleAfterMs;
   const client = useContext(MqttClientContext);
   if (client === null) {
     throw new Error(
@@ -67,23 +79,44 @@ export function useAggregateMeasurements<T = unknown>(
   useEffect(() => {
     setMessages({});
     pending.current = {};
+    receivedAt.current = {};
     // Reason: key by the arrival topic — a wildcard filter fans many
     // concrete topics into one subscription.
     const unsubs = topics.map((filter) =>
       client.subscribe<T>(filter, (msg, topic) => {
+        receivedAt.current[topic] = Date.now();
         if (flushMs === 0) setMessages((prev) => ({ ...prev, [topic]: msg }));
         else pending.current[topic] = msg;
       }),
     );
+    const expired = (): string[] => {
+      const age = maxAge.current;
+      if (age === undefined) return [];
+      const now = Date.now();
+      return Object.entries(receivedAt.current)
+        .filter(([topic, at]) => {
+          const limit = age(topic);
+          return limit !== null && now - at > limit;
+        })
+        .map(([topic]) => topic);
+    };
+    // Reason: staleness needs a tick even with per-message renders (flushMs 0).
+    const tickMs = flushMs === 0 ? DEFAULT_FLUSH_MS : flushMs;
     const timer =
-      flushMs === 0
+      flushMs === 0 && staleAfterMs === undefined
         ? undefined
         : setInterval(() => {
             const batch = pending.current;
-            if (Object.keys(batch).length === 0) return;
+            const gone = expired();
+            if (Object.keys(batch).length === 0 && gone.length === 0) return;
             pending.current = {};
-            setMessages((prev) => ({ ...prev, ...batch }));
-          }, flushMs);
+            for (const topic of gone) delete receivedAt.current[topic];
+            setMessages((prev) => {
+              const next = { ...prev, ...batch };
+              for (const topic of gone) delete next[topic];
+              return next;
+            });
+          }, tickMs);
     return (): void => {
       if (timer !== undefined) clearInterval(timer);
       for (const off of unsubs) off();

@@ -141,3 +141,44 @@ describe("useAggregateMeasurements default batching", () => {
     expect(result.current.a?.value).toBe(7);
   });
 });
+
+describe("useAggregateMeasurements staleAfterMs", () => {
+  it("drops a topic that's gone silent past its max age, and keeps one still arriving", () => {
+    // Arrange — gateway "go quiet": a derived total stops publishing when an input dies
+    const client = fakeClient();
+    const { result } = renderHook(
+      () => useAggregateMeasurements<number>(["quiet", "live"], { staleAfterMs: () => 3000 }),
+      { wrapper: wrapperFor(client) },
+    );
+    act(() => client.emit("quiet", 73_500));
+    act(() => client.emit("live", 1));
+
+    // Act — 4 s pass; only "live" keeps publishing
+    for (let s = 0; s < 4; s++) {
+      act(() => client.emit("live", s));
+      act(() => { jest.advanceTimersByTime(1000); });
+    }
+
+    // Assert — absent = unknown, which renders "—"
+    expect({ quiet: result.current.quiet?.value ?? null, live: result.current.live?.value ?? null }).toEqual({
+      quiet: null,
+      live: 3,
+    });
+  });
+
+  it("never expires a topic whose max age is null (on-change state, e.g. event_active)", () => {
+    // Arrange
+    const client = fakeClient();
+    const { result } = renderHook(
+      () => useAggregateMeasurements<number>(["state"], { staleAfterMs: () => null }),
+      { wrapper: wrapperFor(client) },
+    );
+    act(() => client.emit("state", 1));
+
+    // Act
+    act(() => { jest.advanceTimersByTime(60 * 60 * 1000); });
+
+    // Assert
+    expect(result.current.state?.value).toBe(1);
+  });
+});

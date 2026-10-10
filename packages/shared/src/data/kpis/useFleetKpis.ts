@@ -22,6 +22,7 @@
 import { useMemo } from "react";
 import { useTopologyView } from "../topology/useTopologyView";
 import { useAggregateMeasurements } from "../mqtt/useAggregateMeasurements";
+import { staleAfterFor } from "../mqtt/staleness";
 import { useDeploymentIdentity } from "../deployment/useDeploymentIdentity";
 import { useAlarms } from "../alarms/useAlarms";
 import { measurementTopic, type TopicUnit } from "../topics/topicBuilder";
@@ -119,11 +120,14 @@ export function useFleetKpis(): FleetKpis {
     [view, siteId],
   );
 
-  const socMessages = useAggregateMeasurements<number>(socTopics);
-  const bessPowerMessages = useAggregateMeasurements<number>(bessPowerTopics);
-  const computePowerMessages = useAggregateMeasurements<number>(computePowerTopics);
-  const gridPowerMessages = useAggregateMeasurements<number>(gridPowerTopics);
-  const gridFreqMessages = useAggregateMeasurements<number>(gridFreqTopics);
+  // Reason: all periodic telemetry — a value that stops arriving reads "—",
+  // never its last number (gateway goes quiet when a derived input dies).
+  const telemetry = useMemo(() => ({ staleAfterMs: view ? staleAfterFor(view) : undefined }), [view]);
+  const socMessages = useAggregateMeasurements<number>(socTopics, telemetry);
+  const bessPowerMessages = useAggregateMeasurements<number>(bessPowerTopics, telemetry);
+  const computePowerMessages = useAggregateMeasurements<number>(computePowerTopics, telemetry);
+  const gridPowerMessages = useAggregateMeasurements<number>(gridPowerTopics, telemetry);
+  const gridFreqMessages = useAggregateMeasurements<number>(gridFreqTopics, telemetry);
 
   const fleetSocAvg = avg(
     socTopics.map((t) => socMessages[t]?.value ?? null),
