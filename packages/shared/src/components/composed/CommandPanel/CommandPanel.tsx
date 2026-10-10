@@ -5,13 +5,15 @@
  *
  * Interactive controls are desktop-only — dispatch happens at the desk
  * console; phones are read-only (constitution Rule 3.1). While a dispatch
- * runs, the controls give way to a live status card.
+ * runs, the controls give way to a live status card. Controls start locked
+ * behind "Unlock controls" (useWriteUnlock) — accidental-write guard only.
  *
  * See design-handoff/02-components/CommandPanel.md.
  */
 
 import React, { useEffect, useState } from "react";
-import { View, Text, Pressable } from "react-native";
+import { View, Text } from "react-native";
+import { useIsFocused } from "@react-navigation/native";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../theme/tokens/primitives";
@@ -27,11 +29,12 @@ import { formatSetpoint } from "../../../data/dispatch/format";
 import { useAskAnalyst } from "../../../data/analyst/useAskAnalyst";
 import { ConfirmationModal } from "../ConfirmationModal/ConfirmationModal";
 import { DecisionRecord } from "../DecisionRecord/DecisionRecord";
-import {
-  SetpointStepper,
-  DispatchStatusCard,
-  AutopilotToggle,
-} from "./CommandPanel.parts";
+import { useWriteUnlock } from "../../../hooks/useWriteUnlock";
+import { SetpointStepper, DispatchStatusCard } from "./CommandPanel.parts";
+import { AutopilotToggle } from "./AutopilotToggle";
+import { UnlockControls } from "./UnlockControls";
+import { DerEventLockout } from "./DerEventLockout";
+import { ApplyButton } from "./ApplyButton";
 
 export interface CommandPanelProps {
   deviceId: string;
@@ -63,6 +66,13 @@ export function CommandPanel({
   const [override, setOverride] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const setpointKw = override ?? auto.setpointKw;
+  const guard = useWriteUnlock(useIsFocused());
+  const locked = !guard.unlocked;
+
+  // Reason: a relock mid-confirmation must not leave a live Confirm on screen.
+  useEffect(() => {
+    if (locked) setModalOpen(false);
+  }, [locked]);
 
   useEffect(() => {
     if (state.phase !== "proposed") setOverride(null);
@@ -87,6 +97,7 @@ export function CommandPanel({
       { deviceId, setpointKw, priceUsdPerMwh: auto.priceUsdPerMwh, reason },
       socPct,
     );
+    guard.noteWrite();
     setModalOpen(false);
   };
 
@@ -107,6 +118,9 @@ export function CommandPanel({
           paddingHorizontal: SPACE[3],
           borderBottomWidth: 1,
           borderBottomColor: t.borderSoft,
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
         }}
       >
         <Text
@@ -117,10 +131,11 @@ export function CommandPanel({
         >
           Dispatch Control
         </Text>
+        {isDesktop ? <UnlockControls unlocked={guard.unlocked} onUnlock={guard.unlock} /> : null}
       </View>
 
       <View style={{ padding: SPACE[3], gap: SPACE[3] }}>
-        {isDesktop ? <AutopilotToggle /> : null}
+        {isDesktop ? <AutopilotToggle disabled={locked} onToggle={guard.noteWrite} /> : null}
 
         {/* Active dispatch while one runs; the standing proposal while resting. */}
         <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.textMid }]}>
@@ -135,56 +150,11 @@ export function CommandPanel({
 
         {resting ? (
           derEventActive ? (
-            <View
-              dataSet={{ region: "der-event-lockout" }}
-              style={{
-                padding: SPACE[3],
-                borderRadius: RADIUS[2],
-                borderWidth: 1,
-                borderColor: t.statusWarn + "55",
-                backgroundColor: t.statusWarn + "14",
-                gap: 4,
-              }}
-            >
-              <Text
-                style={[
-                  resolveTypeStyle(t, "label"),
-                  { color: t.statusWarn, fontWeight: "700", letterSpacing: 0.1 },
-                ]}
-              >
-                Dispatch locked — DER event active
-              </Text>
-              <Text style={[resolveTypeStyle(t, "caption"), { color: t.textMid }]}>
-                der-control-api owns this setpoint until the utility curtailment event clears.
-              </Text>
-            </View>
+            <DerEventLockout />
           ) : isDesktop ? (
             <>
-              <SetpointStepper valueKw={setpointKw} onChange={setOverride} />
-              <Pressable
-                accessibilityRole="button"
-                accessibilityState={{ disabled: setpointKw === 0 }}
-                dataSet={{ action: "apply" }}
-                testID="dispatch-apply"
-                disabled={setpointKw === 0}
-                onPress={() => setModalOpen(true)}
-                style={{
-                  paddingVertical: SPACE[2],
-                  borderRadius: RADIUS[2],
-                  backgroundColor: t.accent,
-                  alignItems: "center",
-                  opacity: setpointKw === 0 ? 0.35 : 1,
-                }}
-              >
-                <Text
-                  style={[
-                    resolveTypeStyle(t, "label"),
-                    { color: t.textInverse, fontWeight: "700" },
-                  ]}
-                >
-                  Apply
-                </Text>
-              </Pressable>
+              <SetpointStepper valueKw={setpointKw} onChange={setOverride} disabled={locked} />
+              <ApplyButton disabled={locked || setpointKw === 0} onPress={() => setModalOpen(true)} />
             </>
           ) : (
             <Text

@@ -39,7 +39,8 @@ test.describe("BESS dispatch workflow", () => {
     // Autopilot's standing proposal is shown.
     await expect(page.getByText(/Discharge 1620 kW/).first()).toBeAttached();
 
-    // Act — Apply opens the ConfirmationModal (never dispatches on first click).
+    // Act — unlock, then Apply opens the ConfirmationModal (never dispatches on first click).
+    await panel.getByRole("button", { name: "Unlock controls" }).click();
     await page.locator('[data-action="apply"]').first().click();
     await expect(page.locator('[data-comp="ConfirmationModal"]')).toBeAttached();
     // Demo runs in sim mode → the SIMULATED band is the SIM affordance.
@@ -56,5 +57,57 @@ test.describe("BESS dispatch workflow", () => {
 
     const meaningful = errors.filter((err) => !IGNORE_PATTERN.test(err));
     expect(meaningful, `unexpected console errors:\n${meaningful.join("\n")}`).toEqual([]);
+  });
+
+  test("command controls stay locked until the operator unlocks them", async ({ page }) => {
+    // Arrange
+    await page.goto("/devices/bess_module_01");
+    const panel = page.locator('[data-comp="CommandPanel"]');
+    await expect(panel).toBeAttached({ timeout: 8000 });
+
+    // Act — nothing; a fresh panel is locked.
+
+    // Assert
+    await expect(panel.locator('[data-action="apply"]')).toBeDisabled();
+    await expect(panel.getByTestId("autopilot-toggle")).toBeDisabled();
+    await expect(panel.getByRole("button", { name: "Unlock controls" })).toBeEnabled();
+  });
+
+  test("unlocked controls relock 60 s after the last write", async ({ page }) => {
+    // Arrange — fake clock so the 60 s idle runs instantly.
+    await page.clock.install();
+    await page.goto("/devices/bess_module_01");
+    const panel = page.locator('[data-comp="CommandPanel"]');
+    await expect(panel).toBeAttached({ timeout: 8000 });
+    await panel.getByRole("button", { name: "Unlock controls" }).click();
+    await panel.getByTestId("autopilot-toggle").click();
+    await expect(panel.getByTestId("autopilot-toggle")).toHaveAttribute("data-on", "true");
+
+    // Act — 59 s after the write it's still open; one more second relocks.
+    await page.clock.fastForward(59_000);
+    const stillOpen = await panel.getByTestId("autopilot-toggle").isEnabled();
+    await page.clock.fastForward(1_000);
+
+    // Assert
+    expect(stillOpen).toBe(true);
+    await expect(panel.getByTestId("autopilot-toggle")).toBeDisabled();
+    await expect(panel.getByRole("button", { name: "Unlock controls" })).toBeVisible();
+  });
+
+  test("navigating away relocks the controls", async ({ page }) => {
+    // Arrange
+    await page.goto("/devices/bess_module_01");
+    const panel = page.locator('[data-comp="CommandPanel"]');
+    await expect(panel).toBeAttached({ timeout: 8000 });
+    await panel.getByRole("button", { name: "Unlock controls" }).click();
+    await expect(panel.getByTestId("autopilot-toggle")).toBeEnabled();
+
+    // Act — leave for another screen in-app, then browser-back to the module.
+    await page.locator('[aria-label="Modules"]').first().click();
+    await expect(page).toHaveURL(/\/modules/);
+    await page.goBack();
+
+    // Assert
+    await expect(page.locator('[data-comp="CommandPanel"]').getByTestId("autopilot-toggle")).toBeDisabled();
   });
 });
