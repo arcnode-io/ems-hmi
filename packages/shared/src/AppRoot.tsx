@@ -18,6 +18,7 @@ import { TopologyProvider } from "./data/topology/TopologyProvider";
 import { MockMqttProvider } from "./data/mqtt/MockMqttProvider";
 import { RealMqttProvider } from "./data/mqtt/RealMqttProvider";
 import { AnalystConversationProvider } from "./data/analyst/AnalystConversationProvider";
+import { LotoProvider } from "./data/loto/LotoProvider";
 import { DerEventNoticeProvider } from "./data/grid/DerEventNoticeProvider";
 import {
   usesRealBackend,
@@ -70,11 +71,13 @@ function resolveAnalystStream(): typeof analystStream {
  */
 function AppShell({ cfg }: { cfg: AppRootCfg }): React.ReactElement {
   const inner = (
-    <AnalystConversationProvider stream={resolveAnalystStream()}>
-      <DerEventNoticeProvider>
-        <NavigationRoot />
-      </DerEventNoticeProvider>
-    </AnalystConversationProvider>
+    <LotoProvider>
+      <AnalystConversationProvider stream={resolveAnalystStream()}>
+        <DerEventNoticeProvider>
+          <NavigationRoot />
+        </DerEventNoticeProvider>
+      </AnalystConversationProvider>
+    </LotoProvider>
   );
   return (
     <TopologyProvider viewUrl={topologyUrl(cfg)}>

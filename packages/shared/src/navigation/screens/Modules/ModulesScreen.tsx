@@ -17,6 +17,7 @@ import { SldCta } from "./parts/SldCta";
 import { GridCta } from "./parts/GridCta";
 import { FilterRow, type FilterOption } from "./parts/FilterRow";
 import { useModuleRows } from "./useModuleRows";
+import { useLoto } from "../../../data/loto/useLoto";
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
 
@@ -32,6 +33,7 @@ export function ModulesScreen(): React.ReactElement {
   const t = useTheme();
   const nav = useNavigation<Nav>();
   const rows = useModuleRows();
+  const loto = useLoto();
   const [activeFilter, setActiveFilter] = useState("all");
 
   const filtered = useMemo(() => {
@@ -75,6 +77,7 @@ export function ModulesScreen(): React.ReactElement {
             status={r.status}
             alarmCount={r.alarmCount}
             measurements={r.measurements}
+            lotoLocks={loto.lockedDevices.has(r.id) ? loto.locks.filter((l) => l.device_id === r.id).length : null}
             onPress={(): void => nav.navigate("DeviceDetail", { deviceId: r.id })}
           />
         ))}

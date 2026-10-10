@@ -30,6 +30,7 @@ import { useAskAnalyst } from "../../../data/analyst/useAskAnalyst";
 import { ConfirmationModal } from "../ConfirmationModal/ConfirmationModal";
 import { DecisionRecord } from "../DecisionRecord/DecisionRecord";
 import { useWriteUnlock } from "../../../hooks/useWriteUnlock";
+import { useLoto } from "../../../data/loto/useLoto";
 import { SetpointStepper, DispatchStatusCard } from "./CommandPanel.parts";
 import { AutopilotToggle } from "./AutopilotToggle";
 import { UnlockControls } from "./UnlockControls";
@@ -66,7 +67,9 @@ export function CommandPanel({
   const [override, setOverride] = useState<number | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const setpointKw = override ?? auto.setpointKw;
-  const guard = useWriteUnlock(useIsFocused());
+  // Reason: a LOTO'd device takes no writes (gateway refuses them); don't offer to unlock.
+  const lotoLocked = useLoto().lockedDevices.has(deviceId);
+  const guard = useWriteUnlock(useIsFocused() && !lotoLocked);
   const locked = !guard.unlocked;
 
   // Reason: a relock mid-confirmation must not leave a live Confirm on screen.
@@ -131,7 +134,7 @@ export function CommandPanel({
         >
           Dispatch Control
         </Text>
-        {isDesktop ? <UnlockControls unlocked={guard.unlocked} onUnlock={guard.unlock} /> : null}
+        {isDesktop ? <UnlockControls unlocked={guard.unlocked} onUnlock={guard.unlock} lockedOut={lotoLocked} /> : null}
       </View>
 
       <View style={{ padding: SPACE[3], gap: SPACE[3] }}>

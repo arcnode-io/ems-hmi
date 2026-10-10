@@ -89,7 +89,7 @@
       "$value": "#ff2020",
       "$type": "color"
     },
-    "statusMaintenance": {
+    "statusLoto": {
       "$value": "#7a6aaa",
       "$type": "color"
     },
@@ -267,7 +267,7 @@
       "$value": "#cc0000",
       "$type": "color"
     },
-    "statusMaintenance": {
+    "statusLoto": {
       "$value": "#5a4a8a",
       "$type": "color"
     },

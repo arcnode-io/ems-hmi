@@ -63,7 +63,7 @@ function variantColor(t: Theme, v: StatusVariant): string {
     .with("warn", () => t.statusWarn)
     .with("alarm", () => t.statusAlarm)
     .with("fire", () => t.statusFire)
-    .with("maintenance", () => t.statusMaintenance)
+    .with("maintenance", () => t.statusLoto)
     .with("offline", () => t.statusOffline)
     .with("sim", () => t.statusSim)
     .exhaustive();

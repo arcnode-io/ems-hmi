@@ -1,7 +1,8 @@
 /**
  * useWriteUnlock — the "Unlock controls" guard on command panels. Controls
  * start locked; unlock() opens them, and they relock RELOCK_MS after the last
- * write (or the unlock itself) or as soon as the screen loses focus.
+ * write (or the unlock itself), or as soon as `active` goes false (screen
+ * lost focus, device locked out).
  * Accidental-write guard only — the gateway is the authority on what runs.
  */
 
@@ -18,9 +19,9 @@ export interface WriteUnlock {
 }
 
 /**
- * @param focused whether the owning screen is focused; false relocks at once
+ * @param active screen focused AND device writable; false relocks at once
  */
-export function useWriteUnlock(focused: boolean): WriteUnlock {
+export function useWriteUnlock(active: boolean): WriteUnlock {
   const [unlocked, setUnlocked] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -49,10 +50,10 @@ export function useWriteUnlock(focused: boolean): WriteUnlock {
   }, [arm]);
 
   useEffect(() => {
-    if (focused) return;
+    if (active) return;
     disarm();
     setUnlocked(false);
-  }, [focused, disarm]);
+  }, [active, disarm]);
 
   useEffect(() => disarm, [disarm]);
 

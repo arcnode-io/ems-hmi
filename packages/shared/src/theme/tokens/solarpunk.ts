@@ -47,7 +47,7 @@ export const SOLARPUNK: Theme = {
   statusWarn: "#c8820a",
   statusAlarm: "#cc2929",
   statusFire: "#cc0000",
-  statusMaintenance: "#5a4a8a",
+  statusLoto: "#5a4a8a",
   statusOffline: "#b0a898",
   statusSim: "#3a5a8a",
 

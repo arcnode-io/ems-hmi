@@ -64,4 +64,24 @@ describe("ModuleCard", () => {
       container.querySelector('[data-comp="ModuleCard"]')?.getAttribute("data-status"),
     ).toBe("offline");
   });
+
+  it("shows the LOTO chip beside the alarm badge when locked out", () => {
+    // Arrange
+    const { container } = render(withTheme(<ModuleCard {...BASE} lotoLocks={2} />));
+
+    // Act
+    const chip = container.querySelector('[data-comp="LotoChip"]');
+    const badge = container.querySelector('[data-comp="ModuleCard"]')?.getAttribute("data-status");
+
+    // Assert
+    expect([chip?.getAttribute("aria-label"), badge]).toEqual(["Locked out, 2 locks", "alarm"]);
+  });
+
+  it("shows no LOTO chip when not locked out", () => {
+    // Arrange / Act
+    const { container } = render(withTheme(<ModuleCard {...BASE} />));
+
+    // Assert
+    expect(container.querySelector('[data-comp="LotoChip"]')).toBeNull();
+  });
 });

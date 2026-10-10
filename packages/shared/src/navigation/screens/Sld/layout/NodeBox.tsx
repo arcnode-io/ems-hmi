@@ -9,6 +9,7 @@ import { Circle, G, Rect, Text as SvgText } from "react-native-svg";
 import type { SldNode } from "./types";
 import type { PoiOverlay, SldTheme } from "./SldRenderer";
 import { CDU_TEMPLATE } from "./constants";
+import { LotoGlyph } from "./LotoGlyph";
 import {
   LABEL_NAME_Y,
   LABEL_TEMPLATE_Y_CDU,
@@ -35,6 +36,7 @@ const STATE_ROW_FONT = 7;
 const POI_LABEL_OFFSET_Y = 8;
 const POI_PRIMARY_OFFSET_Y = -4;
 const POI_STATE_OFFSET_Y = 2;
+const LOTO_GLYPH_INSET = 4;
 
 interface NodeBoxProps {
   n: SldNode;
@@ -42,6 +44,8 @@ interface NodeBoxProps {
   onSelect?: (id: string) => void;
   statusFill: string;
   poiOverlay?: PoiOverlay;
+  /** LOTO'd: statusLoto outline + padlock. */
+  locked?: boolean;
 }
 
 function labelTemplateY(template: string): number {
@@ -131,12 +135,12 @@ function StandardLabels({ n, theme }: { n: SldNode; theme: SldTheme }): React.Re
   );
 }
 
-export function NodeBox({ n, theme, onSelect, statusFill, poiOverlay }: NodeBoxProps): React.ReactElement {
+export function NodeBox({ n, theme, onSelect, statusFill, poiOverlay, locked = false }: NodeBoxProps): React.ReactElement {
   const halfW = n.width / 2;
   const halfH = n.height / 2;
   const cornerRadius = n.role === "poi" ? RADIUS_POI : RADIUS_MODULE;
   const handlePress = onSelect ? (): void => onSelect(n.id) : undefined;
-  const stroke = bodyStroke(n.role, theme);
+  const stroke = locked ? { stroke: theme.statusLoto, strokeWidth: POI_STROKE_WIDTH } : bodyStroke(n.role, theme);
   // react-native-svg's `<G onPress>` typings are an unsatisfiable
   // intersection of web + native; pick the platform's event prop directly
   // so the unused name doesn't leak through and warn at runtime.
@@ -165,6 +169,7 @@ export function NodeBox({ n, theme, onSelect, statusFill, poiOverlay }: NodeBoxP
         stroke={theme.surface}
         strokeWidth={BODY_STROKE_WIDTH}
       />
+      {locked ? <LotoGlyph x={-halfW + LOTO_GLYPH_INSET} y={-halfH + LOTO_GLYPH_INSET} color={theme.statusLoto} bg={theme.surface} /> : null}
       {n.role === "poi" ? (
         <PoiLabels n={n} overlay={poiOverlay} theme={theme} />
       ) : (

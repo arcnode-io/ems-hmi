@@ -47,7 +47,7 @@ export const SOVEREIGN: Theme = {
   statusWarn: "#f5a623",
   statusAlarm: "#e84040",
   statusFire: "#ff2020",
-  statusMaintenance: "#7a6aaa",
+  statusLoto: "#7a6aaa",
   statusOffline: "#3a3835",
   statusSim: "#4a7aaa", // intentionally = accent (SIM is not an alarm)
 

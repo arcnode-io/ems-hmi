@@ -82,7 +82,7 @@ export interface Theme {
   statusWarn: string;
   statusAlarm: string;
   statusFire: string;
-  statusMaintenance: string;
+  statusLoto: string;
   statusOffline: string;
   statusSim: string;
 

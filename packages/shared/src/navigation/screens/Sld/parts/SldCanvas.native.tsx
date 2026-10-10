@@ -11,6 +11,7 @@ import { useGridMode } from "../../../../data/grid/useGridMode";
 import { useDerEventActive } from "../../../../data/grid/useDerEventActive";
 import { useTopologyView } from "../../../../data/topology/useTopologyView";
 import { useAlarms } from "../../../../data/alarms/useAlarms";
+import { useLoto } from "../../../../data/loto/useLoto";
 import { layoutSld } from "../layout/layoutSld";
 import { SldRenderer, sldThemeFrom } from "../layout/SldRenderer";
 import {
@@ -54,6 +55,7 @@ export function SldCanvas({ onSelectDevice }: SldCanvasProps = {}): React.ReactE
   const gridMode = useGridMode();
   const derCurtailed = useDerEventActive();
   const alarms = useAlarms();
+  const { lockedDevices } = useLoto();
   const containerRef = useRef<ViewType | null>(null);
 
   const layout = useMemo(() => (view ? layoutSld(view) : null), [view]);
@@ -101,6 +103,7 @@ export function SldCanvas({ onSelectDevice }: SldCanvasProps = {}): React.ReactE
             statusByDevice={statusByDevice}
             statusColors={statusColors}
             poiOverlay={poiOverlay}
+            lockedDevices={lockedDevices}
           />
         </View>
       )}

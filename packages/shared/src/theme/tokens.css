@@ -57,7 +57,7 @@
   --status-warn: #f5a623;
   --status-alarm: #e84040;
   --status-fire: #ff2020;
-  --status-maintenance: #7a6aaa;
+  --status-loto: #7a6aaa;
   --status-offline: #3a3835;
   --status-sim: #4a7aaa;
   --color-bess: #4a7c5f;
@@ -104,7 +104,7 @@
   --status-warn: #c8820a;
   --status-alarm: #cc2929;
   --status-fire: #cc0000;
-  --status-maintenance: #5a4a8a;
+  --status-loto: #5a4a8a;
   --status-offline: #b0a898;
   --status-sim: #3a5a8a;
   --color-bess: #2d5a44;

@@ -30,6 +30,7 @@ export interface SldTheme {
   textMid: string;
   textSoft: string;
   statusOk: string;
+  statusLoto: string;
   fontLabel: string;
 }
 
@@ -43,6 +44,7 @@ export function sldThemeFrom(t: Theme): SldTheme {
     textMid: t.textMid,
     textSoft: t.textSoft,
     statusOk: t.statusOk,
+    statusLoto: t.statusLoto,
     fontLabel: t.fontLabel,
   };
 }
@@ -55,6 +57,8 @@ interface SldRendererProps {
   statusByDevice?: Record<string, SldNodeStatus>;
   statusColors?: Record<SldNodeStatus, string>;
   poiOverlay?: PoiOverlay;
+  /** LOTO'd devices (subtrees included) — padlocked, a state not a status. */
+  lockedDevices?: ReadonlySet<string>;
 }
 
 function statusFillResolver(
@@ -76,6 +80,7 @@ export function SldRenderer({
   statusByDevice,
   statusColors,
   poiOverlay,
+  lockedDevices,
 }: SldRendererProps): React.ReactElement {
   const statusFillFor = statusFillResolver(statusByDevice, statusColors, theme.statusOk);
   return (
@@ -105,6 +110,7 @@ export function SldRenderer({
           onSelect={onSelectDevice}
           statusFill={statusFillFor(n.id)}
           poiOverlay={n.role === "poi" ? poiOverlay : undefined}
+          locked={lockedDevices?.has(n.id) ?? false}
         />
       ))}
     </Svg>

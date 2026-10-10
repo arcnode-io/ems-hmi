@@ -1,6 +1,6 @@
 /**
  * IconWrench — maintenance / LOTO indicator. Paired with `statusLoto` color
- * (formerly statusMaintenance) on maintenance overlays.
+ * on maintenance overlays.
  */
 
 import React from "react";

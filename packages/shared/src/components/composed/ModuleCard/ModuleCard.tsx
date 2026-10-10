@@ -21,6 +21,8 @@ import { IconBess } from "../../icons/IconBess";
 import { IconCompute } from "../../icons/IconCompute";
 import { IconGrid } from "../../icons/IconGrid";
 import { IconThermal } from "../../icons/IconThermal";
+import { LotoChip } from "../LotoChip/LotoChip";
+import { MetricCell } from "./MetricCell";
 
 export type ModuleType = "bess" | "compute" | "thermal" | "grid";
 
@@ -43,6 +45,8 @@ export interface ModuleCardProps {
   alarmCount?: number;
   /** Up to 3 metric cells. Extras are clipped. */
   measurements?: ModuleMeasurement[];
+  /** Active LOTO locks on this module; null when not locked out. A state, not a status severity. */
+  lotoLocks?: number | null;
   onPress: () => void;
 }
 
@@ -71,87 +75,9 @@ function railColor(t: Theme, status: StatusVariant): string | null {
     .with("fire", () => t.statusFire)
     .with("alarm", () => t.statusAlarm)
     .with("warn", () => t.statusWarn)
-    .with("maintenance", () => t.statusMaintenance)
+    .with("maintenance", () => t.statusLoto)
     .with("offline", () => t.statusOffline)
     .otherwise(() => null);
-}
-
-function resolveMetricColor(t: Theme, hint?: string): string {
-  if (!hint) return t.text;
-  return match(hint)
-    .with("bess", () => t.colorBess)
-    .with("compute", () => t.colorCompute)
-    .with("grid", () => t.colorGrid)
-    .with("thermal", () => t.colorThermal)
-    .with("ok", () => t.statusOk)
-    .with("warn", () => t.statusWarn)
-    .with("alarm", () => t.statusAlarm)
-    .with("soft", () => t.textSoft)
-    .otherwise(() => t.text);
-}
-
-interface MetricCellProps {
-  m: ModuleMeasurement;
-  showDivider: boolean;
-}
-
-function MetricCell({ m, showDivider }: MetricCellProps): React.ReactElement {
-  const t = useTheme();
-  const valueColor = resolveMetricColor(t, m.colorHint);
-  return (
-    <View
-      style={{
-        flex: 1,
-        minWidth: 0,
-        paddingVertical: SPACE[2],
-        paddingHorizontal: SPACE[3],
-        borderRightWidth: showDivider ? 1 : 0,
-        borderRightColor: t.borderSoft,
-      }}
-    >
-      <Text
-        numberOfLines={1}
-        style={[
-          resolveTypeStyle(t, "kpiLabel"),
-          { fontSize: 9, color: t.textSoft },
-        ]}
-      >
-        {m.label}
-      </Text>
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "baseline",
-          gap: 2,
-          marginTop: 2,
-        }}
-      >
-        <Text
-          numberOfLines={1}
-          style={[
-            resolveTypeStyle(t, "kpiValue"),
-            {
-              fontSize: 16,
-              letterSpacing: -0.3,
-              color: valueColor,
-            },
-          ]}
-        >
-          {m.value}
-        </Text>
-        {m.unit ? (
-          <Text
-            style={[
-              resolveTypeStyle(t, "label"),
-              { fontSize: 10, color: t.textMid },
-            ]}
-          >
-            {m.unit}
-          </Text>
-        ) : null}
-      </View>
-    </View>
-  );
 }
 
 /**
@@ -167,6 +93,7 @@ export function ModuleCard({
   acknowledged = true,
   alarmCount = 0,
   measurements = [],
+  lotoLocks = null,
   onPress,
 }: ModuleCardProps): React.ReactElement {
   const t = useTheme();
@@ -184,7 +111,7 @@ export function ModuleCard({
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`${displayName}, ${status}${
+      accessibilityLabel={`${displayName}, ${status}${lotoLocks === null ? "" : ", locked out"}${
         alarmCount > 0 ? `, ${alarmCount} alarm${alarmCount === 1 ? "" : "s"}` : ""
       }`}
       dataSet={{
@@ -286,6 +213,7 @@ export function ModuleCard({
             </Text>
           ) : null}
         </View>
+        {lotoLocks === null ? null : <LotoChip lockCount={lotoLocks} />}
         <StatusBadge
           variant={status}
           label={status.toUpperCase().slice(0, 5)}

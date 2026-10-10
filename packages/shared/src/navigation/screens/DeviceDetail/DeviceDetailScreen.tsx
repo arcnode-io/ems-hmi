@@ -18,6 +18,9 @@ import { measurementTopic, type TopicUnit } from "../../../data/topics/topicBuil
 import { useDeploymentIdentity } from "../../../data/deployment/useDeploymentIdentity";
 import { CommandPanel } from "../../../components/composed/CommandPanel/CommandPanel";
 import { BessDetailBody } from "./parts/BessDetailBody";
+import { LotoPanel } from "./parts/LotoPanel";
+import { LotoChip } from "../../../components/composed/LotoChip/LotoChip";
+import { useLoto } from "../../../data/loto/useLoto";
 import type { RootStackParamList } from "../../routes";
 
 /** Template that exposes operator dispatch control. */
@@ -34,6 +37,7 @@ export function DeviceDetailScreen({ route }: DeviceDetailScreenProps): React.Re
   const nav = useNavigation<NavigationProp<RootStackParamList>>();
   const { view } = useTopologyView();
   const identity = useDeploymentIdentity();
+  const loto = useLoto();
   const deviceId = route.params.deviceId;
   const device = view?.devices[deviceId];
   const template = device ? view?.templates_used[device.template] : undefined;
@@ -69,9 +73,14 @@ export function DeviceDetailScreen({ route }: DeviceDetailScreenProps): React.Re
       </Pressable>
 
       <View>
-        <Text style={[resolveTypeStyle(t, "screenTitle"), { color: t.text }]}>
-          {device.display_name ?? device.device_id}
-        </Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: SPACE[2] }}>
+          <Text style={[resolveTypeStyle(t, "screenTitle"), { color: t.text }]}>
+            {device.display_name ?? device.device_id}
+          </Text>
+          {loto.lockedDevices.has(device.device_id) ? (
+            <LotoChip lockCount={loto.locks.filter((l) => l.device_id === device.device_id).length} />
+          ) : null}
+        </View>
         <Text style={[resolveTypeStyle(t, "caption"), { color: t.textSoft, fontSize: 10, letterSpacing: 0.18, textTransform: "uppercase", marginTop: 2 }]}>
           {device.template} · {device.device_id}
         </Text>
@@ -81,6 +90,9 @@ export function DeviceDetailScreen({ route }: DeviceDetailScreenProps): React.Re
           </Text>
         ) : null}
       </View>
+
+      {/* Reason: LOTO is set on operator-owned modules (rule 3.15); racks inherit it. */}
+      {template.kind === "module" ? <LotoPanel deviceId={device.device_id} /> : null}
 
       {device.template === RICH_DETAIL_TEMPLATE ? (
         <BessDetailBody
