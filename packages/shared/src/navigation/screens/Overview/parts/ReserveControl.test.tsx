@@ -121,20 +121,29 @@ describe("ReserveControl", () => {
     ]);
   });
 
-  it("the confirmation states the action and the GPU impact", () => {
-    // Arrange
-    const { getByTestId, getByText, queryByText } = renderWithScreen(control(), [], { [STATE]: 0 }, VIEW);
-    fireEvent.click(getByTestId("reserve-edit"));
-    fireEvent.click(getByTestId("reserve-up"));
+  it("the confirmation states the action and the GPU impact at that reserve", () => {
+    // Arrange — reserve 0 is Demo A: the battery covers, GPUs aren't affected
+    const confirmText = (mwh: string): string => {
+      const view = renderWithScreen(control(), [], { [STATE]: 0 }, VIEW);
+      fireEvent.click(view.getByTestId("reserve-edit"));
+      fireEvent.change(view.getByTestId("reserve-input"), { target: { value: mwh } });
+      fireEvent.click(view.getByText("Review"));
+      const text = view.container.ownerDocument.body.textContent ?? "";
+      view.unmount();
+      return text;
+    };
 
     // Act
-    fireEvent.click(getByText("Review"));
+    const atZero = confirmText("0");
+    const atFive = confirmText("5");
 
-    // Assert
+    // Assert — (5.68−2.36)/1.12 h at 0; nothing above the reserve at 5
     expect([
-      queryByText("Set battery reserve to 0.5 MWh") !== null,
-      queryByText("During curtailment at this reserve, GPU performance will be affected") !== null,
-    ]).toEqual([true, true]);
+      atZero.includes("Set battery reserve to 0.0 MWh"),
+      atZero.includes("Covers ~3.0 h of full curtailment before GPUs throttle"),
+      atZero.includes("GPU performance will be affected"),
+      atFive.includes("No cover — GPUs throttle as soon as a curtailment starts"),
+    ]).toEqual([true, true, false, true]);
   });
 
   it("is read-only on phones and absent where the template has no operator_reserve", () => {

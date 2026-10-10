@@ -169,9 +169,13 @@ export function ReserveControl({ gpusCapped, live }: { gpusCapped: boolean; live
         }}
         onCancel={close}
       >
-        <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.statusWarn }]}>
-          During curtailment at this reserve, GPU performance will be affected
-        </Text>
+        {/* Reason: GPU impact depends on the reserve — at 0 the battery covers
+            (Demo A); a fixed warning told operators GPUs suffer either way. */}
+        {hours === null ? null : (
+          <Text style={[resolveTypeStyle(t, "bodyDense"), { color: hours <= 0 ? t.statusWarn : t.text }]}>
+            {coverLine(hours)}
+          </Text>
+        )}
       </ConfirmationModal>
     </View>
   );
