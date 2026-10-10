@@ -1,4 +1,4 @@
-import { curtailmentLine, curtailmentTitle } from "./curtailmentLine";
+import { bannerTitle, curtailmentLine, curtailmentTitle } from "./curtailmentLine";
 
 describe("curtailmentLine", () => {
   it("states the utility's import limit next to what the meter actually reads", () => {
@@ -43,5 +43,27 @@ describe("curtailmentTitle", () => {
 
     // Assert
     expect(titles).toEqual(["Curtailment active", "Curtailment active"]);
+  });
+});
+
+describe("bannerTitle", () => {
+  it("gives every phase a title that says why things are yellow", () => {
+    // Arrange / Act
+    const titles = [
+      bannerTitle("curtailment", "ERCOT_FLEX"),
+      bannerTitle("gridLimit", null),
+      bannerTitle("curtailmentReleasing", "NONE"),
+      bannerTitle("gridLimitReleasing", null),
+      bannerTitle("gpusThrottled", null),
+    ];
+
+    // Assert
+    expect(titles).toEqual([
+      "Curtailment active · ERCOT flex call",
+      "Grid limit reached",
+      "Curtailment ended · GPU caps releasing",
+      "Grid limit cleared · GPU caps releasing",
+      "GPUs throttled · cause not reported",
+    ]);
   });
 });

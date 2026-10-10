@@ -22,7 +22,7 @@ import { useCurtailmentPhase } from "../../../data/grid/curtailmentPhase";
 import { useGridPowerQuality } from "../../../data/grid/useGridPowerQuality";
 import { useGridProtection } from "../../../data/grid/useGridProtection";
 import { useDerEventNotice } from "../../../data/grid/useDerEventNotice";
-import { useOperatingEnvelope } from "../../../data/grid/useOperatingEnvelope";
+import { isAtLimit, useOperatingEnvelope } from "../../../data/grid/useOperatingEnvelope";
 import { CurtailmentBanner } from "./parts/CurtailmentBanner";
 import { InterconnectPanel } from "./parts/InterconnectPanel";
 import { EnvelopePanel } from "./parts/EnvelopePanel";
@@ -48,12 +48,16 @@ export function GridScreen(): React.ReactElement {
   const t = useTheme();
   const isSov = t.name === "sovereign";
   const state = useGridState();
-  // Reason: Grid doesn't carry the GPU fleet feed (~1k msg/s) just for the
-  // release phase — the Overview banner owns "GPU caps releasing".
-  const curtailment = useCurtailmentPhase(state.curtailmentActive, false);
   const pq = useGridPowerQuality();
   const protection = useGridProtection();
   const envelope = useOperatingEnvelope();
+  // Reason: Grid doesn't carry the GPU fleet feed (~1k msg/s) just for the
+  // release phase — the Overview banner owns "GPU caps releasing".
+  const curtailment = useCurtailmentPhase(
+    state.curtailmentActive,
+    envelope.importHeadroomW !== null && isAtLimit(envelope.importHeadroomW),
+    false,
+  );
   const status = headerStatus(state);
   const statusColor = status.color(t);
 

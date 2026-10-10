@@ -1,7 +1,7 @@
 /**
- * CurtailmentBanner — shown while der_dispatch.event_active is true, and after
- * it ends for as long as GPU caps still hold (phase "releasing", see
- * curtailmentPhase) — so capped GPUs never sit there unexplained.
+ * CurtailmentBanner — the constraint banner. Up whenever the plant is
+ * constrained or any GPU is yellow, and says why (curtailmentPhase): utility
+ * event, grid limit binding, caps releasing, or throttled with no cause seen.
  * States the utility's ask as the envelope import limit, beside the POI
  * meter (curtailmentLine). The title names the program it came through
  * (curtailmentTitle) — ERCOT flex call vs line constraint. Not target_active_power: upstream it currently
@@ -16,7 +16,7 @@ import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
 import type { GridState } from "../../../../data/grid/useGridState";
 import type { OperatingEnvelope } from "../../../../data/grid/useOperatingEnvelope";
 import type { CurtailmentPhase } from "../../../../data/grid/curtailmentPhase";
-import { curtailmentLine, curtailmentTitle, RELEASING_TITLE } from "./curtailmentLine";
+import { bannerTitle, curtailmentLine } from "./curtailmentLine";
 
 export function CurtailmentBanner({
   phase,
@@ -49,10 +49,10 @@ export function CurtailmentBanner({
     >
       <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: t.statusWarn }} />
       <Text style={[resolveTypeStyle(t, "kpiLabel"), { color: t.statusWarn }]}>
-        {phase === "releasing" ? RELEASING_TITLE : curtailmentTitle(state.curtailmentProgram)}
+        {bannerTitle(phase, state.curtailmentProgram)}
       </Text>
-      {/* Reason: once released, the utility's limit is no longer the story. */}
-      {phase === "active" ? (
+      {/* Reason: the limit line only explains a binding limit; once released it isn't the story. */}
+      {phase === "curtailment" || phase === "gridLimit" ? (
         <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.text, flex: 1 }]}>
           {curtailmentLine(envelope.importLimitW, state.netActivePowerW)}
         </Text>

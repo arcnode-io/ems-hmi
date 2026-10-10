@@ -16,7 +16,7 @@ import { useTopologyView } from "../../../data/topology/useTopologyView";
 import { useAlarms } from "../../../data/alarms/useAlarms";
 import { useGpuFleet } from "../../../data/compute/useGpuFleet";
 import { useGridState } from "../../../data/grid/useGridState";
-import { useOperatingEnvelope } from "../../../data/grid/useOperatingEnvelope";
+import { isAtLimit, useOperatingEnvelope } from "../../../data/grid/useOperatingEnvelope";
 import { CurtailmentBanner } from "../Grid/parts/CurtailmentBanner";
 import { HealthBar } from "./parts/HealthBar";
 import { GpuClusterStrip } from "./parts/GpuClusterStrip";
@@ -36,7 +36,11 @@ export function OverviewScreen(): React.ReactElement {
   const gridState = useGridState();
   const envelope = useOperatingEnvelope();
   const kpis = useFleetKpis();
-  const curtailment = useCurtailmentPhase(gridState.curtailmentActive, gpuFleet.throttlingCount > 0);
+  const curtailment = useCurtailmentPhase(
+    gridState.curtailmentActive,
+    envelope.importHeadroomW !== null && isAtLimit(envelope.importHeadroomW),
+    gpuFleet.throttlingCount > 0,
+  );
   const balance = usePowerBalance({
     gridW: kpis.grid.powerKw === null ? null : kpis.grid.powerKw * 1000,
     bessW: kpis.bess.powerW,

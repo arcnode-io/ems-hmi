@@ -52,6 +52,11 @@ export interface RawEnvelope {
 // "over limit" is noise, not a breach. 2 kW ≈ 0.2% of a ~1 MW site.
 const AT_LIMIT_TOLERANCE_W = 2000;
 
+/** True when the site is at the import limit (within tolerance) or past it — the limit is binding. */
+export function isAtLimit(headroomW: number): boolean {
+  return headroomW < AT_LIMIT_TOLERANCE_W;
+}
+
 /** True only for a real breach — headroom more than the jitter tolerance below zero. */
 export function isOverLimit(headroomW: number): boolean {
   return headroomW <= -AT_LIMIT_TOLERANCE_W;

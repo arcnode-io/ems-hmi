@@ -1,4 +1,4 @@
-import { envelopeFrom, isOverLimit } from "./useOperatingEnvelope";
+import { envelopeFrom, isAtLimit, isOverLimit } from "./useOperatingEnvelope";
 
 describe("envelopeFrom", () => {
   it("passes limits + headroom through and derives used fraction from them", () => {
@@ -68,5 +68,15 @@ describe("isOverLimit", () => {
 
     // Assert
     expect(verdicts).toEqual([false, false, false, true, true, false, false]);
+  });
+});
+
+describe("isAtLimit", () => {
+  it("reads within 2 kW of the limit, or over it, as at the limit (measured shed: −23 kW … −492.8 kW)", () => {
+    // Arrange / Act
+    const verdicts = [4_096_800, 2_000, 1_999, 0, -23_000, -492_800].map(isAtLimit);
+
+    // Assert
+    expect(verdicts).toEqual([false, false, true, true, true, true]);
   });
 });

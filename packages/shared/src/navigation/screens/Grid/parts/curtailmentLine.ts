@@ -5,6 +5,7 @@
  */
 
 import { match } from "ts-pattern";
+import type { CurtailmentPhase } from "../../../../data/grid/curtailmentPhase";
 import type { CurtailmentProgram } from "../../../../data/grid/useGridState";
 
 const DASH = "—";
@@ -24,8 +25,16 @@ export function curtailmentLine(importLimitW: number | null, netW: number | null
   return `Utility limit: ${limit} · site ${site}`;
 }
 
-/** Banner title after the event ends, while the gateway still holds GPU caps. */
-export const RELEASING_TITLE = "Curtailment ended · GPU caps releasing";
+/** Banner title for any constrained phase (null phase = no banner, never asked). */
+export function bannerTitle(phase: Exclude<CurtailmentPhase, null>, program: CurtailmentProgram | null): string {
+  return match(phase)
+    .with("curtailment", () => curtailmentTitle(program))
+    .with("gridLimit", () => "Grid limit reached")
+    .with("curtailmentReleasing", () => "Curtailment ended · GPU caps releasing")
+    .with("gridLimitReleasing", () => "Grid limit cleared · GPU caps releasing")
+    .with("gpusThrottled", () => "GPUs throttled · cause not reported")
+    .exhaustive();
+}
 
 /** Banner title: which DERProgram the curtailment came through, when known. */
 export function curtailmentTitle(program: CurtailmentProgram | null): string {
