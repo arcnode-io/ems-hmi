@@ -12,7 +12,8 @@ import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
 export interface FilterOption {
   id: string;
   label: string;
-  count: number;
+  /** Omit when the count isn't known (e.g. server-side filters). */
+  count?: number;
 }
 
 interface FilterRowProps {
@@ -73,19 +74,21 @@ export function FilterRow({
             >
               {f.label}
             </Text>
-            <Text
-              style={[
-                resolveTypeStyle(t, "label"),
-                {
-                  fontSize: 11,
-                  fontWeight: "400",
-                  color: active ? t.bg : t.textSoft,
-                  opacity: 0.85,
-                },
-              ]}
-            >
-              {f.count}
-            </Text>
+            {f.count === undefined ? null : (
+              <Text
+                style={[
+                  resolveTypeStyle(t, "label"),
+                  {
+                    fontSize: 11,
+                    fontWeight: "400",
+                    color: active ? t.bg : t.textSoft,
+                    opacity: 0.85,
+                  },
+                ]}
+              >
+                {f.count}
+              </Text>
+            )}
           </Pressable>
         );
       })}

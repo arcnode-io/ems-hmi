@@ -27,17 +27,17 @@ describe("eventLine", () => {
     // Act
     const lines = rows.map((r) => eventLine(r, FLOOR_MWH));
 
-    // Assert — reserve reads above minimum SoC, like the BESS tile (4.36 − 2.36)
+    // Assert — who did it is its own column (eventSource); reserve reads above minimum SoC, like the BESS tile (4.36 − 2.36)
     expect(lines).toEqual([
       null,
       "Curtailment active · Line constraint",
-      "Curtailment cancelled by utility · Line constraint",
+      "Curtailment cancelled · Line constraint",
       null,
       "Curtailment ended · Line constraint",
       "Curtailment scheduled · ERCOT flex call",
-      "Curtailment approved by operator · ERCOT flex call",
-      "Curtailment rejected by operator · ERCOT flex call",
-      "Reserve set to 2.0 MWh by operator",
+      "Curtailment approved · ERCOT flex call",
+      "Curtailment rejected · ERCOT flex call",
+      "Reserve set to 2.0 MWh",
       "Dispatch mode set to Manual",
     ]);
   });

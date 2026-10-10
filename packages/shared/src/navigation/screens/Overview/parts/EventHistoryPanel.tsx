@@ -1,37 +1,47 @@
 /**
- * EventHistoryPanel — Overview Zone D. What happened on site (DER events,
- * reserve and dispatch-mode changes), newest first, from der-control-api's
- * event log. Read-only: events are records, never acknowledged (Hollifield:
- * only alarms need action). Live alarms stay on the HealthBar count and the
- * BESS / Compute screens.
+ * EventHistoryPanel — Overview Zone D, laid out like the alarms card it
+ * replaced: the latest few events (DER lifecycle, reserve and dispatch-mode
+ * changes) and a History link to the full log. Read-only: events are records,
+ * never acknowledged (Hollifield: only alarms need action). Live alarms stay on
+ * the HealthBar count and the BESS / Compute screens.
  */
 
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { match } from "ts-pattern";
 import { useTheme } from "../../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
 import type { EventHistory } from "../../../../data/events/useEventHistory";
-import { eventLine } from "./eventLine";
+import { eventLine, eventSource } from "./eventLine";
 import { relativeAge } from "./relativeAge";
 
 // Reason: the card is a glance, not the log — the latest few tell the story.
-const MAX_ROWS = 10;
+const MAX_ROWS = 5;
+
+interface EventLine {
+  id: number;
+  text: string;
+  source: ReturnType<typeof eventSource>;
+  ts: string;
+}
 
 interface EventHistoryPanelProps {
   history: EventHistory;
   /** BESS minimum SoC, MWh — reserve rows read above it, like the BESS tile. */
   floorMwh: number;
+  /** Open the full event history page. */
+  onOpenHistory: () => void;
 }
 
-export function EventHistoryPanel({ history, floorMwh }: EventHistoryPanelProps): React.ReactElement {
+export function EventHistoryPanel({ history, floorMwh, onOpenHistory }: EventHistoryPanelProps): React.ReactElement {
   const t = useTheme();
+  const isSov = t.name === "sovereign";
   const lines =
     history.status === "ready"
       ? history.rows
-          .map((row) => ({ id: row.id, text: eventLine(row, floorMwh), ts: row.occurredAt }))
-          .filter((line): line is { id: number; text: string; ts: string } => line.text !== null)
+          .map((row) => ({ id: row.id, text: eventLine(row, floorMwh), source: eventSource(row), ts: row.occurredAt }))
+          .filter((line): line is EventLine => line.text !== null)
           .slice(0, MAX_ROWS)
       : [];
   const empty = match(history)
@@ -54,10 +64,43 @@ export function EventHistoryPanel({ history, floorMwh }: EventHistoryPanelProps)
         overflow: "hidden",
       }}
     >
-      <View style={{ paddingVertical: SPACE[3], paddingHorizontal: SPACE[4] }}>
-        <Text numberOfLines={1} style={[resolveTypeStyle(t, "kpiLabel"), { color: t.textSoft }]}>
-          Event history · last 24 h
-        </Text>
+      <View
+        style={{
+          paddingVertical: SPACE[3],
+          paddingHorizontal: SPACE[4],
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: SPACE[3],
+        }}
+      >
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text numberOfLines={1} style={[resolveTypeStyle(t, "kpiLabel"), { color: t.textSoft }]}>
+            Recent events · last 24 h
+          </Text>
+          <Text
+            style={[
+              resolveTypeStyle(t, "cardHeading"),
+              {
+                color: t.text,
+                marginTop: 3,
+                ...(isSov ? { textTransform: "uppercase", letterSpacing: 0.5, fontWeight: "400" } : null),
+              },
+            ]}
+          >
+            Operations
+          </Text>
+        </View>
+        <Pressable accessibilityRole="link" accessibilityLabel="View event history" onPress={onOpenHistory}>
+          <Text
+            style={[
+              resolveTypeStyle(t, "label"),
+              { color: t.accent, fontWeight: "600", letterSpacing: 0.15, textTransform: "uppercase" },
+            ]}
+          >
+            History →
+          </Text>
+        </Pressable>
       </View>
       {lines.length === 0 ? (
         <View
@@ -76,17 +119,25 @@ export function EventHistoryPanel({ history, floorMwh }: EventHistoryPanelProps)
             key={line.id}
             dataSet={{ comp: "EventRow" }}
             style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              gap: SPACE[3],
-              paddingVertical: SPACE[2],
-              paddingHorizontal: SPACE[4],
+              padding: SPACE[3],
+              paddingLeft: SPACE[4],
+              backgroundColor: t.surface,
               borderTopWidth: 1,
               borderTopColor: t.borderSoft,
             }}
           >
-            <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.text, flex: 1 }]}>{line.text}</Text>
-            <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.textSoft }]}>{relativeAge(line.ts)}</Text>
+            <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6 }}>
+              <Text
+                dataSet={{ region: "source" }}
+                style={[resolveTypeStyle(t, "label"), { color: t.text, fontWeight: "700", letterSpacing: 0.1 }]}
+              >
+                {line.source}
+              </Text>
+              <Text style={[resolveTypeStyle(t, "caption"), { color: t.textSoft }]}>· {relativeAge(line.ts)}</Text>
+            </View>
+            <Text numberOfLines={1} style={[resolveTypeStyle(t, "bodyDense"), { color: t.textMid }]}>
+              {line.text}
+            </Text>
           </View>
         ))
       )}

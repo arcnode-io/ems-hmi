@@ -16,6 +16,7 @@ import { EnergyScreen as RealEnergyScreen } from "./Energy/EnergyScreen";
 import { AnalystScreen as RealAnalystScreen } from "./Analyst/AnalystScreen";
 import { ComputeScreen as RealComputeScreen } from "./Compute/ComputeScreen";
 import { SettingsScreen as RealSettingsScreen } from "./Settings/SettingsScreen";
+import { EventHistoryScreen as RealEventHistoryScreen } from "./EventHistory/EventHistoryScreen";
 
 export function OverviewScreen(): ReactElement {
   return <RealOverviewScreen />;
@@ -47,6 +48,10 @@ export function AnalystScreen(): ReactElement {
 
 export function SettingsScreen(): ReactElement {
   return <RealSettingsScreen />;
+}
+
+export function EventHistoryScreen(): ReactElement {
+  return <RealEventHistoryScreen />;
 }
 
 export function DeviceDetailScreen({

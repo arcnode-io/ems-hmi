@@ -124,6 +124,7 @@ export function AppLayout({
   const breadcrumbs = (() => {
     if (activeName === "Sld") return [identity.name, "SLD"];
     if (activeName === "DeviceDetail") return [identity.name, "Devices"];
+    if (activeName === "EventHistory") return [identity.name, "Event history"];
     return [identity.name, activeName];
   })();
 

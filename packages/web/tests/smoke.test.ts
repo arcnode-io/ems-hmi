@@ -75,3 +75,21 @@ test.describe("desktop smoke", () => {
     expect(meaningful, `unexpected console errors:\n${meaningful.join("\n")}`).toEqual([]);
   });
 });
+
+test.describe("event history", () => {
+  test.use({ viewport: { width: 1440, height: 900 } });
+
+  test("Overview's History link opens the event history page", async ({ page }) => {
+    const { errors } = collectErrors(page);
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+
+    await page.getByLabel("View event history").click();
+
+    // Reason: the preview build is a mock build — no der-control-api, so the page says so.
+    await expect(page).toHaveURL(/\/events$/);
+    await expect(page.getByText("Event history is available on a live site.").last()).toBeAttached({ timeout: 5000 });
+    const meaningful = errors.filter((err) => !IGNORE_PATTERN.test(err));
+    expect(meaningful, `unexpected console errors:\n${meaningful.join("\n")}`).toEqual([]);
+  });
+});

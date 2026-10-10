@@ -15,6 +15,7 @@ import {
   ComputeScreen,
   AnalystScreen,
   SettingsScreen,
+  EventHistoryScreen,
   DeviceDetailScreen,
 } from "./screens";
 import type { RootStackParamList } from "./routes";
@@ -40,6 +41,7 @@ export function Navigator(): React.ReactElement {
       <Stack.Screen name="Compute" component={ComputeScreen} />
       <Stack.Screen name="Analyst" component={AnalystScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen name="EventHistory" component={EventHistoryScreen} />
     </Stack.Navigator>
   );
 }

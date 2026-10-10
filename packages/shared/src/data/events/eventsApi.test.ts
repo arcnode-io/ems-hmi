@@ -1,4 +1,4 @@
-import { fetchEvents, type EventRow, type EventsResponse } from "./eventsApi";
+import { fetchEventPage, fetchEvents, fetchRetentionDays, type EventRow, type EventsResponse } from "./eventsApi";
 
 const reply = (status: number, body: unknown): Promise<EventsResponse> =>
   Promise.resolve({ ok: status < 300, status, json: () => Promise.resolve(body) });
@@ -49,5 +49,44 @@ describe("fetchEvents", () => {
 
     // Act / Assert
     await expect(fetchEvents({ baseUri: "", token: "bad", sinceMs: 0 }, fetchFn)).rejects.toThrow(/401/);
+  });
+});
+
+describe("fetchRetentionDays", () => {
+  it("reads how long der-control-api keeps events, so the page never states a made-up number", async () => {
+    // Arrange
+    const urls: string[] = [];
+    const fetchFn = (url: string): Promise<EventsResponse> => {
+      urls.push(url);
+      return reply(200, { days: 90 });
+    };
+
+    // Act
+    const days = await fetchRetentionDays({ baseUri: "/der-control", token: "tok" }, fetchFn);
+
+    // Assert
+    expect({ days, urls }).toEqual({ days: 90, urls: ["/der-control/events/retention"] });
+  });
+});
+
+describe("fetchEventPage", () => {
+  it("asks for the newest page first, then pages older by the last row's id, filters kept", async () => {
+    // Arrange
+    const urls: string[] = [];
+    const fetchFn = (url: string): Promise<EventsResponse> => {
+      urls.push(url);
+      return reply(200, [ROW]);
+    };
+    const filters = { since: "2026-10-09T20:00:00.000Z", types: "OPERATOR_RESERVE_SET" };
+
+    // Act
+    await fetchEventPage({ baseUri: "/der-control", token: "tok", filters, before: null }, fetchFn);
+    await fetchEventPage({ baseUri: "/der-control", token: "tok", filters, before: 12 }, fetchFn);
+
+    // Assert
+    expect(urls.map((url) => Object.fromEntries(new URL(url, "http://h").searchParams))).toEqual([
+      { since: filters.since, types: "OPERATOR_RESERVE_SET", limit: "50", order: "desc" },
+      { since: filters.since, types: "OPERATOR_RESERVE_SET", limit: "50", before: "12" },
+    ]);
   });
 });

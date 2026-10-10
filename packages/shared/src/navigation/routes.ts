@@ -20,6 +20,7 @@ export type RootStackParamList = {
   Compute: undefined;
   Analyst: undefined;
   Settings: undefined;
+  EventHistory: undefined;
 };
 
 export type RouteName = keyof RootStackParamList;
@@ -51,6 +52,8 @@ export const ROUTES: readonly RouteSpec[] = [
   { name: "Compute", path: "compute", sidebar: "/compute", bottomTab: "compute" },
   { name: "Analyst", path: "analyst", sidebar: "/analyst", bottomTab: "analyst" },
   { name: "Settings", path: "settings", sidebar: "/settings", bottomTab: null },
+  // Reason: reached from Overview's History link, so it keeps Overview lit.
+  { name: "EventHistory", path: "events", sidebar: "/overview", bottomTab: "overview" },
 ] as const;
 
 /** Look up a route spec by name. */

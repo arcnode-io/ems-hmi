@@ -8,7 +8,7 @@ import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../auth/AuthProvider";
 import { useDeploymentIdentity } from "../deployment/useDeploymentIdentity";
 import { usesRealBackend } from "../deployment/deploymentMode";
-import { fetchEvents, type EventRow, type EventsFetch } from "./eventsApi";
+import { BROWSER_FETCH, fetchEvents, type EventRow, type EventsFetch } from "./eventsApi";
 
 // Reason: events land on HTTP only (no bus topic); 5 s keeps a new DER event
 // on screen within one beat of the banner without hammering the API.
@@ -25,7 +25,7 @@ export type EventHistory =
  * @param fetchFn injectable for tests; defaults to the browser's fetch
  * @returns the log newest first, or why there isn't one
  */
-export function useEventHistory(fetchFn: EventsFetch = fetch): EventHistory {
+export function useEventHistory(fetchFn: EventsFetch = BROWSER_FETCH): EventHistory {
   const { mode, derControlUri } = useDeploymentIdentity();
   // Reason: read the context directly — mock builds have no AuthProvider, and
   // useAuth() throws outside one.

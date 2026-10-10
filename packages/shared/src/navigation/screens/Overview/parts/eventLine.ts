@@ -1,5 +1,5 @@
 /**
- * One event-history row → the sentence the card shows, or null when another
+ * One event-history row → what happened (who did it is eventSource's column), or null when another
  * row already says it (RECEIVED lands the same second as its STATE row; an
  * UPDATED that isn't a cancellation changes nothing the operator sees).
  */
@@ -23,19 +23,26 @@ export function eventLine(row: EventRow, floorMwh: number): string | null {
   const program = programSuffix(row.program === null ? null : curtailmentProgramFrom(row.program));
   return match(row)
     .with({ type: "DER_EVENT_RECEIVED" }, () => null)
-    .with({ type: "DER_EVENT_UPDATED", status: "CANCELLED" }, () => `Curtailment cancelled by utility${program}`)
+    .with({ type: "DER_EVENT_UPDATED", status: "CANCELLED" }, () => `Curtailment cancelled${program}`)
     .with({ type: "DER_EVENT_UPDATED" }, () => null)
     .with({ type: "DER_EVENT_STATE", state: "ACTIVE" }, () => `Curtailment active${program}`)
     .with({ type: "DER_EVENT_STATE", state: "IDLE" }, () => `Curtailment ended${program}`)
     .with({ type: "DER_EVENT_STATE", state: "PENDING" }, () => `Curtailment scheduled${program}`)
     .with({ type: "DER_EVENT_STATE", state: P.string }, ({ state }) => `Curtailment ${state.toLowerCase()}${program}`)
     .with({ type: "DER_EVENT_STATE" }, () => null)
-    .with({ type: "DER_EVENT_APPROVED" }, () => `Curtailment approved by operator${program}`)
-    .with({ type: "DER_EVENT_REJECTED" }, () => `Curtailment rejected by operator${program}`)
+    .with({ type: "DER_EVENT_APPROVED" }, () => `Curtailment approved${program}`)
+    .with({ type: "DER_EVENT_REJECTED" }, () => `Curtailment rejected${program}`)
     .with({ type: "OPERATOR_RESERVE_SET", value: P.number }, ({ value }) =>
-      `Reserve set to ${toAboveFloorMwh(value / WH_PER_MWH, floorMwh).toFixed(1)} MWh by operator`)
+      `Reserve set to ${toAboveFloorMwh(value / WH_PER_MWH, floorMwh).toFixed(1)} MWh`)
     .with({ type: "OPERATOR_RESERVE_SET" }, () => null)
     .with({ type: "DISPATCH_MODE_SET", detail: P.string }, ({ detail }) => `Dispatch mode set to ${titleCase(detail)}`)
     .with({ type: "DISPATCH_MODE_SET" }, () => null)
     .exhaustive();
+}
+
+/** Who caused the event — the row's bold first line, like AlarmRow's device. */
+export function eventSource(row: EventRow): "Operator" | "Utility" {
+  // Reason: DER lifecycle rows are the utility's ask (actor = its LFDI or
+  // null); the operator's own decisions carry actor "operator".
+  return row.actor === "operator" ? "Operator" : "Utility";
 }

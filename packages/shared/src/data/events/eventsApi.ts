@@ -57,6 +57,9 @@ export interface EventsResponse {
 
 export type EventsFetch = (url: string, init: { headers: Record<string, string> }) => Promise<EventsResponse>;
 
+/** The browser's fetch, looked up per call (stable reference for hook deps). */
+export const BROWSER_FETCH: EventsFetch = (url, init) => fetch(url, init);
+
 /**
  * Fetch events since a time, oldest first (server order).
  * @throws Error on non-2xx or a body that doesn't match the contract
@@ -64,6 +67,52 @@ export type EventsFetch = (url: string, init: { headers: Record<string, string> 
  */
 export async function fetchEvents(query: EventsQuery, fetchFn: EventsFetch): Promise<EventRow[]> {
   const params = new URLSearchParams({ since: new Date(query.sinceMs).toISOString(), limit: String(LIMIT) });
+  const res = await fetchFn(`${query.baseUri}/events?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${query.token}` },
+  });
+  if (!res.ok) throw new Error(`der-control /events ${res.status}`);
+  return z.array(EventRow).parse(await res.json());
+}
+
+const Retention = z.object({ days: z.number() });
+
+/**
+ * How many days der-control-api keeps events before its daily purge.
+ * @throws Error on non-2xx or a malformed body
+ */
+export async function fetchRetentionDays(
+  query: { baseUri: string; token: string },
+  fetchFn: EventsFetch,
+): Promise<number> {
+  const res = await fetchFn(`${query.baseUri}/events/retention`, { headers: { Authorization: `Bearer ${query.token}` } });
+  if (!res.ok) throw new Error(`der-control /events/retention ${res.status}`);
+  return Retention.parse(await res.json()).days;
+}
+
+// Reason: a page the operator reads, not a dump — 50 rows ≈ a screen and a half.
+export const PAGE_SIZE = 50;
+
+export interface EventPageQuery {
+  baseUri: string;
+  token: string;
+  /** Server-side filters from eventFilter.filterParams. */
+  filters: Record<string, string>;
+  /** Id of the last loaded row; null = the newest page. */
+  before: number | null;
+}
+
+/**
+ * One page of the log, NEWEST first: `order=desc` for the first page, then
+ * `before=<last id>` (ids are monotonic, so pages don't shift as rows land).
+ * An empty page = the start of the log for these filters.
+ * @throws Error on non-2xx or a body that doesn't match the contract
+ */
+export async function fetchEventPage(query: EventPageQuery, fetchFn: EventsFetch): Promise<EventRow[]> {
+  const params = new URLSearchParams({
+    ...query.filters,
+    limit: String(PAGE_SIZE),
+    ...(query.before === null ? { order: "desc" } : { before: String(query.before) }),
+  });
   const res = await fetchFn(`${query.baseUri}/events?${params.toString()}`, {
     headers: { Authorization: `Bearer ${query.token}` },
   });

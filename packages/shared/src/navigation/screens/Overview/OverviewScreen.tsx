@@ -10,6 +10,9 @@
 
 import React from "react";
 import { ScrollView, View } from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import type { RootStackParamList } from "../../routes";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { SPACE } from "../../../theme/tokens/primitives";
 import { useTopologyView } from "../../../data/topology/useTopologyView";
@@ -29,8 +32,11 @@ import { useCurtailmentPhase } from "../../../data/grid/curtailmentPhase";
 import { usePowerBalance } from "../../../data/history/usePowerBalance";
 import { useEventHistory } from "../../../data/events/useEventHistory";
 
+type Nav = NativeStackNavigationProp<RootStackParamList>;
+
 export function OverviewScreen(): React.ReactElement {
   const t = useTheme();
+  const nav = useNavigation<Nav>();
   const { view } = useTopologyView();
   const alarms = useAlarms();
   const gpuFleet = useGpuFleet();
@@ -82,7 +88,11 @@ export function OverviewScreen(): React.ReactElement {
         <GpuClusterStrip fleet={gpuFleet} />
         <KpiStrip gpusCapped={gpuFleet.throttlingCount > 0} />
         <StrandedCapacity fleet={gpuFleet} />
-        <EventHistoryPanel history={events} floorMwh={view?.bess?.reserve_floor_mwh ?? 0} />
+        <EventHistoryPanel
+          history={events}
+          floorMwh={view?.bess?.reserve_floor_mwh ?? 0}
+          onOpenHistory={(): void => nav.navigate("EventHistory")}
+        />
       </View>
     </ScrollView>
   );
