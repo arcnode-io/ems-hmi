@@ -3,7 +3,7 @@
  * web and native; each platform's `main` feeds it cfg loaded from its own
  * cfg.yml.
  *
- * Real-backend modes (beta, device-demo) gate the shell behind AuthProvider + a
+ * Real-backend modes (device-demo, deployed) gate the shell behind AuthProvider + a
  * login screen; mock modes (local, ai-demo) bypass auth entirely (offline,
  * deterministic — the public demo and the Playwright specs depend on instant
  * entry).
@@ -66,7 +66,7 @@ function resolveAnalystStream(): typeof analystStream {
 
 /**
  * The authenticated app: topology + MQTT + analyst + navigation. Real broker in
- * beta (the gateway publishes live telemetry); deterministic Mock in demo/local.
+ * real-backend modes (the gateway publishes live telemetry); deterministic Mock in demo/local.
  */
 function AppShell({ cfg }: { cfg: AppRootCfg }): React.ReactElement {
   const inner = (

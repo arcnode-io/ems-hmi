@@ -111,8 +111,10 @@ describe("resolveConfig — baked builds", () => {
     ]);
   });
 
-  it("refuses the mobile-only profiles on web", () => {
+  it("refuses the mobile-only profile on web", () => {
     // Arrange / Act / Assert
-    expect(() => resolveConfig("beta", BAKED, null, "h")).toThrow(/mobile/);
+    expect(() => resolveConfig("device-demo", BAKED, null, "h")).toThrow(
+      /mobile/,
+    );
   });
 });

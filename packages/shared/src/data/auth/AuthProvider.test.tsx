@@ -17,7 +17,7 @@ const BASE: DeploymentIdentityBase = {
   name: "Test Site",
   host: "localhost",
   siteId: "demo-site",
-  mode: "beta",
+  mode: "device-demo",
   chatApiUri: "http://localhost:3000/analyst",
   deviceApiUri: "http://localhost:3000/device",
   derControlUri: "http://localhost:8080/der-control",

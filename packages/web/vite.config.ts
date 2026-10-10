@@ -36,7 +36,7 @@ export default defineConfig({
       },
       // Same reasoning as /mqtt above — a real deployment reaches
       // device-api same-origin via nginx (no CORS needed there either);
-      // proxying here for local beta-mode testing instead of asking the
+      // proxying here for local real-backend testing instead of asking the
       // backend to loosen CORS for a cross-origin case that never exists
       // in production.
       '/device-api': {

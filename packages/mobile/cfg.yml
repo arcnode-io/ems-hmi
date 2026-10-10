@@ -9,17 +9,6 @@ local:
   chatApiUri: "http://localhost:8000"
   derControlUri: "http://localhost:8080"
 
-beta:
-  logLevel: "INFO"
-  e2e: true
-  deploymentName: "Beta Sandbox"
-  deploymentHost: "beta.arcnode.io"
-  siteId: "beta_site"
-  mqttUri: "wss://beta-broker.example.com:8083/mqtt"
-  deviceApiUri: "https://beta-device-api.example.com"
-  chatApiUri: "https://analyst-api.example.com"
-  derControlUri: "https://beta-der-control.example.com"
-
 # Web-demo counterpart: mock devices + fixture topology, hosted analyst.
 ai-demo:
   logLevel: "INFO"

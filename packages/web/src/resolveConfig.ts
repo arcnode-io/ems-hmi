@@ -113,9 +113,9 @@ export function resolveConfig(
     })
     .with("local", () => withDevOverlay(baked.local, overlay, build))
     .with("ai-demo", () => withDevOverlay(baked["ai-demo"], overlay, build))
-    .with("beta", "device-demo", (profile) => {
+    .with("device-demo", () => {
       throw new Error(
-        `'${profile}' is a mobile-only profile; web real-backend builds are 'deployed'`,
+        "'device-demo' is a mobile-only profile; web real-backend builds are 'deployed'",
       );
     })
     .exhaustive();

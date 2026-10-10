@@ -3,13 +3,13 @@ import { parseDeploymentMode, usesRealBackend } from "./deploymentMode";
 describe("parseDeploymentMode", () => {
   it("maps each cfg.yml profile name to its mode", () => {
     // Arrange
-    const names = ["local", "beta", "ai-demo", "device-demo", "deployed"];
+    const names = ["local", "ai-demo", "device-demo", "deployed"];
 
     // Act
     const modes = names.map((n) => parseDeploymentMode(n));
 
     // Assert
-    expect(modes).toEqual(["local", "beta", "ai-demo", "device-demo", "deployed"]);
+    expect(modes).toEqual(["local", "ai-demo", "device-demo", "deployed"]);
   });
 
   it("defaults to local when the env var is unset", () => {
@@ -29,12 +29,12 @@ describe("parseDeploymentMode", () => {
 describe("usesRealBackend", () => {
   it("is true only for the profiles that talk to a real broker + device-api", () => {
     // Arrange
-    const modes = ["local", "beta", "ai-demo", "device-demo", "deployed"] as const;
+    const modes = ["local", "ai-demo", "device-demo", "deployed"] as const;
 
     // Act
     const live = modes.map((m) => usesRealBackend(m));
 
     // Assert
-    expect(live).toEqual([false, true, false, true, true]);
+    expect(live).toEqual([false, false, true, true]);
   });
 });

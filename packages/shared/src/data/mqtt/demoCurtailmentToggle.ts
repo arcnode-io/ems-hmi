@@ -7,7 +7,7 @@
  * one hook call plus the two override checks in its tick loop (search
  * "demoCurtailmentToggle" there). Delete this file and both checks to
  * remove the whole feature; nothing else depends on it, and it never
- * runs outside MockMqttProvider (demo/local only, never beta).
+ * runs outside MockMqttProvider (demo/local only, never a real backend).
  *
  * Same minimal-structural-type pattern as navigation/linking.ts's
  * originPrefix(): bare `window`/`KeyboardEvent` don't resolve under the
