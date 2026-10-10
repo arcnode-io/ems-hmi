@@ -18,6 +18,7 @@ import { useTheme } from "../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../theme/tokens";
 import { SPACE } from "../../../theme/tokens/primitives";
 import { useGridState } from "../../../data/grid/useGridState";
+import { useCurtailmentPhase } from "../../../data/grid/curtailmentPhase";
 import { useGridPowerQuality } from "../../../data/grid/useGridPowerQuality";
 import { useGridProtection } from "../../../data/grid/useGridProtection";
 import { useDerEventNotice } from "../../../data/grid/useDerEventNotice";
@@ -47,6 +48,9 @@ export function GridScreen(): React.ReactElement {
   const t = useTheme();
   const isSov = t.name === "sovereign";
   const state = useGridState();
+  // Reason: Grid doesn't carry the GPU fleet feed (~1k msg/s) just for the
+  // release phase — the Overview banner owns "GPU caps releasing".
+  const curtailment = useCurtailmentPhase(state.curtailmentActive, false);
   const pq = useGridPowerQuality();
   const protection = useGridProtection();
   const envelope = useOperatingEnvelope();
@@ -120,7 +124,7 @@ export function GridScreen(): React.ReactElement {
         </View>
       </View>
 
-      <CurtailmentBanner state={state} envelope={envelope} />
+      <CurtailmentBanner phase={curtailment} state={state} envelope={envelope} />
       {state.mode === "ISLAND" ? <IslandNote state={state} /> : null}
       <InterconnectPanel state={state} />
       <EnvelopePanel envelope={envelope} islanded={state.mode === "ISLAND"} />

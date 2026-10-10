@@ -24,6 +24,9 @@ export function curtailmentLine(importLimitW: number | null, netW: number | null
   return `Utility limit: ${limit} · site ${site}`;
 }
 
+/** Banner title after the event ends, while the gateway still holds GPU caps. */
+export const RELEASING_TITLE = "Curtailment ended · GPU caps releasing";
+
 /** Banner title: which DERProgram the curtailment came through, when known. */
 export function curtailmentTitle(program: CurtailmentProgram | null): string {
   const TITLE = "Curtailment active";

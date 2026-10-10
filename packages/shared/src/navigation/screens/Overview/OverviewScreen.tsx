@@ -25,6 +25,7 @@ import { KpiStrip } from "./parts/KpiStrip";
 import { AlarmsPanel } from "./parts/AlarmsPanel";
 import { PowerBalancePanel } from "./parts/PowerBalancePanel";
 import { useFleetKpis } from "../../../data/kpis/useFleetKpis";
+import { useCurtailmentPhase } from "../../../data/grid/curtailmentPhase";
 import { usePowerBalance } from "../../../data/history/usePowerBalance";
 
 export function OverviewScreen(): React.ReactElement {
@@ -35,6 +36,7 @@ export function OverviewScreen(): React.ReactElement {
   const gridState = useGridState();
   const envelope = useOperatingEnvelope();
   const kpis = useFleetKpis();
+  const curtailment = useCurtailmentPhase(gridState.curtailmentActive, gpuFleet.throttlingCount > 0);
   const balance = usePowerBalance({
     gridW: kpis.grid.powerKw === null ? null : kpis.grid.powerKw * 1000,
     bessW: kpis.bess.powerW,
@@ -69,7 +71,7 @@ export function OverviewScreen(): React.ReactElement {
         <HealthBar headline={headline} detail={detail} accentColor={accent} />
         {/* Reason: story order — the utility's ask, the balance proving the
             battery covered it and GPU draw held, then the fleet detail. */}
-        <CurtailmentBanner state={gridState} envelope={envelope} />
+        <CurtailmentBanner phase={curtailment} state={gridState} envelope={envelope} />
         <PowerBalancePanel balance={balance} />
         <GpuClusterStrip fleet={gpuFleet} />
         <KpiStrip gpusCapped={gpuFleet.throttlingCount > 0} />

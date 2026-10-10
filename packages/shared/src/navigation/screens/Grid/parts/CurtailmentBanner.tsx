@@ -1,5 +1,7 @@
 /**
- * CurtailmentBanner — shown only while der_dispatch.event_active is true.
+ * CurtailmentBanner — shown while der_dispatch.event_active is true, and after
+ * it ends for as long as GPU caps still hold (phase "releasing", see
+ * curtailmentPhase) — so capped GPUs never sit there unexplained.
  * States the utility's ask as the envelope import limit, beside the POI
  * meter (curtailmentLine). The title names the program it came through
  * (curtailmentTitle) — ERCOT flex call vs line constraint. Not target_active_power: upstream it currently
@@ -13,17 +15,20 @@ import { resolveTypeStyle } from "../../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
 import type { GridState } from "../../../../data/grid/useGridState";
 import type { OperatingEnvelope } from "../../../../data/grid/useOperatingEnvelope";
-import { curtailmentLine, curtailmentTitle } from "./curtailmentLine";
+import type { CurtailmentPhase } from "../../../../data/grid/curtailmentPhase";
+import { curtailmentLine, curtailmentTitle, RELEASING_TITLE } from "./curtailmentLine";
 
 export function CurtailmentBanner({
+  phase,
   state,
   envelope,
 }: {
+  phase: CurtailmentPhase;
   state: GridState;
   envelope: OperatingEnvelope;
 }): React.ReactElement | null {
   const t = useTheme();
-  if (!state.curtailmentActive) return null;
+  if (phase === null) return null;
 
   return (
     <View
@@ -44,11 +49,14 @@ export function CurtailmentBanner({
     >
       <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: t.statusWarn }} />
       <Text style={[resolveTypeStyle(t, "kpiLabel"), { color: t.statusWarn }]}>
-        {curtailmentTitle(state.curtailmentProgram)}
+        {phase === "releasing" ? RELEASING_TITLE : curtailmentTitle(state.curtailmentProgram)}
       </Text>
-      <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.text, flex: 1 }]}>
-        {curtailmentLine(envelope.importLimitW, state.netActivePowerW)}
-      </Text>
+      {/* Reason: once released, the utility's limit is no longer the story. */}
+      {phase === "active" ? (
+        <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.text, flex: 1 }]}>
+          {curtailmentLine(envelope.importLimitW, state.netActivePowerW)}
+        </Text>
+      ) : null}
     </View>
   );
 }
