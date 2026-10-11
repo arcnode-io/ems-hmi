@@ -13,6 +13,9 @@
 
 export type AuthRole = "operator" | "viewer";
 
+/** What the chrome calls each role. */
+export const ROLE_LABEL: Readonly<Record<AuthRole, string>> = { operator: "Operator", viewer: "Viewer" };
+
 export interface LoginResult {
   token: string;
   role: AuthRole;

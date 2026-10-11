@@ -1,15 +1,16 @@
 /**
- * AccountSection — read-only operator + site identity. Real auth (and an
- * edit/sign-out flow) lands when the reverse-proxy auth contract is wired
- * per the analyst-agent backend handoff.
+ * AccountSection — read-only session identity: the signed-in role and the
+ * site. The device-api token carries no name or email, so neither is shown.
  */
 
-import React from "react";
+import React, { useContext } from "react";
 import { View, Text } from "react-native";
 import { useTheme } from "../../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../../theme/tokens";
 import { SPACE } from "../../../../theme/tokens/primitives";
 import { useDeploymentIdentity } from "../../../../data/deployment/useDeploymentIdentity";
+import { AuthContext } from "../../../../data/auth/AuthProvider";
+import { ROLE_LABEL } from "../../../../data/auth/authClient";
 import { SetPanel, SetSectionHead } from "./SetPanel";
 
 interface RowProps {
@@ -47,6 +48,7 @@ function Row({ label, value, showDivider }: RowProps): React.ReactElement {
         {label}
       </Text>
       <Text
+        testID="account-value"
         style={[
           resolveTypeStyle(t, "label"),
           { fontSize: 12, color: t.text, fontWeight: "600", letterSpacing: 0.02 },
@@ -60,13 +62,10 @@ function Row({ label, value, showDivider }: RowProps): React.ReactElement {
 
 export function AccountSection(): React.ReactElement {
   const identity = useDeploymentIdentity();
-  // TODO: real auth → operator + email + role come from the proxy headers
-  // (X-Operator-Id / X-Role) per analyst-agent handoff. Stubbed below
-  // with the same chrome user so the visual contract holds for demo.
+  // Reason: builds without login (mock/demo) run as the operator session.
+  const role = useContext(AuthContext)?.role ?? "operator";
   const rows = [
-    { label: "Display name", value: "R. Marquez" },
-    { label: "Email", value: "r.marquez@arcnode.io" },
-    { label: "Role", value: "Lead Operator" },
+    { label: "Role", value: ROLE_LABEL[role] },
     { label: "Site", value: identity.name },
   ];
   return (

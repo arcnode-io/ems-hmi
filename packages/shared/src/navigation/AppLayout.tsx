@@ -11,11 +11,13 @@
  * Desktop: Sidebar + (TopBar + StatusStrip + screen content).
  */
 
-import React from "react";
+import React, { useContext } from "react";
 import { View } from "react-native";
 import { useTheme } from "../theme/ThemeProvider";
 import { useBreakpoint } from "../hooks/useBreakpoint";
 import { useDeploymentIdentity } from "../data/deployment/useDeploymentIdentity";
+import { AuthContext } from "../data/auth/AuthProvider";
+import { ROLE_LABEL } from "../data/auth/authClient";
 import { useTopologyView } from "../data/topology/useTopologyView";
 import { useFleetKpis } from "../data/kpis/useFleetKpis";
 import { useSidebarCollapsed } from "../hooks/useSidebarCollapsed";
@@ -60,6 +62,9 @@ export function AppLayout({
   const t = useTheme();
   const { layout } = useBreakpoint();
   const identity = useDeploymentIdentity();
+  // Reason: builds without login (mock/demo) run as the operator session.
+  const role = useContext(AuthContext)?.role ?? "operator";
+  const userInitials = ROLE_LABEL[role].charAt(0);
   const topology = useTopologyView();
 
   const activeSpec = routeByName(activeName);
@@ -145,9 +150,9 @@ export function AppLayout({
           deploymentHost={identity.host}
           badges={{ "/modules": alarmCount }}
           user={{
-            initials: "RM",
-            name: "R. Marquez",
-            role: "Lead operator",
+            initials: userInitials,
+            name: ROLE_LABEL[role],
+            role: role === "operator" ? "Can send commands" : "View only",
           }}
           onNavigate={(path): void => onNavigate(nameBySidebar(path))}
         />
@@ -156,7 +161,7 @@ export function AppLayout({
             deploymentName={identity.name}
             mode={emsMode}
             alarmCount={alarmCount}
-            userInitials="RM"
+            userInitials={userInitials}
             breadcrumbs={breadcrumbs}
             onUserPress={(): void => onNavigate("Settings")}
           />
@@ -174,7 +179,7 @@ export function AppLayout({
         subtitle={breadcrumbs[breadcrumbs.length - 1]}
         mode={emsMode}
         alarmCount={alarmCount}
-        userInitials="RM"
+        userInitials={userInitials}
         onUserPress={(): void => onNavigate("Settings")}
       />
       <StatusStrip items={statusItems} />
