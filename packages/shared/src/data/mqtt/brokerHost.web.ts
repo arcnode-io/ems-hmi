@@ -2,7 +2,8 @@
 
 import type { BrokerFallback } from "./brokerUrl";
 
-export function brokerFallbackHost(identityHost: string): BrokerFallback {
+// Reason: the page origin is authoritative on web; deviceApiUri is native's signal.
+export function brokerFallbackHost(identityHost: string, _deviceApiUri: string): BrokerFallback {
   const loc = (globalThis as { location?: { host?: string; protocol?: string } })
     .location;
   return {

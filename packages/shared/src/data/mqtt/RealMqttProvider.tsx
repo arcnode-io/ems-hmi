@@ -53,7 +53,7 @@ export function RealMqttProvider({ children }: { children: React.ReactNode }): R
       try {
         const creds = await fetchBrokerCreds(deviceApiUri, token);
         if (cancelled) return;
-        const url = resolveBrokerUrl(creds.url, brokerFallbackHost(host));
+        const url = resolveBrokerUrl(creds.url, brokerFallbackHost(host, deviceApiUri));
         const raw = mqtt.connect(url, {
           username: creds.username,
           password: creds.password,

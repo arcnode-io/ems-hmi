@@ -47,6 +47,8 @@ export interface AppRootProps {
   cfg: AppRootCfg;
   /** Optional error boundary slot (e.g. web ships one with retry UI). */
   errorBoundary?: React.ComponentType<{ children: React.ReactNode }>;
+  /** Native customer build: sign-in card offers "Change site" (see SiteRoot). */
+  onChangeSite?: () => void;
 }
 
 function topologyUrl(cfg: AppRootCfg): string {
@@ -91,22 +93,26 @@ function AppShell({ cfg }: { cfg: AppRootCfg }): React.ReactElement {
 }
 
 /** Login gate — render the shell only once a session token exists. */
-function AuthGate({ cfg }: { cfg: AppRootCfg }): React.ReactElement | null {
+function AuthGate({ cfg, onChangeSite }: { cfg: AppRootCfg; onChangeSite?: () => void }): React.ReactElement | null {
   const { status } = useAuth();
   if (status === "loading") return null; // brief; avoids a gate flash on reload
-  if (status !== "authenticated") return <LoginScreen prefill={cfg.loginPrefill} />;
+  if (status !== "authenticated") {
+    const site = onChangeSite === undefined ? undefined : { address: cfg.deploymentHost, onChange: onChangeSite };
+    return <LoginScreen prefill={cfg.loginPrefill} site={site} />;
+  }
   return <AppShell cfg={cfg} />;
 }
 
 export function AppRoot({
   cfg,
   errorBoundary: Boundary,
+  onChangeSite,
 }: AppRootProps): React.ReactElement {
   // Real-backend modes require a human login; mock modes enter straight in.
   const requiresAuth = usesRealBackend(cfg.mode);
   const inner = requiresAuth ? (
     <AuthProvider>
-      <AuthGate cfg={cfg} />
+      <AuthGate cfg={cfg} onChangeSite={onChangeSite} />
     </AuthProvider>
   ) : (
     <AppShell cfg={cfg} />

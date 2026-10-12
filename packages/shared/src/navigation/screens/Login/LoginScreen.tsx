@@ -15,7 +15,7 @@ import { SPACE } from "../../../theme/tokens/primitives";
 import { useBreakpoint } from "../../../hooks/useBreakpoint";
 import { useDeploymentIdentity } from "../../../data/deployment/useDeploymentIdentity";
 import { HeartbeatBackdrop } from "./HeartbeatBackdrop";
-import { LoginCard, type LoginPrefill } from "./LoginCard";
+import { LoginCard, type LoginPrefill, type LoginSite } from "./LoginCard";
 
 /** Vertical legibility scrim behind the phone card (SVG → cross-platform). */
 function Scrim({ theme }: { theme: Theme }): React.ReactElement {
@@ -46,25 +46,31 @@ function Backdrop({ theme }: { theme: Theme }): React.ReactElement {
   );
 }
 
-export function LoginScreen({ prefill }: { prefill?: LoginPrefill }): React.ReactElement {
+interface GateLayoutProps {
+  comp: string;
+  /** Deployment label for the phone footer; empty before a site is known. */
+  label: string;
+  /** Renders the card; `fluid` on phone. */
+  card: (fluid: boolean) => React.ReactElement;
+}
+
+/** Backdrop + card placement shared by the gate screens (site, sign-in). */
+export function GateLayout({ comp, label, card }: GateLayoutProps): React.ReactElement {
   const t = useTheme();
   const isDesktop = useBreakpoint().layout === "desktop";
-  const label = useDeploymentIdentity().name;
 
   if (isDesktop) {
     return (
-      <View dataSet={{ comp: "LoginScreen" }} style={{ flex: 1, backgroundColor: t.bg }}>
+      <View dataSet={{ comp }} style={{ flex: 1, backgroundColor: t.bg }}>
         <Backdrop theme={t} />
-        <View style={{ flex: 1, flexDirection: "row", alignItems: "center", paddingLeft: 64 }}>
-          <LoginCard label={label} prefill={prefill} />
-        </View>
+        <View style={{ flex: 1, flexDirection: "row", alignItems: "center", paddingLeft: 64 }}>{card(false)}</View>
       </View>
     );
   }
 
   return (
     <View
-      dataSet={{ comp: "LoginScreen" }}
+      dataSet={{ comp }}
       style={{ flex: 1, backgroundColor: t.bg, alignItems: "center", justifyContent: "center", paddingHorizontal: 20 }}
     >
       <Backdrop theme={t} />
@@ -84,17 +90,31 @@ export function LoginScreen({ prefill }: { prefill?: LoginPrefill }): React.Reac
       >
         ARCNODE EMS
       </Text>
-      <View style={{ width: "100%", alignItems: "center" }}>
-        <LoginCard label={label} fluid prefill={prefill} />
-      </View>
+      <View style={{ width: "100%", alignItems: "center" }}>{card(true)}</View>
       <Text
         style={[
           resolveTypeStyle(t, "label"),
           { fontSize: 8.5, letterSpacing: 0.18, color: t.textSoft, textTransform: "uppercase", marginTop: SPACE[5] },
         ]}
       >
-        v0.7 · {label}
+        {label === "" ? "v0.7" : `v0.7 · ${label}`}
       </Text>
     </View>
+  );
+}
+
+interface LoginScreenProps {
+  prefill?: LoginPrefill;
+  site?: LoginSite;
+}
+
+export function LoginScreen({ prefill, site }: LoginScreenProps): React.ReactElement {
+  const label = useDeploymentIdentity().name;
+  return (
+    <GateLayout
+      comp="LoginScreen"
+      label={label}
+      card={(fluid) => <LoginCard label={label} fluid={fluid} prefill={prefill} site={site} />}
+    />
   );
 }

@@ -33,7 +33,9 @@ const Config = z.object({
   chatApiUri: z.string(),
   derControlUri: z.string(),
   /** Public demo login prefilled on the sign-in form. device-demo only. */
-  loginPrefill: z.object({ username: z.string(), password: z.string() }).optional(),
+  loginPrefill: z
+    .object({ username: z.string(), password: z.string() })
+    .optional(),
 });
 
 export type ConfigType = z.infer<typeof Config> & { mode: DeploymentMode };
@@ -49,11 +51,12 @@ export const ConfigMap = z.object({
  * Reads `ENV` from react-native-dotenv; defaults to `local`.
  * Attaches the env name as `mode` so downstream code can branch on
  * deployment identity without reading the env var again.
- * @returns Active environment's config object with `mode` attached
+ * @returns Active environment's config object with `mode` attached, or null
+ *   for `deployed` — the customer build bakes no site; SiteRoot asks for it
  * @throws Error if cfg.yml cannot be parsed or schema-validated, or ENV
  *   names no profile
  */
-export function loadConfig(): ConfigType {
+export function loadConfig(): ConfigType | null {
   const configYaml: unknown = parse(configYamlRaw as string);
   const config = ConfigMap.parse(configYaml);
   const environment = parseDeploymentMode(ENV as string | undefined);
@@ -61,11 +64,7 @@ export function loadConfig(): ConfigType {
     .with("local", () => config.local)
     .with("ai-demo", () => config["ai-demo"])
     .with("device-demo", () => config["device-demo"])
-    .with("deployed", () => {
-      // Reason: `deployed` reads its site from a runtime-mounted file a native
-      // app never receives — mobile must bake a profile.
-      throw new Error("'deployed' is web-only; build mobile with a baked profile");
-    })
+    .with("deployed", () => null)
     .exhaustive();
-  return { ...block, mode: environment };
+  return block === null ? null : { ...block, mode: environment };
 }

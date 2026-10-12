@@ -7,7 +7,8 @@ import { z } from "zod";
 import { parse } from "yaml";
 import { parseDeploymentMode } from "@ems-hmi/shared/data/deployment/deploymentMode";
 import configYamlRaw from "../cfg.yml?raw";
-import { Config, resolveConfig, type ConfigType } from "./resolveConfig";
+import { Config } from "@ems-hmi/shared/data/deployment/siteConfig";
+import { resolveConfig, type ConfigType } from "./resolveConfig";
 
 const BakedProfiles = z.object({ local: Config, "ai-demo": Config });
 

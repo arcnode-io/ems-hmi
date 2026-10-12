@@ -3,9 +3,11 @@
  *
  *   local        dev server, in-browser mock + fixture (baked profile)
  *   ai-demo      public S3 demo: mock devices + hosted analyst (baked profile)
- *   deployed     web container image: NO baked site — real broker + device-api,
- *                config from the runtime /cfg.customer.yml mounted by whoever
- *                deploys it (platform for cloud/ISO, the device-demo launcher)
+ *   deployed     NO baked site — real broker + device-api, config from the
+ *                site's /cfg.customer.yml written by whoever deploys it
+ *                (platform for cloud/ISO, the device-demo launcher). Web reads
+ *                it same-origin; the customer APK downloads it from the site
+ *                address the operator enters (SiteRoot)
  *   device-demo  mobile only: baked real-backend profile (a native app can't
  *                receive a mounted config file); Settings repoints its host
  */

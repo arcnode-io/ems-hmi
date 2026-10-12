@@ -10,54 +10,15 @@
  */
 
 import { match } from "ts-pattern";
-import { z } from "zod";
 import type { DeploymentMode } from "@ems-hmi/shared/data/deployment/deploymentMode";
+import {
+  Config,
+  resolveSiteOverlay,
+  type ConfigBlock,
+} from "@ems-hmi/shared/data/deployment/siteConfig";
 
-export const Config = z.object({
-  logLevel: z.enum(["ERROR", "WARN", "INFO", "DEBUG"]),
-  e2e: z.boolean(),
-  /** Human-readable deployment / site name. Shown in chrome (TopBar, Sidebar). */
-  deploymentName: z.string(),
-  /** Deployment hostname / URL fragment. Shown under the deployment name. */
-  deploymentHost: z.string(),
-  /** Site identifier — MUST match analyst-server's `SITE_ID` env var. Sent in `context.siteId`. */
-  siteId: z.string(),
-  /** MQTT broker URL — `ws://` / `wss://`; empty = same-origin ws(s)://<host>/mqtt. */
-  mqttUri: z.string(),
-  /** Base URL for ems-device-api (`/topology/view`, `/asyncapi`). */
-  deviceApiUri: z.string(),
-  /** Base URL for the analyst backend; empty = same-origin /analyst/. */
-  chatApiUri: z.string(),
-  /** Base URL for ems-der-control-api reads (`/events`); same-origin "/der-control" behind nginx. */
-  derControlUri: z.string(),
-  /** Demo login prefilled on the sign-in form. Only ever from the device-demo launcher's overlay. */
-  loginPrefill: z
-    .object({ username: z.string(), password: z.string() })
-    .optional(),
-});
-
-export type ConfigBlock = z.infer<typeof Config>;
 export type BakedProfiles = Record<"local" | "ai-demo", ConfigBlock>;
 export type ConfigType = ConfigBlock & { mode: DeploymentMode };
-
-const OVERLAY_PATH = "/cfg.customer.yml";
-
-/**
- * Overlay → config, with every missing/invalid key named (not a raw zod dump).
- * @param raw overlay merged over the deployment-agnostic defaults
- * @returns the validated config block
- * @throws Error naming each missing/invalid key
- */
-function parseOrExplain(raw: Record<string, unknown>): ConfigBlock {
-  const parsed = Config.safeParse(raw);
-  if (parsed.success) return parsed.data;
-  const keys = parsed.error.issues
-    .map((issue) => issue.path.join("."))
-    .join(", ");
-  throw new Error(
-    `${OVERLAY_PATH} is incomplete — missing or invalid: ${keys}`,
-  );
-}
 
 /**
  * Baked profile, with an optional dev overlay (e.g. a dev server pointed at a live stack).
@@ -93,24 +54,10 @@ export function resolveConfig(
   host: string,
 ): ConfigType {
   return match(build)
-    .with("deployed", () => {
-      if (overlay === null) {
-        throw new Error(
-          `no ${OVERLAY_PATH} — this HMI image has no baked site; mount the deployment's config`,
-        );
-      }
-      // Reason: only deployment-agnostic keys get defaults. Site + URIs must
-      // come from the deployer, or the HMI would render someone else's site.
-      return {
-        ...parseOrExplain({
-          logLevel: "INFO",
-          e2e: false,
-          deploymentHost: host,
-          ...overlay,
-        }),
-        mode: build,
-      };
-    })
+    .with("deployed", () => ({
+      ...resolveSiteOverlay(overlay, host),
+      mode: build,
+    }))
     .with("local", () => withDevOverlay(baked.local, overlay, build))
     .with("ai-demo", () => withDevOverlay(baked["ai-demo"], overlay, build))
     .with("device-demo", () => {

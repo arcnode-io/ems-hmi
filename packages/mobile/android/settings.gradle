@@ -1,6 +1,7 @@
-pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
+// Reason: npm workspaces hoist every dep to the repo root's node_modules.
+pluginManagement { includeBuild("../../../node_modules/@react-native/gradle-plugin") }
 plugins { id("com.facebook.react.settings") }
 extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
 rootProject.name = 'typescript-react-mobile'
 include ':app'
-includeBuild('../node_modules/@react-native/gradle-plugin')
+includeBuild('../../../node_modules/@react-native/gradle-plugin')
