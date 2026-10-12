@@ -41,6 +41,20 @@ build-web:
     - docker push public.ecr.aws/y1d2j6a8/ems-hmi
   dependencies: []
 
+publish-apk:
+  stage: publish
+  # The customer APK (ENV=deployed: operator enters the site address).
+  # platform-api's delivery email links this fixed key. Release signing reads
+  # ANDROID_RELEASE_* from the runner env (see packages/mobile/template-secrets.env);
+  # gradle fails rather than sign with the debug key.
+  script:
+    - npm ci --legacy-peer-deps
+    - cd packages/mobile/android && ENV=deployed ./gradlew assembleRelease --no-daemon && cd -
+    - aws s3 cp packages/mobile/android/app/build/outputs/apk/release/app-release.apk s3://arcnode-public/ems-hmi/latest.apk --content-type application/vnd.android.package-archive
+  dependencies: []
+  only:
+    - main
+
 deploy-s3:
   stage: publish
   image:
