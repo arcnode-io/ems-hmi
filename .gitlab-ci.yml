@@ -49,7 +49,9 @@ publish-apk:
   # gradle fails rather than sign with the debug key.
   script:
     - npm ci --legacy-peer-deps
-    - cd packages/mobile/android && ENV=deployed ./gradlew assembleRelease --no-daemon && cd -
+    # Reason: one command per line — a failing `a && b` list doesn't stop the
+    # job, so the upload ran after a failed build.
+    - (cd packages/mobile/android; ENV=deployed ./gradlew assembleRelease --no-daemon)
     - aws s3 cp packages/mobile/android/app/build/outputs/apk/release/app-release.apk s3://arcnode-public/ems-hmi/latest.apk --content-type application/vnd.android.package-archive
   dependencies: []
   only:
