@@ -48,6 +48,12 @@ const METRIC_SPEC: Record<string, MetricSpec[]> = {
     { label: "Power", measurementName: "active_power", unit: "kW", format: (v) => `${(v / 1000).toFixed(1)}` },
     { label: "Headroom", measurementName: "import_headroom", unit: "MW", format: (v) => `${(v / 1_000_000).toFixed(1)}` },
   ],
+  // dc_ext battery pad (CATL + ARCNODE PCS): battery and PCS are passive, so
+  // POI headroom is all the module reports.
+  bess_module_dc: [
+    { label: "Import headroom", measurementName: "import_headroom", unit: "MW", format: (v) => `${(v / 1_000_000).toFixed(1)}` },
+    { label: "Export headroom", measurementName: "export_headroom", unit: "MW", format: (v) => `${(v / 1_000_000).toFixed(1)}` },
+  ],
   compute_module: [
     { label: "Util", measurementName: "gpu_utilization", unit: "%", colorHint: "compute" },
     { label: "Draw", measurementName: "active_power", unit: "kW", format: (v) => `${(v / 1000).toFixed(1)}` },
@@ -60,7 +66,7 @@ const METRIC_SPEC: Record<string, MetricSpec[]> = {
 
 function templateToModuleType(templateName: string): ModuleType | null {
   return match(templateName)
-    .with("bess_module", () => "bess" as const)
+    .with("bess_module", "bess_module_dc", () => "bess" as const)
     .with("compute_module", () => "compute" as const)
     .with("grid_module", () => "grid" as const)
     .otherwise(() => null);
