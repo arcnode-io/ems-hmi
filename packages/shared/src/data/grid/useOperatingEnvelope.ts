@@ -14,6 +14,7 @@
  * its control law clamps against, so the HMI shows exactly that.
  */
 
+import { inFamily } from "../topology/templateFamily";
 import { useMemo } from "react";
 import { match } from "ts-pattern";
 import { useTopologyView } from "../topology/useTopologyView";
@@ -109,9 +110,8 @@ export function useOperatingEnvelope(): OperatingEnvelope {
     if (!view) return [];
     const list: string[] = [];
     for (const [deviceId, device] of Object.entries(view.devices)) {
-      const names = device.template === "operating_envelope" || device.template === "bess_module"
-        ? SOURCES[device.template]
-        : [];
+      const family = (Object.keys(SOURCES) as Array<keyof typeof SOURCES>).find((f) => inFamily(device.template, f));
+      const names = family ? SOURCES[family] : [];
       const tpl = view.templates_used[device.template];
       for (const name of names) {
         const m = tpl?.measurements[name];

@@ -39,7 +39,8 @@ const MEASUREMENTS = [
 export function useBessModuleDetail(deviceId: string): BessModuleDetail {
   const { view } = useTopologyView();
   const { siteId } = useDeploymentIdentity();
-  const tpl = view?.templates_used["bess_module"];
+  const template = view?.devices[deviceId]?.template;
+  const tpl = template ? view?.templates_used[template] : undefined;
 
   const topics = useMemo(() => {
     if (!tpl) return [];

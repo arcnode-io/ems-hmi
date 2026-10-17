@@ -10,6 +10,7 @@
  */
 
 import type { BusType, TopologyViewType } from "../../../../data/topology/topology.schema";
+import { inFamily } from "../../../../data/topology/templateFamily";
 import {
   LV_BOARD_TEMPLATE,
   POI_TEMPLATE,
@@ -57,7 +58,7 @@ function devicesOn(view: TopologyViewType, bus: BusType): SldDevice[] {
 /** Same-container device of `template` (e.g. switchgear → its transformer). */
 function sibling(view: TopologyViewType, of: SldDevice, template: string): SldDevice | null {
   if (!of.parent) return null;
-  return Object.values(view.devices).find((d) => d.parent === of.parent && d.template === template) ?? null;
+  return Object.values(view.devices).find((d) => d.parent === of.parent && inFamily(d.template, template)) ?? null;
 }
 
 function feederOf(view: TopologyViewType, switchgear: SldDevice): Feeder {
@@ -81,11 +82,11 @@ function storageOf(view: TopologyViewType, module: SldDevice): Storage {
 }
 
 export function planSld(view: TopologyViewType): SldPlan {
-  const poi = Object.values(view.devices).find((d) => d.template === POI_TEMPLATE) ?? null;
+  const poi = Object.values(view.devices).find((d) => inFamily(d.template, POI_TEMPLATE)) ?? null;
   const siteBus = view.buses.find((b) => b.bus_id.startsWith(SITE_BUS_PREFIX)) ?? null;
   const branches = siteBus
     ? devicesOn(view, siteBus).map((d) =>
-        d.template === SWITCHGEAR_TEMPLATE ? feederOf(view, d) : storageOf(view, d),
+        inFamily(d.template, SWITCHGEAR_TEMPLATE) ? feederOf(view, d) : storageOf(view, d),
       )
     : [];
   return { poi, siteBus, branches };

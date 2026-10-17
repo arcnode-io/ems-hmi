@@ -1,548 +1,581 @@
 {
-  "deployment_uuid": "00000000-0000-0000-0000-000000000001",
+  "deployment_uuid": "dd68d210-7346-4566-b8e3-f96ac79db5fd",
   "ems_mode": "sim",
-  "sizing_ref": "demo-brookside-dc-1",
+  "sizing_ref": null,
   "sizing_params": {
-    "P_compute_total_kW": 1200,
-    "E_BESS_total_kWh": 8000,
-    "T_coolant_setpoint_C": 18,
-    "ride_through_hours": 4.0,
-    "bess_reserve_floor_mwh": 2.0
+    "P_compute_total_kW": 137.2,
+    "E_BESS_total_kWh": 10000,
+    "T_coolant_setpoint_C": 30,
+    "ride_through_hours": 0,
+    "bess_reserve_floor_mwh": 0,
+    "bess_readiness_mwh": 0.2888421052631579,
+    "bess_recharge_mw": 0.015202216066481995,
+    "compute_shed_enabled": false
   },
   "devices": {
-    "bess_module_01": {
-      "device_id": "bess_module_01",
-      "template": "bess_module",
+    "compute_module_h100_1": {
+      "device_id": "compute_module_h100_1",
+      "template": "compute_module_h100",
       "parent": null,
-      "display_name": "BESS-01",
-      "extra_measurements": null
+      "display_name": "C1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
     },
-    "bess_module_02": {
-      "device_id": "bess_module_02",
-      "template": "bess_module",
+    "rack_1": {
+      "device_id": "rack_1",
+      "template": "rack",
+      "parent": "compute_module_h100_1",
+      "display_name": "C1-RACK-1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "panelboard_1": {
+      "device_id": "panelboard_1",
+      "template": "panelboard",
+      "parent": "compute_module_h100_1",
+      "display_name": "C1-PNL-1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "gpu_node_h100_1": {
+      "device_id": "gpu_node_h100_1",
+      "template": "gpu_node_h100",
+      "parent": "compute_module_h100_1",
+      "display_name": "C1-NODE-1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "gpu_node_h100_2": {
+      "device_id": "gpu_node_h100_2",
+      "template": "gpu_node_h100",
+      "parent": "compute_module_h100_1",
+      "display_name": "C1-NODE-2",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "gpu_node_h100_3": {
+      "device_id": "gpu_node_h100_3",
+      "template": "gpu_node_h100",
+      "parent": "compute_module_h100_1",
+      "display_name": "C1-NODE-3",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "gpu_node_h100_4": {
+      "device_id": "gpu_node_h100_4",
+      "template": "gpu_node_h100",
+      "parent": "compute_module_h100_1",
+      "display_name": "C1-NODE-4",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "gpu_node_h100_5": {
+      "device_id": "gpu_node_h100_5",
+      "template": "gpu_node_h100",
+      "parent": "compute_module_h100_1",
+      "display_name": "C1-NODE-5",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "gpu_node_h100_6": {
+      "device_id": "gpu_node_h100_6",
+      "template": "gpu_node_h100",
+      "parent": "compute_module_h100_1",
+      "display_name": "C1-NODE-6",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "gpu_node_h100_7": {
+      "device_id": "gpu_node_h100_7",
+      "template": "gpu_node_h100",
+      "parent": "compute_module_h100_1",
+      "display_name": "C1-NODE-7",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "cdu_1": {
+      "device_id": "cdu_1",
+      "template": "cdu",
+      "parent": "compute_module_h100_1",
+      "display_name": "C1-CDU-1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "network_switch_1": {
+      "device_id": "network_switch_1",
+      "template": "network_switch",
+      "parent": "compute_module_h100_1",
+      "display_name": "C1-SW-DATA-1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "mgmt_switch_1": {
+      "device_id": "mgmt_switch_1",
+      "template": "mgmt_switch",
+      "parent": "compute_module_h100_1",
+      "display_name": "C1-SW-MGMT-1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "pdu_1": {
+      "device_id": "pdu_1",
+      "template": "pdu",
+      "parent": "compute_module_h100_1",
+      "display_name": "C1-PDU-A1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "pdu_2": {
+      "device_id": "pdu_2",
+      "template": "pdu",
+      "parent": "compute_module_h100_1",
+      "display_name": "C1-PDU-A2",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "pdu_3": {
+      "device_id": "pdu_3",
+      "template": "pdu",
+      "parent": "compute_module_h100_1",
+      "display_name": "C1-PDU-A3",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "pdu_4": {
+      "device_id": "pdu_4",
+      "template": "pdu",
+      "parent": "compute_module_h100_1",
+      "display_name": "C1-PDU-B1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "pdu_5": {
+      "device_id": "pdu_5",
+      "template": "pdu",
+      "parent": "compute_module_h100_1",
+      "display_name": "C1-PDU-B2",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "pdu_6": {
+      "device_id": "pdu_6",
+      "template": "pdu",
+      "parent": "compute_module_h100_1",
+      "display_name": "C1-PDU-B3",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "dc_external_1": {
+      "device_id": "dc_external_1",
+      "template": "dc_external",
+      "parent": "compute_module_h100_1",
+      "display_name": "C1-DC-1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "compute_module_h100_2": {
+      "device_id": "compute_module_h100_2",
+      "template": "compute_module_h100",
       "parent": null,
-      "display_name": "BESS-02",
-      "extra_measurements": null
+      "display_name": "C2",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
     },
-    "compute_module_01": {
-      "device_id": "compute_module_01",
-      "template": "compute_module",
-      "parent": null,
-      "display_name": "ARC-COMPUTE-01",
-      "extra_measurements": null
+    "rack_2": {
+      "device_id": "rack_2",
+      "template": "rack",
+      "parent": "compute_module_h100_2",
+      "display_name": "C2-RACK-1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
     },
-    "grid_module_01": {
-      "device_id": "grid_module_01",
+    "panelboard_2": {
+      "device_id": "panelboard_2",
+      "template": "panelboard",
+      "parent": "compute_module_h100_2",
+      "display_name": "C2-PNL-1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "gpu_node_h100_8": {
+      "device_id": "gpu_node_h100_8",
+      "template": "gpu_node_h100",
+      "parent": "compute_module_h100_2",
+      "display_name": "C2-NODE-1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "gpu_node_h100_9": {
+      "device_id": "gpu_node_h100_9",
+      "template": "gpu_node_h100",
+      "parent": "compute_module_h100_2",
+      "display_name": "C2-NODE-2",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "gpu_node_h100_10": {
+      "device_id": "gpu_node_h100_10",
+      "template": "gpu_node_h100",
+      "parent": "compute_module_h100_2",
+      "display_name": "C2-NODE-3",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "gpu_node_h100_11": {
+      "device_id": "gpu_node_h100_11",
+      "template": "gpu_node_h100",
+      "parent": "compute_module_h100_2",
+      "display_name": "C2-NODE-4",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "gpu_node_h100_12": {
+      "device_id": "gpu_node_h100_12",
+      "template": "gpu_node_h100",
+      "parent": "compute_module_h100_2",
+      "display_name": "C2-NODE-5",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "gpu_node_h100_13": {
+      "device_id": "gpu_node_h100_13",
+      "template": "gpu_node_h100",
+      "parent": "compute_module_h100_2",
+      "display_name": "C2-NODE-6",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "gpu_node_h100_14": {
+      "device_id": "gpu_node_h100_14",
+      "template": "gpu_node_h100",
+      "parent": "compute_module_h100_2",
+      "display_name": "C2-NODE-7",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "cdu_2": {
+      "device_id": "cdu_2",
+      "template": "cdu",
+      "parent": "compute_module_h100_2",
+      "display_name": "C2-CDU-1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "network_switch_2": {
+      "device_id": "network_switch_2",
+      "template": "network_switch",
+      "parent": "compute_module_h100_2",
+      "display_name": "C2-SW-DATA-1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "mgmt_switch_2": {
+      "device_id": "mgmt_switch_2",
+      "template": "mgmt_switch",
+      "parent": "compute_module_h100_2",
+      "display_name": "C2-SW-MGMT-1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "pdu_7": {
+      "device_id": "pdu_7",
+      "template": "pdu",
+      "parent": "compute_module_h100_2",
+      "display_name": "C2-PDU-A1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "pdu_8": {
+      "device_id": "pdu_8",
+      "template": "pdu",
+      "parent": "compute_module_h100_2",
+      "display_name": "C2-PDU-A2",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "pdu_9": {
+      "device_id": "pdu_9",
+      "template": "pdu",
+      "parent": "compute_module_h100_2",
+      "display_name": "C2-PDU-A3",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "pdu_10": {
+      "device_id": "pdu_10",
+      "template": "pdu",
+      "parent": "compute_module_h100_2",
+      "display_name": "C2-PDU-B1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "pdu_11": {
+      "device_id": "pdu_11",
+      "template": "pdu",
+      "parent": "compute_module_h100_2",
+      "display_name": "C2-PDU-B2",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "pdu_12": {
+      "device_id": "pdu_12",
+      "template": "pdu",
+      "parent": "compute_module_h100_2",
+      "display_name": "C2-PDU-B3",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "dc_external_2": {
+      "device_id": "dc_external_2",
+      "template": "dc_external",
+      "parent": "compute_module_h100_2",
+      "display_name": "C2-DC-1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "grid_module_1": {
+      "device_id": "grid_module_1",
       "template": "grid_module",
       "parent": null,
-      "display_name": "Grid Module",
-      "extra_measurements": null
+      "display_name": "G1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "switchgear_1": {
+      "device_id": "switchgear_1",
+      "template": "switchgear",
+      "parent": "grid_module_1",
+      "display_name": "G1-SWG-1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "protective_relay_1": {
+      "device_id": "protective_relay_1",
+      "template": "protective_relay",
+      "parent": "grid_module_1",
+      "display_name": "G1-RLY-1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "transformer_1": {
+      "device_id": "transformer_1",
+      "template": "transformer",
+      "parent": "grid_module_1",
+      "display_name": "G1-T1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "lv_switchboard_1": {
+      "device_id": "lv_switchboard_1",
+      "template": "lv_switchboard",
+      "parent": "grid_module_1",
+      "display_name": "G1-SWBD-1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "grid_mgmt_switch_1": {
+      "device_id": "grid_mgmt_switch_1",
+      "template": "grid_mgmt_switch",
+      "parent": "grid_module_1",
+      "display_name": "G1-SW-MGMT-1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "poi_meter_1": {
+      "device_id": "poi_meter_1",
+      "template": "poi_meter",
+      "parent": "grid_module_1",
+      "display_name": "G1-MTR-POI",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "bess_module_1": {
+      "device_id": "bess_module_1",
+      "template": "bess_module",
+      "parent": null,
+      "display_name": "BESS",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": {
+        "active_power": {
+          "min": -5781000,
+          "max": 5781000,
+          "nominal": 0
+        }
+      }
+    },
+    "bess_rack_1": {
+      "device_id": "bess_rack_1",
+      "template": "bess_rack",
+      "parent": "bess_module_1",
+      "display_name": "BESS-1-MP-1",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "bess_rack_2": {
+      "device_id": "bess_rack_2",
+      "template": "bess_rack",
+      "parent": "bess_module_1",
+      "display_name": "BESS-1-MP-2",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "bess_rack_3": {
+      "device_id": "bess_rack_3",
+      "template": "bess_rack",
+      "parent": "bess_module_1",
+      "display_name": "BESS-1-MP-3",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
+    },
+    "der_dispatch": {
+      "device_id": "der_dispatch",
+      "template": "der_dispatch",
+      "parent": null,
+      "display_name": "DER-DISPATCH",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
     },
     "operating_envelope": {
       "device_id": "operating_envelope",
       "template": "operating_envelope",
       "parent": null,
-      "display_name": "Operating Envelope",
-      "extra_measurements": null
-    },
-    "poi_meter_01": {
-      "device_id": "poi_meter_01",
-      "template": "poi_meter",
-      "parent": "grid_module_01",
-      "display_name": "GRD-MTR-001",
-      "extra_measurements": null
-    },
-    "cdu_01": {
-      "device_id": "cdu_01",
-      "template": "cdu",
-      "parent": "compute_module_01",
-      "display_name": "CDU-01",
-      "extra_measurements": null
-    },
-    "der_dispatch_01": {
-      "device_id": "der_dispatch_01",
-      "template": "der_dispatch",
-      "parent": null,
-      "display_name": "DER Dispatch Feed",
-      "extra_measurements": null
-    },
-    "switchgear_01": {
-      "device_id": "switchgear_01",
-      "template": "switchgear",
-      "parent": "grid_module_01",
-      "display_name": "Switchgear",
-      "extra_measurements": null
-    },
-    "protective_relay_01": {
-      "device_id": "protective_relay_01",
-      "template": "protective_relay",
-      "parent": "grid_module_01",
-      "display_name": "Protective Relay",
-      "extra_measurements": null
-    },
-    "pv_inverter_01": {
-      "device_id": "pv_inverter_01",
-      "template": "pv_inverter",
-      "parent": "grid_module_01",
-      "display_name": "PV Inverter 1",
-      "extra_measurements": null
-    },
-    "pv_inverter_02": {
-      "device_id": "pv_inverter_02",
-      "template": "pv_inverter",
-      "parent": "grid_module_01",
-      "display_name": "PV Inverter 2",
-      "extra_measurements": null
-    },
-    "bess_rack_01a": {
-      "device_id": "bess_rack_01a",
-      "template": "bess_rack",
-      "parent": "bess_module_01",
-      "display_name": "BESS-01 Rack A",
-      "extra_measurements": null
-    },
-    "bess_rack_01b": {
-      "device_id": "bess_rack_01b",
-      "template": "bess_rack",
-      "parent": "bess_module_01",
-      "display_name": "BESS-01 Rack B",
-      "extra_measurements": null
-    },
-    "bess_rack_02a": {
-      "device_id": "bess_rack_02a",
-      "template": "bess_rack",
-      "parent": "bess_module_02",
-      "display_name": "BESS-02 Rack A",
-      "extra_measurements": null
-    },
-    "bess_rack_02b": {
-      "device_id": "bess_rack_02b",
-      "template": "bess_rack",
-      "parent": "bess_module_02",
-      "display_name": "BESS-02 Rack B",
-      "extra_measurements": null
-    },
-    "gpu_node_01": {
-      "device_id": "gpu_node_01",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-01",
-      "extra_measurements": null
-    },
-    "gpu_node_02": {
-      "device_id": "gpu_node_02",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-02",
-      "extra_measurements": null
-    },
-    "gpu_node_03": {
-      "device_id": "gpu_node_03",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-03",
-      "extra_measurements": null
-    },
-    "gpu_node_04": {
-      "device_id": "gpu_node_04",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-04",
-      "extra_measurements": null
-    },
-    "gpu_node_05": {
-      "device_id": "gpu_node_05",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-05",
-      "extra_measurements": null
-    },
-    "gpu_node_06": {
-      "device_id": "gpu_node_06",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-06",
-      "extra_measurements": null
-    },
-    "gpu_node_07": {
-      "device_id": "gpu_node_07",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-07",
-      "extra_measurements": null
-    },
-    "gpu_node_08": {
-      "device_id": "gpu_node_08",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-08",
-      "extra_measurements": null
-    },
-    "gpu_node_09": {
-      "device_id": "gpu_node_09",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-09",
-      "extra_measurements": null
-    },
-    "gpu_node_10": {
-      "device_id": "gpu_node_10",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-10",
-      "extra_measurements": null
-    },
-    "gpu_node_11": {
-      "device_id": "gpu_node_11",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-11",
-      "extra_measurements": null
-    },
-    "gpu_node_12": {
-      "device_id": "gpu_node_12",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-12",
-      "extra_measurements": null
-    },
-    "gpu_node_13": {
-      "device_id": "gpu_node_13",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-13",
-      "extra_measurements": null
-    },
-    "gpu_node_14": {
-      "device_id": "gpu_node_14",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-14",
-      "extra_measurements": null
-    },
-    "gpu_node_15": {
-      "device_id": "gpu_node_15",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-15",
-      "extra_measurements": null
-    },
-    "gpu_node_16": {
-      "device_id": "gpu_node_16",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-16",
-      "extra_measurements": null
-    },
-    "gpu_node_17": {
-      "device_id": "gpu_node_17",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-17",
-      "extra_measurements": null
-    },
-    "gpu_node_18": {
-      "device_id": "gpu_node_18",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-18",
-      "extra_measurements": null
-    },
-    "gpu_node_19": {
-      "device_id": "gpu_node_19",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-19",
-      "extra_measurements": null
-    },
-    "gpu_node_20": {
-      "device_id": "gpu_node_20",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-20",
-      "extra_measurements": null
-    },
-    "gpu_node_21": {
-      "device_id": "gpu_node_21",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-21",
-      "extra_measurements": null
-    },
-    "gpu_node_22": {
-      "device_id": "gpu_node_22",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-22",
-      "extra_measurements": null
-    },
-    "gpu_node_23": {
-      "device_id": "gpu_node_23",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-23",
-      "extra_measurements": null
-    },
-    "gpu_node_24": {
-      "device_id": "gpu_node_24",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-24",
-      "extra_measurements": null
-    },
-    "gpu_node_25": {
-      "device_id": "gpu_node_25",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-25",
-      "extra_measurements": null
-    },
-    "gpu_node_26": {
-      "device_id": "gpu_node_26",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-26",
-      "extra_measurements": null
-    },
-    "gpu_node_27": {
-      "device_id": "gpu_node_27",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-27",
-      "extra_measurements": null
-    },
-    "gpu_node_28": {
-      "device_id": "gpu_node_28",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-28",
-      "extra_measurements": null
-    },
-    "gpu_node_29": {
-      "device_id": "gpu_node_29",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-29",
-      "extra_measurements": null
-    },
-    "gpu_node_30": {
-      "device_id": "gpu_node_30",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-30",
-      "extra_measurements": null
-    },
-    "gpu_node_31": {
-      "device_id": "gpu_node_31",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-31",
-      "extra_measurements": null
-    },
-    "gpu_node_32": {
-      "device_id": "gpu_node_32",
-      "template": "gpu_node",
-      "parent": "compute_module_01",
-      "display_name": "GPU-32",
-      "extra_measurements": null
+      "display_name": "OPERATING-ENVELOPE",
+      "provisioned": true,
+      "extra_measurements": null,
+      "bounds": null
     }
   },
   "buses": [
     {
-      "bus_id": "dc_bus_1",
-      "type": "dc",
+      "bus_id": "ac_main_1",
+      "type": "ac",
       "members": [
         {
-          "device_id": "bess_module_01",
-          "port": null
+          "device_id": "switchgear_1",
+          "port": "line_out"
         },
         {
-          "device_id": "bess_module_02",
-          "port": null
+          "device_id": "poi_meter_1",
+          "port": "voltage_in"
+        },
+        {
+          "device_id": "protective_relay_1",
+          "port": "line_in"
         }
       ]
     },
     {
-      "bus_id": "ac_bus_1",
+      "bus_id": "site_mv_1",
       "type": "ac",
       "members": [
         {
-          "device_id": "grid_module_01",
-          "port": null
+          "device_id": "switchgear_1",
+          "port": "line_in"
         },
         {
-          "device_id": "compute_module_01",
-          "port": null
+          "device_id": "bess_module_1",
+          "port": "ac_out"
+        }
+      ]
+    },
+    {
+      "bus_id": "lv_main_1",
+      "type": "ac",
+      "members": [
+        {
+          "device_id": "lv_switchboard_1",
+          "port": "feeder_out"
+        },
+        {
+          "device_id": "compute_module_h100_1",
+          "port": "ac_in"
+        },
+        {
+          "device_id": "compute_module_h100_2",
+          "port": "ac_in"
         }
       ]
     }
   ],
   "templates_used": {
-    "bess_module": {
-      "template": "bess_module",
-      "kind": "module",
-      "equipment_id": "ARC-BESS-MOD-001",
-      "vendor": "ARCNODE",
-      "model": "Megapack module rollup",
-      "description": "BESS module aggregation \u2014 rollups + setpoint fanout",
-      "measurements": {
-        "state_of_charge": {
-          "unit": "percent",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Module State of Charge",
-          "iec_61850_ref": "ZBAT.BatChaSt",
-          "bounds": {
-            "min": 0,
-            "max": 100,
-            "nominal": 60
-          },
-          "thresholds": {
-            "warn_min": 15,
-            "warn_max": 90,
-            "alarm_min": 5,
-            "alarm_max": 95
-          },
-          "values": null
-        },
-        "active_power": {
-          "unit": "watts",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Module Active Power",
-          "iec_61850_ref": "MMXU.W",
-          "bounds": {
-            "min": -2000000,
-            "max": 2000000,
-            "nominal": 0
-          },
-          "thresholds": {
-            "warn_min": -1800000,
-            "warn_max": 1800000,
-            "alarm_min": -2000000,
-            "alarm_max": 2000000
-          },
-          "values": null
-        },
-        "import_headroom": {
-          "unit": "watts",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Module Import Headroom",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 0,
-            "max": 5000000,
-            "nominal": 3200000
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "export_headroom": {
-          "unit": "watts",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Module Export Headroom",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 0,
-            "max": 5000000,
-            "nominal": 0
-          },
-          "thresholds": null,
-          "values": null
-        }
-      },
-      "commands": {}
-    },
-    "compute_module": {
-      "template": "compute_module",
-      "kind": "module",
-      "equipment_id": "ARC-COMP-MOD-001",
-      "vendor": "ARCNODE",
-      "model": "Compute module rollup",
-      "description": "Compute cluster aggregation \u2014 pod rollups",
-      "measurements": {
-        "gpu_utilization": {
-          "unit": "percent",
-          "type": "float",
-          "poll_rate_hz": 2,
-          "display_name_default": "Cluster GPU Util",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 0,
-            "max": 100,
-            "nominal": 75
-          },
-          "thresholds": {
-            "warn_min": 10,
-            "warn_max": 95,
-            "alarm_min": 0,
-            "alarm_max": 100
-          },
-          "values": null
-        },
-        "active_power": {
-          "unit": "watts",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Cluster Draw",
-          "iec_61850_ref": "MMXU.W",
-          "bounds": {
-            "min": 0,
-            "max": 600000,
-            "nominal": 400000
-          },
-          "thresholds": {
-            "warn_min": 50000,
-            "warn_max": 550000,
-            "alarm_min": 0,
-            "alarm_max": 600000
-          },
-          "values": null
-        },
-        "total_power": {
-          "unit": "watts",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Module Total Power",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 340000,
-            "max": 350000,
-            "nominal": 345000
-          },
-          "thresholds": null,
-          "values": null
-        }
-      },
+    "grid_mgmt_switch": {
+      "template": "grid_mgmt_switch",
+      "kind": "leaf",
+      "equipment_id": "GRD-SWITCH-001",
+      "vendor": "TBD",
+      "model": "TBD (IEC 61850-3 managed switch, fiber uplinks)",
+      "description": "Grid container 1 GbE management switch; compute uplinks and the EMS gateway land here (ADR-019)",
+      "measurements": {},
       "commands": {}
     },
     "grid_module": {
       "template": "grid_module",
       "kind": "module",
-      "equipment_id": "ARC-GRID-MOD-001",
-      "vendor": "ARCNODE",
-      "model": "Grid container rollup",
-      "description": "Grid container aggregation \u2014 interconnect rollups",
+      "equipment_id": null,
+      "vendor": null,
+      "model": null,
+      "description": "Grid container aggregation — interconnect rollups",
       "measurements": {
         "net_active_power": {
           "unit": "watts",
           "type": "float",
           "poll_rate_hz": 1,
           "display_name_default": "Net Active Power",
-          "iec_61850_ref": "MMXU.W",
-          "bounds": {
-            "min": -8000000,
-            "max": 2000000,
-            "nominal": 200000
-          },
-          "thresholds": {
-            "warn_min": -7500000,
-            "warn_max": 1800000,
-            "alarm_min": -8000000,
-            "alarm_max": 2000000
-          },
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
           "values": null
         },
         "grid_frequency": {
@@ -550,7 +583,7 @@
           "type": "float",
           "poll_rate_hz": 10,
           "display_name_default": "Grid Frequency",
-          "iec_61850_ref": "MMXU.Hz",
+          "iec_61850_ref": null,
           "bounds": {
             "min": 55,
             "max": 65,
@@ -563,6 +596,716 @@
             "alarm_max": 61
           },
           "values": null
+        },
+        "interconnect_state": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 0.5,
+          "display_name_default": null,
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "OPEN",
+            "1": "CLOSED",
+            "2": "TRIPPED"
+          }
+        }
+      },
+      "commands": {}
+    },
+    "bess_module": {
+      "template": "bess_module",
+      "kind": "module",
+      "equipment_id": null,
+      "vendor": null,
+      "model": null,
+      "description": "BESS module aggregation — published rollups + setpoint fanout",
+      "measurements": {
+        "state_of_charge": {
+          "unit": "percent",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Module State of Charge",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "active_power": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Module Active Power",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "reactive_power": {
+          "unit": "vars",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Module Reactive Power",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "import_headroom": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "POI Import Headroom",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "export_headroom": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "POI Export Headroom",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        }
+      },
+      "commands": {
+        "set_active_power": {
+          "verb": "set",
+          "target": "active_power",
+          "unit": "watts",
+          "payload": "float",
+          "display_name_default": "Set Active Power"
+        },
+        "set_reactive_power": {
+          "verb": "set",
+          "target": "reactive_power",
+          "unit": "vars",
+          "payload": "float",
+          "display_name_default": null
+        }
+      }
+    },
+    "compute_module_h100": {
+      "template": "compute_module_h100",
+      "kind": "module",
+      "equipment_id": null,
+      "vendor": null,
+      "model": null,
+      "description": "H100 compute container aggregation — utilization rollups",
+      "measurements": {
+        "total_power": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Module Total Power",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 125800,
+            "nominal": 62600
+          },
+          "thresholds": {
+            "warn_min": 0,
+            "warn_max": 100600,
+            "alarm_min": 0,
+            "alarm_max": 125800
+          },
+          "values": null
+        },
+        "total_thermal_load": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Module Thermal Load",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "pue": {
+          "unit": "none",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "Power Usage Effectiveness",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        }
+      },
+      "commands": {
+        "set_power_limit": {
+          "verb": "set",
+          "target": "power_limit",
+          "unit": "percent",
+          "payload": "float",
+          "display_name_default": "Set GPU Power Limit"
+        }
+      }
+    },
+    "lv_switchboard": {
+      "template": "lv_switchboard",
+      "kind": "leaf",
+      "equipment_id": "GRD-LVS-001",
+      "vendor": "TBD",
+      "model": "TBD (UL 891 switchboard, engineered to order)",
+      "description": "415Y/240 V LV switchboard, 1600 A 100%-rated main, one feeder per compute container (ADR-017)",
+      "measurements": {},
+      "commands": {}
+    },
+    "dc_external": {
+      "template": "dc_external",
+      "kind": "leaf",
+      "equipment_id": "EXT-DC-001",
+      "vendor": "Güntner (Güntner U.S. LLC)",
+      "model": "GFD Series (V-shape, ECM fans, fluid cooler)",
+      "description": "Güntner GFD outdoor V-shape dry cooler with EC fan motors via Modbus TCP",
+      "measurements": {
+        "leaving_fluid_temp": {
+          "unit": "celsius",
+          "type": "float",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "Leaving Fluid Temperature",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "entering_fluid_temp": {
+          "unit": "celsius",
+          "type": "float",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "Entering Fluid Temperature",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "ambient_temp": {
+          "unit": "celsius",
+          "type": "float",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "Ambient Air Temperature",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "fan_1_speed": {
+          "unit": "percent",
+          "type": "float",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "Fan 1 Speed",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "fan_2_speed": {
+          "unit": "percent",
+          "type": "float",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "Fan 2 Speed",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "operating_mode": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "Operating Mode",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "AUTOMATIC_INTERNAL",
+            "1": "AUTOMATIC_EXTERNAL_ANALOG",
+            "2": "AUTOMATIC_EXTERNAL_BUS",
+            "3": "SLAVE_EXTERNAL_ANALOG",
+            "4": "SLAVE_EXTERNAL_BUS"
+          }
+        },
+        "fault_word": {
+          "unit": "none",
+          "type": "float",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "GMM Fault Word",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        }
+      },
+      "commands": {
+        "set_leaving_fluid_temp": {
+          "verb": "set",
+          "target": "leaving_fluid_temp",
+          "unit": "celsius",
+          "payload": "float",
+          "display_name_default": "Set Leaving Fluid Temperature Setpoint"
+        }
+      }
+    },
+    "transformer": {
+      "template": "transformer",
+      "kind": "leaf",
+      "equipment_id": "GRD-XFM-001",
+      "vendor": "Schneider Electric",
+      "model": "Trihal TRI100013684152509",
+      "description": "Schneider Trihal 1000 kVA cast-resin dry-type step-down transformer, 13.8 kV to 415Y/240 V",
+      "measurements": {},
+      "commands": {}
+    },
+    "poi_meter": {
+      "template": "poi_meter",
+      "kind": "leaf",
+      "equipment_id": "GRD-MTR-001",
+      "vendor": "Schneider Electric",
+      "model": "PowerLogic ION9000",
+      "description": "Class 0.1S revenue-grade POI meter (ANSI C12.20 / IEC 62053-22)",
+      "measurements": {
+        "kwh_delivered": {
+          "unit": "watt_hours",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "Energy Delivered",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "kwh_received": {
+          "unit": "watt_hours",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "Energy Received",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "active_power": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "POI Active Power (+ import, - export)",
+          "iec_61850_ref": "MMXU.W",
+          "bounds": {
+            "min": -10000000,
+            "max": 10000000,
+            "nominal": 0
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "power_factor": {
+          "unit": "none",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Power Factor",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "thd_voltage_a": {
+          "unit": "percent",
+          "type": "float",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "THD Voltage Phase A",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": {
+            "warn_min": 0,
+            "warn_max": 4,
+            "alarm_min": 0,
+            "alarm_max": 5
+          },
+          "values": null
+        },
+        "thd_voltage_b": {
+          "unit": "percent",
+          "type": "float",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "THD Voltage Phase B",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": {
+            "warn_min": 0,
+            "warn_max": 4,
+            "alarm_min": 0,
+            "alarm_max": 5
+          },
+          "values": null
+        },
+        "thd_voltage_c": {
+          "unit": "percent",
+          "type": "float",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "THD Voltage Phase C",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": {
+            "warn_min": 0,
+            "warn_max": 4,
+            "alarm_min": 0,
+            "alarm_max": 5
+          },
+          "values": null
+        }
+      },
+      "commands": {}
+    },
+    "switchgear": {
+      "template": "switchgear",
+      "kind": "leaf",
+      "equipment_id": "GRD-SWG-001",
+      "vendor": "ABB",
+      "model": "SafeGear 15kV / 1200A / 50kA (single section, indoor)",
+      "description": "ABB SafeGear 15kV arc-resistant metal-clad MV switchgear with integrated protective relay",
+      "measurements": {},
+      "commands": {}
+    },
+    "mgmt_switch": {
+      "template": "mgmt_switch",
+      "kind": "leaf",
+      "equipment_id": "CMP-SWITCH-003",
+      "vendor": "NVIDIA (Mellanox)",
+      "model": "SN2201 (920-9N110-00F1-0C0)",
+      "description": "NVIDIA SN2201 1 GbE management switch for the compute container (ADR-019)",
+      "measurements": {},
+      "commands": {}
+    },
+    "network_switch": {
+      "template": "network_switch",
+      "kind": "leaf",
+      "equipment_id": "CMP-SWITCH-001",
+      "vendor": "NVIDIA (Mellanox)",
+      "model": "Spectrum-X SN5600",
+      "description": "NVIDIA Spectrum-X SN5600 64-port 800GbE ToR switch via SNMP (Cumulus Linux)",
+      "measurements": {
+        "port_link_status": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "Uplink Port Status",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "1": "UP",
+            "2": "DOWN",
+            "3": "TESTING",
+            "4": "UNKNOWN",
+            "5": "DORMANT",
+            "6": "NOT_PRESENT",
+            "7": "LOWER_LAYER_DOWN"
+          }
+        },
+        "inlet_temp": {
+          "unit": "celsius",
+          "type": "float",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "Inlet Temperature",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": {
+            "warn_min": 18,
+            "warn_max": 27,
+            "alarm_min": 0,
+            "alarm_max": 40
+          },
+          "values": null
+        },
+        "asic_temp": {
+          "unit": "celsius",
+          "type": "float",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "ASIC Temperature",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        }
+      },
+      "commands": {}
+    },
+    "rack": {
+      "template": "rack",
+      "kind": "leaf",
+      "equipment_id": "CMP-RACK-001",
+      "vendor": "Schneider Electric (APC brand)",
+      "model": "NetShelter SX Advanced AR9658",
+      "description": "APC NetShelter SX Advanced 52U rack holding the nodes, CDU, switches and PDUs",
+      "measurements": {},
+      "commands": {}
+    },
+    "cdu": {
+      "template": "cdu",
+      "kind": "leaf",
+      "equipment_id": "CMP-CDU-001",
+      "vendor": "Motivair (a Schneider Electric company)",
+      "model": "MCDU-10 (19\" model)",
+      "description": "Motivair MCDU-10 210kW rack-mount liquid-to-liquid CDU with Redfish supervisory control",
+      "measurements": {
+        "supply_temp": {
+          "unit": "celsius",
+          "type": "float",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "Coolant Supply Temperature",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "return_temp": {
+          "unit": "celsius",
+          "type": "float",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "Coolant Return Temperature",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "pump_flow_rate": {
+          "unit": "liters_per_minute",
+          "type": "float",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "Pump Flow Rate",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "pump_speed": {
+          "unit": "percent",
+          "type": "float",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "Pump Speed",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "pump_state": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "Pump State",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "ENABLED",
+            "1": "DISABLED",
+            "2": "STANDBY_OFFLINE",
+            "3": "STANDBY_SPARE",
+            "4": "IN_TEST",
+            "5": "STARTING",
+            "6": "ABSENT",
+            "7": "UNAVAILABLE_OFFLINE",
+            "8": "DEFERRING",
+            "9": "QUIESCED",
+            "10": "UPDATING",
+            "11": "QUALIFIED",
+            "12": "DEGRADED"
+          }
+        }
+      },
+      "commands": {}
+    },
+    "panelboard": {
+      "template": "panelboard",
+      "kind": "leaf",
+      "equipment_id": "CMP-PNL-001",
+      "vendor": "TBD",
+      "model": "TBD (UL 67 panelboard)",
+      "description": "Compute container 415Y/240 V panelboard, main breaker plus branches for 6 PDUs, CDU and dry cooler (ADR-017)",
+      "measurements": {},
+      "commands": {}
+    },
+    "protective_relay": {
+      "template": "protective_relay",
+      "kind": "leaf",
+      "equipment_id": "GRD-RLY-001",
+      "vendor": "Schweitzer Engineering Laboratories (SEL)",
+      "model": "SEL-351-7",
+      "description": "SEL-351-7 feeder protection relay (overcurrent, voltage, frequency, synchrocheck) via DNP3 TCP",
+      "measurements": {
+        "phase_a_current": {
+          "unit": "amps",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Phase A Current",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 1200,
+            "nominal": 41.8
+          },
+          "thresholds": {
+            "warn_min": 0,
+            "warn_max": 33.5,
+            "alarm_min": 0,
+            "alarm_max": 41.8
+          },
+          "values": null
+        },
+        "phase_b_current": {
+          "unit": "amps",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Phase B Current",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 1200,
+            "nominal": 41.8
+          },
+          "thresholds": {
+            "warn_min": 0,
+            "warn_max": 33.5,
+            "alarm_min": 0,
+            "alarm_max": 41.8
+          },
+          "values": null
+        },
+        "phase_c_current": {
+          "unit": "amps",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Phase C Current",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 1200,
+            "nominal": 41.8
+          },
+          "thresholds": {
+            "warn_min": 0,
+            "warn_max": 33.5,
+            "alarm_min": 0,
+            "alarm_max": 41.8
+          },
+          "values": null
+        },
+        "phase_voltage_a": {
+          "unit": "volts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Phase A Voltage",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": {
+            "warn_min": 7768,
+            "warn_max": 8366,
+            "alarm_min": 7569,
+            "alarm_max": 8383
+          },
+          "values": null
+        },
+        "phase_voltage_b": {
+          "unit": "volts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Phase B Voltage",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": {
+            "warn_min": 7768,
+            "warn_max": 8366,
+            "alarm_min": 7569,
+            "alarm_max": 8383
+          },
+          "values": null
+        },
+        "phase_voltage_c": {
+          "unit": "volts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Phase C Voltage",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": {
+            "warn_min": 7768,
+            "warn_max": 8366,
+            "alarm_min": 7569,
+            "alarm_max": 8383
+          },
+          "values": null
+        },
+        "breaker_closed": {
+          "unit": "none",
+          "type": "bool",
+          "poll_rate_hz": 1,
+          "display_name_default": "Breaker Closed",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "voltage_unbalance_pct": {
+          "unit": "percent",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Voltage Unbalance",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": {
+            "warn_min": 0,
+            "warn_max": 2.4,
+            "alarm_min": 0,
+            "alarm_max": 3
+          },
+          "values": null
+        },
+        "trip_status": {
+          "unit": "none",
+          "type": "bool",
+          "poll_rate_hz": 1,
+          "display_name_default": "Trip Status",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "ground_fault": {
+          "unit": "none",
+          "type": "bool",
+          "poll_rate_hz": 1,
+          "display_name_default": "Ground Fault",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "anti_islanding_armed": {
+          "unit": "none",
+          "type": "bool",
+          "poll_rate_hz": 1,
+          "display_name_default": "Anti-Islanding Armed",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "ride_through_enabled": {
+          "unit": "none",
+          "type": "bool",
+          "poll_rate_hz": 1,
+          "display_name_default": "Ride-Through Enabled",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
         }
       },
       "commands": {}
@@ -572,15 +1315,15 @@
       "kind": "leaf",
       "equipment_id": "GRD-OE-001",
       "vendor": "ARCNODE",
-      "model": "Operating Envelope Producer (Pi RTU)",
-      "description": "Utility-published dynamic operating envelope (CSIP-AUS DERControlBase). Singleton per site.",
+      "model": "Operating Envelope (IEEE 2030.5 DERControl)",
+      "description": "Utility/DSO operating envelope per IEEE 2030.5 / CSIP-AUS (DERControlBase opModImpLimW/opModExpLimW), received over HTTPS by ems-der-control-api and republished to MQTT. Singleton per site. Not polled.\n",
       "measurements": {
         "import_limit": {
           "unit": "watts",
           "type": "float",
-          "poll_rate_hz": 0.2,
+          "poll_rate_hz": null,
           "display_name_default": "Import Limit",
-          "iec_61850_ref": null,
+          "iec_61850_ref": "CSIP.opModImpLimW",
           "bounds": {
             "min": 0,
             "max": 10000000,
@@ -597,180 +1340,179 @@
         "export_limit": {
           "unit": "watts",
           "type": "float",
-          "poll_rate_hz": 0.2,
+          "poll_rate_hz": null,
           "display_name_default": "Export Limit",
-          "iec_61850_ref": null,
+          "iec_61850_ref": "CSIP.opModExpLimW",
           "bounds": {
             "min": 0,
-            "max": 0,
+            "max": 10000000,
             "nominal": 0
           },
-          "thresholds": null,
+          "thresholds": {
+            "warn_min": 0,
+            "warn_max": 9500000,
+            "alarm_min": 0,
+            "alarm_max": 10000000
+          },
           "values": null
         },
         "status": {
           "unit": "none",
           "type": "enum",
-          "poll_rate_hz": 0.2,
+          "poll_rate_hz": null,
           "display_name_default": "Status",
-          "iec_61850_ref": null,
+          "iec_61850_ref": "ZGEN.Mod.stVal",
           "bounds": null,
           "thresholds": null,
           "values": {
-            "0": "OK"
+            "0": "OK",
+            "1": "STALE",
+            "2": "INVALID",
+            "3": "COMM_FAIL"
           }
         }
       },
       "commands": {}
     },
-    "poi_meter": {
-      "template": "poi_meter",
+    "pdu": {
+      "template": "pdu",
       "kind": "leaf",
-      "equipment_id": "GRD-MTR-001",
-      "vendor": "Schneider Electric",
-      "model": "PowerLogic ION9000",
-      "description": "Point-of-interconnection meter, Class 0.1S (ANSI C12.20 / IEC 62053-22)",
+      "equipment_id": "CMP-PDU-001",
+      "vendor": "Raritan (Legrand)",
+      "model": "PX4-56A8I2R-C8E8F5V2",
+      "description": "Raritan PX4 2U horizontal intelligent rack PDU (415V Wye 60A, 34.5 kVA, 18 outlets, Xerus) via SNMP",
       "measurements": {
-        "kwh_delivered": {
-          "unit": "watt_hours",
-          "type": "float",
-          "poll_rate_hz": 0.1,
-          "display_name_default": "kWh Delivered",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 0,
-            "max": 500000000,
-            "nominal": 1200000
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "kwh_received": {
-          "unit": "watt_hours",
-          "type": "float",
-          "poll_rate_hz": 0.1,
-          "display_name_default": "kWh Received",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 0,
-            "max": 500000000,
-            "nominal": 84000
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "power_factor": {
-          "unit": "none",
+        "input_current_l1": {
+          "unit": "amps",
           "type": "float",
           "poll_rate_hz": 1,
-          "display_name_default": "Power Factor",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 0.9,
-            "max": 1.0,
-            "nominal": 0.98
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "thd_voltage_a": {
-          "unit": "percent",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "THD Voltage A",
+          "display_name_default": "Input Current L1",
           "iec_61850_ref": null,
           "bounds": {
             "min": 0,
-            "max": 5,
-            "nominal": 1.4
+            "max": 60,
+            "nominal": 48
           },
-          "thresholds": null,
+          "thresholds": {
+            "warn_min": 0,
+            "warn_max": 38.4,
+            "alarm_min": 0,
+            "alarm_max": 48
+          },
           "values": null
         },
-        "thd_voltage_b": {
-          "unit": "percent",
+        "input_current_l2": {
+          "unit": "amps",
           "type": "float",
           "poll_rate_hz": 1,
-          "display_name_default": "THD Voltage B",
+          "display_name_default": "Input Current L2",
           "iec_61850_ref": null,
           "bounds": {
             "min": 0,
-            "max": 5,
-            "nominal": 1.3
+            "max": 60,
+            "nominal": 48
           },
-          "thresholds": null,
+          "thresholds": {
+            "warn_min": 0,
+            "warn_max": 38.4,
+            "alarm_min": 0,
+            "alarm_max": 48
+          },
           "values": null
         },
-        "thd_voltage_c": {
-          "unit": "percent",
+        "input_current_l3": {
+          "unit": "amps",
           "type": "float",
           "poll_rate_hz": 1,
-          "display_name_default": "THD Voltage C",
+          "display_name_default": "Input Current L3",
           "iec_61850_ref": null,
           "bounds": {
             "min": 0,
-            "max": 5,
-            "nominal": 1.4
+            "max": 60,
+            "nominal": 48
           },
-          "thresholds": null,
+          "thresholds": {
+            "warn_min": 0,
+            "warn_max": 38.4,
+            "alarm_min": 0,
+            "alarm_max": 48
+          },
           "values": null
         },
-        "active_power": {
+        "input_voltage_l1": {
+          "unit": "volts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Input Voltage L1-L2",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 440,
+            "nominal": 415
+          },
+          "thresholds": {
+            "warn_min": 394,
+            "warn_max": 436,
+            "alarm_min": 381,
+            "alarm_max": 439
+          },
+          "values": null
+        },
+        "input_voltage_l2": {
+          "unit": "volts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Input Voltage L2-L3",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 440,
+            "nominal": 415
+          },
+          "thresholds": {
+            "warn_min": 394,
+            "warn_max": 436,
+            "alarm_min": 381,
+            "alarm_max": 439
+          },
+          "values": null
+        },
+        "input_voltage_l3": {
+          "unit": "volts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Input Voltage L3-L1",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 440,
+            "nominal": 415
+          },
+          "thresholds": {
+            "warn_min": 394,
+            "warn_max": 436,
+            "alarm_min": 381,
+            "alarm_max": 439
+          },
+          "values": null
+        },
+        "input_power": {
           "unit": "watts",
           "type": "float",
           "poll_rate_hz": 1,
-          "display_name_default": "POI Active Power (+ import, - export)",
-          "iec_61850_ref": "MMXU.W",
-          "bounds": {
-            "min": -8000000,
-            "max": 2000000,
-            "nominal": 200000
-          },
-          "thresholds": null,
-          "values": null
-        }
-      },
-      "commands": {}
-    },
-    "cdu": {
-      "template": "cdu",
-      "kind": "leaf",
-      "equipment_id": "CDU-001",
-      "vendor": "CoolIT",
-      "model": "CHx650",
-      "description": "Coolant distribution unit",
-      "measurements": {
-        "outlet_temperature": {
-          "unit": "celsius",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Outlet Temperature",
+          "display_name_default": "Input Power",
           "iec_61850_ref": null,
           "bounds": {
-            "min": 10,
-            "max": 60,
-            "nominal": 35
+            "min": 0,
+            "max": 34500,
+            "nominal": 34500
           },
           "thresholds": {
-            "warn_min": 12,
-            "warn_max": 45,
-            "alarm_min": 10,
-            "alarm_max": 49
+            "warn_min": 0,
+            "warn_max": 27600,
+            "alarm_min": 0,
+            "alarm_max": 34500
           },
-          "values": null
-        },
-        "inlet_temperature": {
-          "unit": "celsius",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Inlet Temperature",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 10,
-            "max": 40,
-            "nominal": 20
-          },
-          "thresholds": null,
           "values": null
         }
       },
@@ -779,31 +1521,46 @@
     "der_dispatch": {
       "template": "der_dispatch",
       "kind": "leaf",
-      "equipment_id": "DER-DISP-001",
-      "vendor": "Utility",
-      "model": "IEEE 2030.5 DER dispatch client",
-      "description": "Utility DER dispatch \u2014 curtailment target + event state",
+      "equipment_id": "GRD-DER-001",
+      "vendor": "ARCNODE",
+      "model": "DER Dispatch Intake (IEEE 2030.5 DERControl)",
+      "description": "Utility/aggregator DER dispatch per IEEE 2030.5 DERControlBase, received over HTTPS by ems-der-control-api and republished to MQTT. Singleton per site. Sibling of operating_envelope (the utility's limits, same intake). Runtime-onboarded via device-api POST /topology — not DTM-emitted.\n",
       "measurements": {
         "target_active_power": {
           "unit": "watts",
           "type": "float",
-          "poll_rate_hz": 0.1,
-          "display_name_default": "Target Active Power",
-          "iec_61850_ref": null,
+          "poll_rate_hz": null,
+          "display_name_default": "DER Target Active Power",
+          "iec_61850_ref": "CSIP.opModTargetW",
           "bounds": {
-            "min": -5000000,
-            "max": 5000000,
+            "min": -10000000,
+            "max": 10000000,
             "nominal": 0
           },
+          "thresholds": {
+            "warn_min": -9500000,
+            "warn_max": 9500000,
+            "alarm_min": -10000000,
+            "alarm_max": 10000000
+          },
+          "values": null
+        },
+        "target_setpoint_present": {
+          "unit": "none",
+          "type": "bool",
+          "poll_rate_hz": null,
+          "display_name_default": "DER Target Setpoint In Force",
+          "iec_61850_ref": null,
+          "bounds": null,
           "thresholds": null,
           "values": null
         },
         "event_active": {
           "unit": "none",
           "type": "bool",
-          "poll_rate_hz": 0.5,
-          "display_name_default": "Event Active",
-          "iec_61850_ref": null,
+          "poll_rate_hz": null,
+          "display_name_default": "DER Event Active",
+          "iec_61850_ref": "CSIP.DERControl.EventStatus",
           "bounds": null,
           "thresholds": null,
           "values": null
@@ -811,7 +1568,7 @@
         "der_event_state": {
           "unit": "none",
           "type": "enum",
-          "poll_rate_hz": 0.5,
+          "poll_rate_hz": null,
           "display_name_default": "DER Event State",
           "iec_61850_ref": null,
           "bounds": null,
@@ -824,160 +1581,700 @@
             "4": "REJECTED"
           }
         },
+        "der_event_program": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": null,
+          "display_name_default": "Curtailment Program",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "NONE",
+            "1": "DLR_LINE_CONSTRAINT",
+            "2": "ERCOT_FLEX"
+          }
+        },
+        "dispatch_mode": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": null,
+          "display_name_default": "Dispatch Mode",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "AUTO",
+            "1": "MANUAL"
+          }
+        },
+        "operator_reserve": {
+          "unit": "watt_hours",
+          "type": "float",
+          "poll_rate_hz": null,
+          "display_name_default": "Operator Energy Reserve",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
         "energize_enabled": {
           "unit": "none",
           "type": "bool",
-          "poll_rate_hz": 0.5,
-          "display_name_default": "Energize Enabled",
-          "iec_61850_ref": null,
+          "poll_rate_hz": null,
+          "display_name_default": "DER Energize Permitted",
+          "iec_61850_ref": "CSIP.opModEnergize",
           "bounds": null,
           "thresholds": null,
           "values": null
-        }
-      },
-      "commands": {}
-    },
-    "switchgear": {
-      "template": "switchgear",
-      "kind": "leaf",
-      "equipment_id": "GRD-SWG-001",
-      "vendor": "ABB",
-      "model": "SafeGear 15kV",
-      "description": "MV switchgear \u2014 bus voltage/current + unbalance",
-      "measurements": {},
-      "commands": {}
-    },
-    "protective_relay": {
-      "template": "protective_relay",
-      "kind": "leaf",
-      "equipment_id": "GRD-REL-001",
-      "vendor": "SEL",
-      "model": "SEL-351-7",
-      "description": "Protective relay \u2014 anti-islanding + ride-through",
-      "measurements": {
-        "anti_islanding_armed": {
+        },
+        "dispatch_shortfall": {
           "unit": "none",
           "type": "bool",
-          "poll_rate_hz": 0.5,
-          "display_name_default": "Anti-Islanding Armed",
+          "poll_rate_hz": null,
+          "display_name_default": "Dispatch Shortfall",
           "iec_61850_ref": null,
           "bounds": null,
           "thresholds": null,
           "values": null
         },
-        "ride_through_enabled": {
-          "unit": "none",
-          "type": "bool",
-          "poll_rate_hz": 0.1,
-          "display_name_default": "Ride-Through Enabled",
-          "iec_61850_ref": null,
-          "bounds": null,
-          "thresholds": null,
-          "values": null
-        },
-        "phase_voltage_a": {
-          "unit": "volts",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Phase Voltage A",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 6640,
-            "max": 7794,
-            "nominal": 7200
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "phase_voltage_b": {
-          "unit": "volts",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Phase Voltage B",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 6640,
-            "max": 7794,
-            "nominal": 7200
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "phase_voltage_c": {
-          "unit": "volts",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Phase Voltage C",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 6640,
-            "max": 7794,
-            "nominal": 7200
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "voltage_unbalance_pct": {
-          "unit": "percent",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Voltage Unbalance",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 0,
-            "max": 3,
-            "nominal": 0.6
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "breaker_closed": {
-          "unit": "none",
-          "type": "bool",
-          "poll_rate_hz": 1,
-          "display_name_default": "Breaker Closed",
-          "iec_61850_ref": null,
-          "bounds": null,
-          "thresholds": null,
-          "values": null
-        },
-        "trip_status": {
-          "unit": "none",
-          "type": "bool",
-          "poll_rate_hz": 1,
-          "display_name_default": "Trip Status",
-          "iec_61850_ref": null,
-          "bounds": null,
-          "thresholds": null,
-          "values": null
-        }
-      },
-      "commands": {}
-    },
-    "pv_inverter": {
-      "template": "pv_inverter",
-      "kind": "leaf",
-      "equipment_id": "GRD-PVI-001",
-      "vendor": "Sungrow",
-      "model": "SG3125HV-MV",
-      "description": "PV string inverter \u2014 active power output",
-      "measurements": {
-        "active_power": {
+        "actual_active_power": {
           "unit": "watts",
           "type": "float",
           "poll_rate_hz": 1,
-          "display_name_default": "Active Power",
-          "iec_61850_ref": "MMXU.W",
+          "display_name_default": "DER Actual Active Power",
+          "iec_61850_ref": null,
           "bounds": {
-            "min": 0,
-            "max": 3125000,
-            "nominal": 2300000
+            "min": -10000000,
+            "max": 10000000,
+            "nominal": 0
           },
-          "thresholds": null,
+          "thresholds": {
+            "warn_min": -9500000,
+            "warn_max": 9500000,
+            "alarm_min": -10000000,
+            "alarm_max": 10000000
+          },
           "values": null
         }
       },
-      "commands": {}
+      "commands": {
+        "approve_dispatch": {
+          "verb": "enable",
+          "target": "event_active",
+          "unit": "none",
+          "payload": "bool",
+          "display_name_default": "Approve Dispatch"
+        },
+        "reject_dispatch": {
+          "verb": "disable",
+          "target": "event_active",
+          "unit": "none",
+          "payload": "bool",
+          "display_name_default": "Reject Dispatch"
+        },
+        "set_dispatch_mode": {
+          "verb": "set",
+          "target": "dispatch_mode",
+          "unit": "none",
+          "payload": "enum",
+          "display_name_default": "Set Dispatch Mode"
+        },
+        "set_operator_reserve": {
+          "verb": "set",
+          "target": "operator_reserve",
+          "unit": "watt_hours",
+          "payload": "float",
+          "display_name_default": "Set Operator Energy Reserve"
+        }
+      }
+    },
+    "gpu_node_h100": {
+      "template": "gpu_node_h100",
+      "kind": "leaf",
+      "equipment_id": "CMP-NODE-002",
+      "vendor": "Supermicro (Super Micro Computer Inc.)",
+      "model": "SYS-421GE-TNHR2-LCC",
+      "description": "4U liquid-cooled HGX H100 GPU server (8× NVIDIA H100 SXM) with Redfish BMC",
+      "measurements": {
+        "power_consumed": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Power Consumed",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "power_limit": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "Power Limit",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "inlet_temp": {
+          "unit": "celsius",
+          "type": "float",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "Inlet Temperature",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": {
+            "warn_min": 18,
+            "warn_max": 27,
+            "alarm_min": 10,
+            "alarm_max": 35
+          },
+          "values": null
+        },
+        "fan_speed": {
+          "unit": "percent",
+          "type": "float",
+          "poll_rate_hz": 0.5,
+          "display_name_default": "Fan Speed",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_power_watts": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU Total Power",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_1_power": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 1 Power",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 700,
+            "nominal": 700
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_1_power_limit": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "GPU 1 Power Limit",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 200,
+            "max": 700,
+            "nominal": 700
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_1_clock": {
+          "unit": "hertz",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 1 Clock",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_1_throttle_reason": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 1 Throttle Reason",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "NA",
+            "1": "SW_POWER_CAP",
+            "2": "HW_SLOWDOWN",
+            "3": "HW_THERMAL_SLOWDOWN",
+            "4": "HW_POWER_BRAKE_SLOWDOWN",
+            "5": "SYNC_BOOST",
+            "6": "CLOCK_OPTIMIZED_FOR_POWER",
+            "7": "CLOCK_OPTIMIZED_FOR_THERMAL_ENGAGE",
+            "8": "GPU_THERMAL_OVERT"
+          }
+        },
+        "gpu_2_power": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 2 Power",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 700,
+            "nominal": 700
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_2_power_limit": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "GPU 2 Power Limit",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 200,
+            "max": 700,
+            "nominal": 700
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_2_clock": {
+          "unit": "hertz",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 2 Clock",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_2_throttle_reason": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 2 Throttle Reason",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "NA",
+            "1": "SW_POWER_CAP",
+            "2": "HW_SLOWDOWN",
+            "3": "HW_THERMAL_SLOWDOWN",
+            "4": "HW_POWER_BRAKE_SLOWDOWN",
+            "5": "SYNC_BOOST",
+            "6": "CLOCK_OPTIMIZED_FOR_POWER",
+            "7": "CLOCK_OPTIMIZED_FOR_THERMAL_ENGAGE",
+            "8": "GPU_THERMAL_OVERT"
+          }
+        },
+        "gpu_3_power": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 3 Power",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 700,
+            "nominal": 700
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_3_power_limit": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "GPU 3 Power Limit",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 200,
+            "max": 700,
+            "nominal": 700
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_3_clock": {
+          "unit": "hertz",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 3 Clock",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_3_throttle_reason": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 3 Throttle Reason",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "NA",
+            "1": "SW_POWER_CAP",
+            "2": "HW_SLOWDOWN",
+            "3": "HW_THERMAL_SLOWDOWN",
+            "4": "HW_POWER_BRAKE_SLOWDOWN",
+            "5": "SYNC_BOOST",
+            "6": "CLOCK_OPTIMIZED_FOR_POWER",
+            "7": "CLOCK_OPTIMIZED_FOR_THERMAL_ENGAGE",
+            "8": "GPU_THERMAL_OVERT"
+          }
+        },
+        "gpu_4_power": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 4 Power",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 700,
+            "nominal": 700
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_4_power_limit": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "GPU 4 Power Limit",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 200,
+            "max": 700,
+            "nominal": 700
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_4_clock": {
+          "unit": "hertz",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 4 Clock",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_4_throttle_reason": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 4 Throttle Reason",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "NA",
+            "1": "SW_POWER_CAP",
+            "2": "HW_SLOWDOWN",
+            "3": "HW_THERMAL_SLOWDOWN",
+            "4": "HW_POWER_BRAKE_SLOWDOWN",
+            "5": "SYNC_BOOST",
+            "6": "CLOCK_OPTIMIZED_FOR_POWER",
+            "7": "CLOCK_OPTIMIZED_FOR_THERMAL_ENGAGE",
+            "8": "GPU_THERMAL_OVERT"
+          }
+        },
+        "gpu_5_power": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 5 Power",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 700,
+            "nominal": 700
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_5_power_limit": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "GPU 5 Power Limit",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 200,
+            "max": 700,
+            "nominal": 700
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_5_clock": {
+          "unit": "hertz",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 5 Clock",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_5_throttle_reason": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 5 Throttle Reason",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "NA",
+            "1": "SW_POWER_CAP",
+            "2": "HW_SLOWDOWN",
+            "3": "HW_THERMAL_SLOWDOWN",
+            "4": "HW_POWER_BRAKE_SLOWDOWN",
+            "5": "SYNC_BOOST",
+            "6": "CLOCK_OPTIMIZED_FOR_POWER",
+            "7": "CLOCK_OPTIMIZED_FOR_THERMAL_ENGAGE",
+            "8": "GPU_THERMAL_OVERT"
+          }
+        },
+        "gpu_6_power": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 6 Power",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 700,
+            "nominal": 700
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_6_power_limit": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "GPU 6 Power Limit",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 200,
+            "max": 700,
+            "nominal": 700
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_6_clock": {
+          "unit": "hertz",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 6 Clock",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_6_throttle_reason": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 6 Throttle Reason",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "NA",
+            "1": "SW_POWER_CAP",
+            "2": "HW_SLOWDOWN",
+            "3": "HW_THERMAL_SLOWDOWN",
+            "4": "HW_POWER_BRAKE_SLOWDOWN",
+            "5": "SYNC_BOOST",
+            "6": "CLOCK_OPTIMIZED_FOR_POWER",
+            "7": "CLOCK_OPTIMIZED_FOR_THERMAL_ENGAGE",
+            "8": "GPU_THERMAL_OVERT"
+          }
+        },
+        "gpu_7_power": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 7 Power",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 700,
+            "nominal": 700
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_7_power_limit": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "GPU 7 Power Limit",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 200,
+            "max": 700,
+            "nominal": 700
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_7_clock": {
+          "unit": "hertz",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 7 Clock",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_7_throttle_reason": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 7 Throttle Reason",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "NA",
+            "1": "SW_POWER_CAP",
+            "2": "HW_SLOWDOWN",
+            "3": "HW_THERMAL_SLOWDOWN",
+            "4": "HW_POWER_BRAKE_SLOWDOWN",
+            "5": "SYNC_BOOST",
+            "6": "CLOCK_OPTIMIZED_FOR_POWER",
+            "7": "CLOCK_OPTIMIZED_FOR_THERMAL_ENGAGE",
+            "8": "GPU_THERMAL_OVERT"
+          }
+        },
+        "gpu_8_power": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 8 Power",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 700,
+            "nominal": 700
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_8_power_limit": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 0.1,
+          "display_name_default": "GPU 8 Power Limit",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 200,
+            "max": 700,
+            "nominal": 700
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_8_clock": {
+          "unit": "hertz",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 8 Clock",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": null
+        },
+        "gpu_8_throttle_reason": {
+          "unit": "none",
+          "type": "enum",
+          "poll_rate_hz": 1,
+          "display_name_default": "GPU 8 Throttle Reason",
+          "iec_61850_ref": null,
+          "bounds": null,
+          "thresholds": null,
+          "values": {
+            "0": "NA",
+            "1": "SW_POWER_CAP",
+            "2": "HW_SLOWDOWN",
+            "3": "HW_THERMAL_SLOWDOWN",
+            "4": "HW_POWER_BRAKE_SLOWDOWN",
+            "5": "SYNC_BOOST",
+            "6": "CLOCK_OPTIMIZED_FOR_POWER",
+            "7": "CLOCK_OPTIMIZED_FOR_THERMAL_ENGAGE",
+            "8": "GPU_THERMAL_OVERT"
+          }
+        }
+      },
+      "commands": {
+        "set_gpu_1_power_limit": {
+          "verb": "set",
+          "target": "gpu_1_power_limit",
+          "unit": "watts",
+          "payload": "float",
+          "display_name_default": "Set GPU 1 Power Limit"
+        },
+        "set_gpu_2_power_limit": {
+          "verb": "set",
+          "target": "gpu_2_power_limit",
+          "unit": "watts",
+          "payload": "float",
+          "display_name_default": "Set GPU 2 Power Limit"
+        },
+        "set_gpu_3_power_limit": {
+          "verb": "set",
+          "target": "gpu_3_power_limit",
+          "unit": "watts",
+          "payload": "float",
+          "display_name_default": "Set GPU 3 Power Limit"
+        },
+        "set_gpu_4_power_limit": {
+          "verb": "set",
+          "target": "gpu_4_power_limit",
+          "unit": "watts",
+          "payload": "float",
+          "display_name_default": "Set GPU 4 Power Limit"
+        },
+        "set_gpu_5_power_limit": {
+          "verb": "set",
+          "target": "gpu_5_power_limit",
+          "unit": "watts",
+          "payload": "float",
+          "display_name_default": "Set GPU 5 Power Limit"
+        },
+        "set_gpu_6_power_limit": {
+          "verb": "set",
+          "target": "gpu_6_power_limit",
+          "unit": "watts",
+          "payload": "float",
+          "display_name_default": "Set GPU 6 Power Limit"
+        },
+        "set_gpu_7_power_limit": {
+          "verb": "set",
+          "target": "gpu_7_power_limit",
+          "unit": "watts",
+          "payload": "float",
+          "display_name_default": "Set GPU 7 Power Limit"
+        },
+        "set_gpu_8_power_limit": {
+          "verb": "set",
+          "target": "gpu_8_power_limit",
+          "unit": "watts",
+          "payload": "float",
+          "display_name_default": "Set GPU 8 Power Limit"
+        }
+      }
     },
     "bess_rack": {
       "template": "bess_rack",
@@ -985,7 +2282,7 @@
       "equipment_id": "EXT-BESS-001",
       "vendor": "Tesla",
       "model": "Megapack 2 XL (PN 1848844-XX-Y)",
-      "description": "Tesla Megapack 2 XL 4 MWh AC-coupled BESS with grid-forming inverter via Modbus TCP",
+      "description": "Tesla Megapack 2 XL 2-hour (1927 kW / 3854 kWh, EXT-BESS-001) AC-coupled BESS with grid-forming inverter via Modbus TCP",
       "measurements": {
         "state_of_charge": {
           "unit": "percent",
@@ -996,13 +2293,13 @@
           "bounds": {
             "min": 0,
             "max": 100,
-            "nominal": 55
+            "nominal": 50
           },
           "thresholds": {
             "warn_min": 15,
-            "warn_max": 90,
+            "warn_max": 100,
             "alarm_min": 5,
-            "alarm_max": 95
+            "alarm_max": 100
           },
           "values": null
         },
@@ -1013,16 +2310,44 @@
           "display_name_default": "Active Power (+ discharge, - charge)",
           "iec_61850_ref": "MMXU.W",
           "bounds": {
-            "min": -4000000,
-            "max": 4000000,
+            "min": -1927000,
+            "max": 1927000,
             "nominal": 0
           },
           "thresholds": {
-            "warn_min": -3800000,
-            "warn_max": 3800000,
-            "alarm_min": -4000000,
-            "alarm_max": 4000000
+            "warn_min": -1830000,
+            "warn_max": 1830000,
+            "alarm_min": -1927000,
+            "alarm_max": 1927000
           },
+          "values": null
+        },
+        "max_charge_power": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Max Charge Power",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 1927000,
+            "nominal": 1927000
+          },
+          "thresholds": null,
+          "values": null
+        },
+        "max_discharge_power": {
+          "unit": "watts",
+          "type": "float",
+          "poll_rate_hz": 1,
+          "display_name_default": "Max Discharge Power",
+          "iec_61850_ref": null,
+          "bounds": {
+            "min": 0,
+            "max": 1927000,
+            "nominal": 1927000
+          },
+          "thresholds": null,
           "values": null
         },
         "reactive_power": {
@@ -1070,15 +2395,15 @@
           "display_name_default": "AC Frequency",
           "iec_61850_ref": "MMXU.Hz",
           "bounds": {
-            "min": 55.0,
-            "max": 65.0,
-            "nominal": 60.0
+            "min": 55,
+            "max": 65,
+            "nominal": 60
           },
           "thresholds": {
             "warn_min": 59.5,
             "warn_max": 60.5,
-            "alarm_min": 59.0,
-            "alarm_max": 61.0
+            "alarm_min": 59,
+            "alarm_max": 61
           },
           "values": null
         },
@@ -1091,7 +2416,7 @@
           "bounds": {
             "min": 0,
             "max": 1000000000,
-            "nominal": 400000
+            "nominal": 0
           },
           "thresholds": {
             "warn_min": 0,
@@ -1118,273 +2443,20 @@
           }
         }
       },
-      "commands": {}
-    },
-    "gpu_node": {
-      "template": "gpu_node",
-      "kind": "leaf",
-      "equipment_id": null,
-      "vendor": null,
-      "model": null,
-      "description": "8-GPU compute node",
-      "measurements": {
-        "power_consumed": {
+      "commands": {
+        "set_active_power": {
+          "verb": "set",
+          "target": "active_power",
           "unit": "watts",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "Node Power",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 10000,
-            "max": 11000,
-            "nominal": 10500
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "gpu_power_watts": {
-          "unit": "watts",
-          "type": "float",
-          "poll_rate_hz": 1,
-          "display_name_default": "GPU Power (total)",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 7700,
-            "max": 8000,
-            "nominal": 7950
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "gpu_1_throttle_reason": {
-          "unit": "none",
-          "type": "enum",
-          "poll_rate_hz": 1,
-          "display_name_default": "GPU 1 Throttle Reason",
-          "iec_61850_ref": null,
-          "bounds": null,
-          "thresholds": null,
-          "values": {
-            "0": "NA"
-          }
-        },
-        "gpu_2_throttle_reason": {
-          "unit": "none",
-          "type": "enum",
-          "poll_rate_hz": 1,
-          "display_name_default": "GPU 2 Throttle Reason",
-          "iec_61850_ref": null,
-          "bounds": null,
-          "thresholds": null,
-          "values": {
-            "0": "NA"
-          }
-        },
-        "gpu_3_throttle_reason": {
-          "unit": "none",
-          "type": "enum",
-          "poll_rate_hz": 1,
-          "display_name_default": "GPU 3 Throttle Reason",
-          "iec_61850_ref": null,
-          "bounds": null,
-          "thresholds": null,
-          "values": {
-            "0": "NA"
-          }
-        },
-        "gpu_4_throttle_reason": {
-          "unit": "none",
-          "type": "enum",
-          "poll_rate_hz": 1,
-          "display_name_default": "GPU 4 Throttle Reason",
-          "iec_61850_ref": null,
-          "bounds": null,
-          "thresholds": null,
-          "values": {
-            "0": "NA"
-          }
-        },
-        "gpu_5_throttle_reason": {
-          "unit": "none",
-          "type": "enum",
-          "poll_rate_hz": 1,
-          "display_name_default": "GPU 5 Throttle Reason",
-          "iec_61850_ref": null,
-          "bounds": null,
-          "thresholds": null,
-          "values": {
-            "0": "NA"
-          }
-        },
-        "gpu_6_throttle_reason": {
-          "unit": "none",
-          "type": "enum",
-          "poll_rate_hz": 1,
-          "display_name_default": "GPU 6 Throttle Reason",
-          "iec_61850_ref": null,
-          "bounds": null,
-          "thresholds": null,
-          "values": {
-            "0": "NA"
-          }
-        },
-        "gpu_7_throttle_reason": {
-          "unit": "none",
-          "type": "enum",
-          "poll_rate_hz": 1,
-          "display_name_default": "GPU 7 Throttle Reason",
-          "iec_61850_ref": null,
-          "bounds": null,
-          "thresholds": null,
-          "values": {
-            "0": "NA"
-          }
-        },
-        "gpu_8_throttle_reason": {
-          "unit": "none",
-          "type": "enum",
-          "poll_rate_hz": 1,
-          "display_name_default": "GPU 8 Throttle Reason",
-          "iec_61850_ref": null,
-          "bounds": null,
-          "thresholds": null,
-          "values": {
-            "0": "NA"
-          }
-        },
-        "power_limit": {
-          "unit": "watts",
-          "type": "float",
-          "poll_rate_hz": 0.1,
-          "display_name_default": "Node Power Limit",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 26400,
-            "max": 26400,
-            "nominal": 26400
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "gpu_1_power_limit": {
-          "unit": "watts",
-          "type": "float",
-          "poll_rate_hz": 0.1,
-          "display_name_default": "GPU 1 Power Limit",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 1000,
-            "max": 1000,
-            "nominal": 1000
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "gpu_2_power_limit": {
-          "unit": "watts",
-          "type": "float",
-          "poll_rate_hz": 0.1,
-          "display_name_default": "GPU 2 Power Limit",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 1000,
-            "max": 1000,
-            "nominal": 1000
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "gpu_3_power_limit": {
-          "unit": "watts",
-          "type": "float",
-          "poll_rate_hz": 0.1,
-          "display_name_default": "GPU 3 Power Limit",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 1000,
-            "max": 1000,
-            "nominal": 1000
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "gpu_4_power_limit": {
-          "unit": "watts",
-          "type": "float",
-          "poll_rate_hz": 0.1,
-          "display_name_default": "GPU 4 Power Limit",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 1000,
-            "max": 1000,
-            "nominal": 1000
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "gpu_5_power_limit": {
-          "unit": "watts",
-          "type": "float",
-          "poll_rate_hz": 0.1,
-          "display_name_default": "GPU 5 Power Limit",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 1000,
-            "max": 1000,
-            "nominal": 1000
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "gpu_6_power_limit": {
-          "unit": "watts",
-          "type": "float",
-          "poll_rate_hz": 0.1,
-          "display_name_default": "GPU 6 Power Limit",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 1000,
-            "max": 1000,
-            "nominal": 1000
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "gpu_7_power_limit": {
-          "unit": "watts",
-          "type": "float",
-          "poll_rate_hz": 0.1,
-          "display_name_default": "GPU 7 Power Limit",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 1000,
-            "max": 1000,
-            "nominal": 1000
-          },
-          "thresholds": null,
-          "values": null
-        },
-        "gpu_8_power_limit": {
-          "unit": "watts",
-          "type": "float",
-          "poll_rate_hz": 0.1,
-          "display_name_default": "GPU 8 Power Limit",
-          "iec_61850_ref": null,
-          "bounds": {
-            "min": 1000,
-            "max": 1000,
-            "nominal": 1000
-          },
-          "thresholds": null,
-          "values": null
+          "payload": "float",
+          "display_name_default": "Set Active Power Setpoint"
         }
-      },
-      "commands": {}
+      }
     }
   },
   "bess": {
-    "pack_mwh": 16.0,
-    "reserve_floor_mwh": 2.0,
-    "reserve_floor_pct": 12.5
+    "pack_mwh": 11.562,
+    "reserve_floor_mwh": 0,
+    "reserve_floor_pct": 0
   }
 }

@@ -12,6 +12,7 @@
  * der_dispatch is a site singleton but its id shouldn't be assumed.
  */
 
+import { inFamily } from "../topology/templateFamily";
 import { useMemo } from "react";
 import { useTopologyView } from "../topology/useTopologyView";
 import { useSubscription } from "../mqtt/useSubscription";
@@ -28,11 +29,11 @@ export function useDerEventActive(): boolean {
   const topic = useMemo(() => {
     if (!view) return null;
     const entry = Object.entries(view.devices).find(
-      ([, d]) => d.template === "der_dispatch",
+      ([, d]) => inFamily(d.template, "der_dispatch"),
     );
     if (!entry) return null;
-    const [deviceId] = entry;
-    const m = view.templates_used["der_dispatch"]?.measurements["event_active"];
+    const [deviceId, device] = entry;
+    const m = view.templates_used[device.template]?.measurements["event_active"];
     if (!m) return null;
     return measurementTopic(siteId, deviceId, "event_active", m.unit as TopicUnit);
   }, [view, siteId]);

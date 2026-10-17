@@ -23,17 +23,26 @@ const VIEW = {
   },
 } as unknown as TopologyViewType;
 
-function wrapper({ children }: { children: React.ReactNode }): React.ReactElement {
-  return (
+// 64×H100 demo order: a GPU-variant compute template.
+const WATTS = { unit: "watts", type: "float" };
+const H100_VIEW = {
+  devices: { compute_module_h100_1: { device_id: "compute_module_h100_1", template: "compute_module_h100", display_name: "C1", parent: null } },
+  buses: [],
+  templates_used: { compute_module_h100: { kind: "module", measurements: { total_power: WATTS, total_thermal_load: WATTS } } },
+} as unknown as TopologyViewType;
+
+function wrapperFor(view: TopologyViewType) {
+  return ({ children }: { children: React.ReactNode }): React.ReactElement => (
     <DeploymentIdentityProvider
       base={{ name: "T", host: "h", siteId: "s", mode: "local", chatApiUri: "", deviceApiUri: "", derControlUri: "" }}
     >
-      <TopologyContext.Provider value={{ status: "ready", view: VIEW, error: null, refetch: () => undefined }}>
+      <TopologyContext.Provider value={{ status: "ready", view, error: null, refetch: () => undefined }}>
         <MqttProvider client={new MockMqttClientImpl()}>{children}</MqttProvider>
       </TopologyContext.Provider>
     </DeploymentIdentityProvider>
   );
 }
+const wrapper = wrapperFor(VIEW);
 
 describe("useModuleRows", () => {
   it("lists the dc_ext battery pad as a BESS module with its POI headroom", () => {
@@ -44,5 +53,15 @@ describe("useModuleRows", () => {
     expect(
       result.current.map((r) => ({ id: r.id, type: r.moduleType, labels: r.measurements.map((m) => m.label) })),
     ).toEqual([{ id: "bess_module_dc_1", type: "bess", labels: ["Import headroom", "Export headroom"] }]);
+  });
+
+  it("lists a GPU-variant compute module as compute, with the draw and heat it reports", () => {
+    // Arrange / Act
+    const { result } = renderHook(() => useModuleRows(), { wrapper: wrapperFor(H100_VIEW) });
+
+    // Assert
+    expect(
+      result.current.map((r) => ({ id: r.id, type: r.moduleType, labels: r.measurements.map((m) => m.label) })),
+    ).toEqual([{ id: "compute_module_h100_1", type: "compute", labels: ["Draw", "Heat"] }]);
   });
 });

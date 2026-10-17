@@ -1,4 +1,4 @@
-import { buildTickerPlan } from "./tickers";
+import { buildTickerPlan, nextFloatValue } from "./tickers";
 import type { TopologyViewType } from "../topology/topology.schema";
 
 function meas(type: "float" | "bool" | "enum", bounds: { min: number; max: number; nominal: number } | null): object {
@@ -27,5 +27,22 @@ describe("buildTickerPlan", () => {
 
     // Assert
     expect(topics).toEqual([["sites/s/devices/relay_1/measurements/rated/watts", 5]]);
+  });
+});
+
+describe("nextFloatValue", () => {
+  it("steps in proportion to the band it may wander, not the meter's full scale — 60 Hz stays near 60", () => {
+    // Arrange — grid frequency: 55–65 Hz full scale, 59.5–60.5 warn band; worst-case noise
+    const ticker = {
+      topic: "f", intervalMs: 1000, nextDueAt: 0,
+      bounds: { min: 55, max: 65, nominal: 60 }, safeMin: 59.5, safeMax: 60.5, current: 60,
+    };
+    jest.spyOn(Math, "random").mockReturnValue(1);
+
+    // Act
+    const next = nextFloatValue(ticker);
+
+    // Assert — at most STEP_FRACTION (2%) of the 1 Hz band
+    expect(next).toBeCloseTo(60.02, 5);
   });
 });

@@ -25,7 +25,7 @@ import { useMemo } from "react";
 import { useTopologyView } from "../topology/useTopologyView";
 import { useAggregateMeasurements } from "../mqtt/useAggregateMeasurements";
 import { useDeploymentIdentity } from "../deployment/useDeploymentIdentity";
-import { measurementTopic, type TopicUnit } from "../topics/topicBuilder";
+import { familyTopics } from "../topology/templateFamily";
 import { useGridMode } from "./useGridMode";
 import type { BreakerState, GridMode, IslandQualifier } from "./useGridMode";
 /**
@@ -80,26 +80,6 @@ export interface GridState {
   pvOutputW: number | null;
 }
 
-function topicsFor(
-  view: ReturnType<typeof useTopologyView>["view"],
-  siteId: string,
-  templateName: string,
-  measurementNames: readonly string[],
-): string[] {
-  if (!view) return [];
-  const list: string[] = [];
-  for (const [deviceId, device] of Object.entries(view.devices)) {
-    if (device.template !== templateName) continue;
-    const tpl = view.templates_used[device.template];
-    if (!tpl) continue;
-    for (const name of measurementNames) {
-      const m = tpl.measurements[name];
-      if (m) list.push(measurementTopic(siteId, deviceId, name, m.unit as TopicUnit));
-    }
-  }
-  return list;
-}
-
 /**
  * Subscribe to the Grid page's real feeds and produce its data shape.
  * @returns GridState — envelope-sourced fields plus the page's own additions
@@ -111,13 +91,13 @@ export function useGridState(): GridState {
 
   const topics = useMemo(() => {
     return [
-      ...topicsFor(view, siteId, "grid_module", ["grid_frequency"]),
-      ...topicsFor(view, siteId, "der_dispatch", [
+      ...familyTopics(view, siteId, "grid_module", ["grid_frequency"]),
+      ...familyTopics(view, siteId, "der_dispatch", [
         "event_active",
         "der_event_state",
         "der_event_program",
       ]),
-      ...topicsFor(view, siteId, "pv_inverter", ["active_power"]),
+      ...familyTopics(view, siteId, "pv_inverter", ["active_power"]),
     ];
   }, [view, siteId]);
 

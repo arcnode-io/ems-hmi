@@ -27,7 +27,7 @@ import { useAggregateMeasurements } from "../mqtt/useAggregateMeasurements";
 import { useDeploymentIdentity } from "../deployment/useDeploymentIdentity";
 import { useSiteHealth } from "../alarms/useSiteHealth";
 import type { SiteHealth } from "../alarms/siteHealth";
-import { measurementTopic, type TopicUnit } from "../topics/topicBuilder";
+import { familyTopics } from "../topology/templateFamily";
 
 export type SiteLabel = "Nominal" | "Warn" | "Alarm" | "Unknown";
 
@@ -58,31 +58,6 @@ export interface FleetKpis {
   };
 }
 
-/**
- * Collect all topics that match `(templateKind, measurementName, unit)` for
- * a given template's devices.
- */
-function topicsForMeasurement(
-  view: ReturnType<typeof useTopologyView>["view"],
-  siteId: string,
-  templateName: string,
-  measurementName: string,
-): string[] {
-  if (!view) return [];
-  const tpl = view.templates_used[templateName];
-  if (!tpl) return [];
-  const meas = tpl.measurements[measurementName];
-  if (!meas) return [];
-  const matches: string[] = [];
-  for (const [deviceId, dev] of Object.entries(view.devices)) {
-    if (dev.template !== templateName) continue;
-    matches.push(
-      measurementTopic(siteId, deviceId, measurementName, meas.unit as TopicUnit),
-    );
-  }
-  return matches;
-}
-
 /** Sum, or null unless every device has reported (constitution §3.4). */
 export function sumIfComplete(values: readonly (number | null)[]): number | null {
   if (values.length === 0 || values.includes(null)) return null;
@@ -108,23 +83,23 @@ export function useFleetKpis(): FleetKpis {
   // underlying leaf devices. useMemo keeps the topic lists stable so the
   // inner useAggregateMeasurements doesn't resubscribe on every render.
   const socTopics = useMemo(
-    () => topicsForMeasurement(view, siteId, "bess_module", "state_of_charge"),
+    () => familyTopics(view, siteId, "bess_module", ["state_of_charge"]),
     [view, siteId],
   );
   const computePowerTopics = useMemo(
-    () => topicsForMeasurement(view, siteId, "compute_module", "total_power"),
+    () => familyTopics(view, siteId, "compute_module", ["total_power"]),
     [view, siteId],
   );
   const bessPowerTopics = useMemo(
-    () => topicsForMeasurement(view, siteId, "bess_module", "active_power"),
+    () => familyTopics(view, siteId, "bess_module", ["active_power"]),
     [view, siteId],
   );
   const gridPowerTopics = useMemo(
-    () => topicsForMeasurement(view, siteId, "poi_meter", "active_power"),
+    () => familyTopics(view, siteId, "poi_meter", ["active_power"]),
     [view, siteId],
   );
   const gridFreqTopics = useMemo(
-    () => topicsForMeasurement(view, siteId, "grid_module", "grid_frequency"),
+    () => familyTopics(view, siteId, "grid_module", ["grid_frequency"]),
     [view, siteId],
   );
 

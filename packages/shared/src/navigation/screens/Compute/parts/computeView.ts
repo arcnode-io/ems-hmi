@@ -1,11 +1,12 @@
 /** Compute screen view-model: pure formatting over the live GPU fleet. */
 
+import { inFamily } from "../../../../data/topology/templateFamily";
 import type { GpuFleet, GpuNodeSummary } from "../../../../data/compute/useGpuFleet";
 import type { ActiveAlarm } from "../../../../data/alarms/useAlarms";
 import { gpuStripMetrics, type StripMetric } from "../../Overview/parts/gpuStripMetrics";
 
 const DASH = "—";
-const COMPUTE_TEMPLATES: ReadonlySet<string> = new Set(["gpu_node", "compute_module"]);
+const COMPUTE_FAMILIES = ["gpu_node", "compute_module"] as const;
 // Reason: advisory band starts at 90% of the node PSU cap, read live — never hardcoded.
 const WARN_FRACTION = 0.9;
 
@@ -61,5 +62,8 @@ export function computeAlarms(
   alarms: readonly ActiveAlarm[],
   templateOf: (deviceId: string) => string | undefined,
 ): ActiveAlarm[] {
-  return alarms.filter((alarm) => COMPUTE_TEMPLATES.has(templateOf(alarm.deviceId) ?? ""));
+  return alarms.filter((alarm) => {
+    const template = templateOf(alarm.deviceId);
+    return template !== undefined && COMPUTE_FAMILIES.some((family) => inFamily(template, family));
+  });
 }

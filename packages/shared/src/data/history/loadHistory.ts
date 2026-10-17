@@ -4,6 +4,7 @@
  * regenerated with new ids).
  */
 
+import { inFamily } from "../topology/templateFamily";
 import type { TopologyViewType } from "../topology/topology.schema";
 import { fetchSeries, type FetchFn } from "./measurementsApi";
 import { EMPTY_BALANCE, sumSeries, WINDOW_MS, type BalanceSeries, type TimePoint } from "./powerBalance";
@@ -11,9 +12,9 @@ import { EMPTY_BALANCE, sumSeries, WINDOW_MS, type BalanceSeries, type TimePoint
 // Reason: 10 s buckets → 90 points over 15 min; live samples take over after.
 const BUCKET_S = 10;
 
-function idsOf(view: Pick<TopologyViewType, "devices">, template: string): string[] {
+function idsOf(view: Pick<TopologyViewType, "devices">, family: string): string[] {
   return Object.values(view.devices)
-    .filter((dev) => dev.template === template)
+    .filter((dev) => inFamily(dev.template, family))
     .map((dev) => dev.device_id);
 }
 

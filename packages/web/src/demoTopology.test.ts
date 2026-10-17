@@ -1,119 +1,74 @@
 /**
- * Guards the demo topology fixture against the measurements the HMI's
- * hooks actually read, so the public demo can't silently go to "—".
+ * Guards the demo topology — public/api/topology/view.json. It is generated,
+ * never hand-edited: the made-up demo order's DTM (edp-api f068c5d,
+ * 64×H100 · 10 MWh Megapack · ERCOT flex), commissioned against the demo
+ * box's simulators, then projected by device-api exactly as product does:
+ *
+ *   (ems-device-api) npm run -s topology-view -- <commissioned-dtm.json> > view.json
+ *
+ * These checks pin what the demo needs from that file, so a regen that
+ * breaks a screen fails here rather than going quietly blank.
  */
 
 import { readFileSync } from "fs";
 import { join } from "path";
 import { TopologyView } from "@ems-hmi/shared/data/topology/topology.schema";
 import { gpuNodeTopics } from "@ems-hmi/shared/data/compute/useGpuFleet";
+import { setpointRangeKw } from "@ems-hmi/shared/data/dispatch/setpointRange";
+import { layoutSld } from "@ems-hmi/shared/navigation/screens/Sld/layout/layoutSld";
 
-interface Fixture {
-  templates_used: Record<
-    string,
-    { measurements: Record<string, { bounds: { nominal: number } | null }> }
-  >;
-}
-
-const VIEW: Fixture = JSON.parse(
-  readFileSync(
-    join(__dirname, "..", "public", "api", "topology", "view.json"),
-    "utf8",
+const VIEW = TopologyView.parse(
+  JSON.parse(
+    readFileSync(
+      join(__dirname, "..", "public", "api", "topology", "view.json"),
+      "utf8",
+    ),
   ),
-) as Fixture;
+);
 
-describe("demo topology — power quality", () => {
-  it("reads MV bus voltage + unbalance from the relay, not the passive switchgear", () => {
-    // Arrange
-    const relay = Object.keys(
-      VIEW.templates_used.protective_relay?.measurements ?? {},
-    );
-    const switchgear = Object.keys(
-      VIEW.templates_used.switchgear?.measurements ?? {},
+describe("demo topology", () => {
+  it("is a commissioned site — every device provisioned, as a running product site would be", () => {
+    // Arrange / Act
+    const unprovisioned = Object.values(VIEW.devices).filter(
+      (device) => device.provisioned === false,
     );
 
-    // Act
-    const relayHasPq = [
-      "phase_voltage_a",
-      "phase_voltage_b",
-      "phase_voltage_c",
-      "voltage_unbalance_pct",
-    ].every((name) => relay.includes(name));
+    // Assert
+    expect(unprovisioned).toEqual([]);
+  });
+
+  it("draws the full one-line: POI, site bus, switchgear, battery, LV board and every compute module", () => {
+    // Arrange / Act
+    const templates = layoutSld(VIEW)
+      .nodes.map((node) => node.template)
+      .sort();
 
     // Assert
-    expect({ relayHasPq, switchgear }).toEqual({
-      relayHasPq: true,
-      switchgear: [],
-    });
-  });
-
-  it("uses a 12.47 kV system's phase-to-neutral nominal, matching ics-engineer's relay fixture", () => {
-    // Arrange + Act
-    const nominal =
-      VIEW.templates_used.protective_relay?.measurements.phase_voltage_a?.bounds
-        ?.nominal;
-
-    // Assert — 12 470 / √3 (ems-industrial-fixtures fc94b6b)
-    expect(nominal).toBe(7200);
-  });
-
-  it("carries the PCC breaker on the relay and net power on the POI meter", () => {
-    // Arrange
-    const relay = Object.keys(
-      VIEW.templates_used.protective_relay?.measurements ?? {},
+    expect(templates).toEqual(
+      [
+        "bess_module",
+        "bess_rack",
+        "bess_rack",
+        "bess_rack",
+        "compute_module_h100",
+        "compute_module_h100",
+        "lv_switchboard",
+        "poi_meter",
+        "switchgear",
+      ].sort(),
     );
-    const meter = Object.keys(
-      VIEW.templates_used.poi_meter?.measurements ?? {},
-    );
-
-    // Act
-    const present = {
-      breaker: ["breaker_closed", "trip_status"].every((name) =>
-        relay.includes(name),
-      ),
-      netPower: meter.includes("active_power"),
-    };
-
-    // Assert
-    expect(present).toEqual({ breaker: true, netPower: true });
   });
-});
 
-describe("demo topology — GPU fleet", () => {
-  it("parses with GPU nodes carrying per-GPU caps, whose throttle enum can only read NA", () => {
-    // Arrange — mock enums cycle through `values`; anything but NA would fake throttling
-    const view = TopologyView.parse(VIEW);
-
-    // Act
-    const nodes = gpuNodeTopics(view, "local_site");
-    const throttleLabels = Object.entries(
-      view.templates_used.gpu_node?.measurements ?? {},
-    )
-      .filter(([name]) => name.endsWith("_throttle_reason"))
-      .flatMap(([, meas]) => Object.values(meas.values ?? {}));
+  it("finds the H100 fleet and gives the battery a dispatch range", () => {
+    // Arrange / Act
+    const nodes = gpuNodeTopics(VIEW, "s");
+    const range = setpointRangeKw(VIEW, "bess_module_1");
 
     // Assert
-    expect({
-      nodes: nodes.length,
-      gpusPerNode: nodes[0]?.throttle.length,
-      capsPerNode: nodes[0]?.gpuLimits.length,
-      labels: [...new Set(throttleLabels)],
-    }).toEqual({ nodes: 32, gpusPerNode: 8, capsPerNode: 8, labels: ["NA"] });
-  });
-});
-
-describe("demo topology — power balance", () => {
-  it("gives compute_module a total_power the chart's compute line reads", () => {
-    // Arrange
-    const view = TopologyView.parse(VIEW);
-
-    // Act
-    const total = view.templates_used.compute_module?.measurements.total_power;
-
-    // Assert
-    expect({
-      unit: total?.unit,
-      nominalKw: (total?.bounds?.nominal ?? 0) / 1000,
-    }).toEqual({ unit: "watts", nominalKw: 345 });
+    expect([nodes.length, nodes[0]?.throttle.length, range]).toEqual([
+      14,
+      8,
+      { minKw: -5781, maxKw: 5781 },
+    ]);
   });
 });

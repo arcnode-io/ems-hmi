@@ -7,6 +7,7 @@
  * filter chips but per-device, not per-class.
  */
 
+import { moduleTypeOf } from "../../Modules/useModuleRows";
 import React from "react";
 import { ScrollView, Pressable, View, Text } from "react-native";
 import { match } from "ts-pattern";
@@ -16,14 +17,6 @@ import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
 import { useTopologyView } from "../../../../data/topology/useTopologyView";
 import { useAlarms } from "../../../../data/alarms/useAlarms";
 import type { ModuleType } from "../../../../components/composed/ModuleCard/ModuleCard";
-
-function templateToType(template: string): ModuleType | null {
-  return match(template)
-    .with("bess_module", () => "bess" as const)
-    .with("compute_module", () => "compute" as const)
-    .with("grid_module", () => "grid" as const)
-    .otherwise(() => null);
-}
 
 function domainColor(t: Theme, mt: ModuleType): string {
   return match(mt)
@@ -46,7 +39,7 @@ export function BadgeStrip({ onSelect }: BadgeStripProps): React.ReactElement {
   const chips = view
     ? Object.entries(view.devices)
         .map(([deviceId, device]) => {
-          const moduleType = templateToType(device.template);
+          const moduleType = moduleTypeOf(device.template);
           if (!moduleType) return null;
           const deviceAlarms = alarms.filter((a) => a.deviceId === deviceId);
           const railHex =

@@ -9,9 +9,10 @@ import type { TopologyViewType } from "../topology/topology.schema";
 import { useTopologyView } from "../topology/useTopologyView";
 import { useDeploymentIdentity } from "../deployment/useDeploymentIdentity";
 import { useAggregateMeasurements } from "../mqtt/useAggregateMeasurements";
+import { inFamily } from "../topology/templateFamily";
 import { measurementTopic, type TopicUnit } from "../topics/topicBuilder";
 
-const GPU_NODE_TEMPLATE = "gpu_node";
+const GPU_NODE_FAMILY = "gpu_node";
 // ~2.7k msgs/s across the fleet — one render per second is plenty.
 const FLUSH_MS = 1000;
 const THROTTLE_KEY = /^gpu_(\d+)_throttle_reason$/;
@@ -86,20 +87,19 @@ function readMeasurements(measurements: Record<string, unknown>): { name: string
 }
 
 /**
- * Per-node read keys (concrete topics) for every gpu_node in the view. GPU
+ * Per-node read keys (concrete topics) for every gpu_node-family node in the view. GPU
  * count comes from the template's `gpu_N_*` keys, not a hardcoded 8.
  */
 export function gpuNodeTopics(
   view: Pick<TopologyViewType, "devices" | "templates_used">,
   siteId: string,
 ): GpuNodeTopics[] {
-  const template = view.templates_used[GPU_NODE_TEMPLATE];
-  if (template === undefined) return [];
-  const throttleNames = perGpuNames(template.measurements, THROTTLE_KEY);
-  const limitNames = perGpuNames(template.measurements, GPU_LIMIT_KEY);
   return Object.values(view.devices)
-    .filter((dev) => dev.template === GPU_NODE_TEMPLATE)
+    .filter((dev) => inFamily(dev.template, GPU_NODE_FAMILY) && view.templates_used[dev.template] !== undefined)
     .map((dev) => {
+      const measurements = view.templates_used[dev.template]!.measurements;
+      const throttleNames = perGpuNames(measurements, THROTTLE_KEY);
+      const limitNames = perGpuNames(measurements, GPU_LIMIT_KEY);
       const topic = (name: string, unit: TopicUnit): string =>
         measurementTopic(siteId, dev.device_id, name, unit);
       return {
@@ -124,11 +124,11 @@ export function gpuFleetFilters(
   view: Pick<TopologyViewType, "devices" | "templates_used">,
   siteId: string,
 ): string[] {
-  const template = view.templates_used[GPU_NODE_TEMPLATE];
-  if (template === undefined) return [];
-  return readMeasurements(template.measurements).map(
-    ({ name, unit }) => `sites/${siteId}/devices/+/measurements/${name}/${unit}`,
-  );
+  const filters = Object.entries(view.templates_used)
+    .filter(([name]) => inFamily(name, GPU_NODE_FAMILY))
+    .flatMap(([, template]) => readMeasurements(template.measurements))
+    .map(({ name, unit }) => `sites/${siteId}/devices/+/measurements/${name}/${unit}`);
+  return [...new Set(filters)];
 }
 
 const NOT_THROTTLING = "NA";

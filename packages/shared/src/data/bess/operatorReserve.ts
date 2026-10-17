@@ -5,10 +5,11 @@
  * contract 2026-10-03: retained state (absent = 0), set command `{ts, value}`.
  */
 
+import { inFamily } from "../topology/templateFamily";
 import type { TopologyViewType } from "../topology/topology.schema";
 import { commandTopic, measurementTopic } from "../topics/topicBuilder";
 
-const DER_DISPATCH_TEMPLATE = "der_dispatch";
+const DER_DISPATCH_FAMILY = "der_dispatch";
 const RESERVE = "operator_reserve";
 // Reason: half-MWh is fine-grained enough for a ride-through reserve and
 // keeps the stepper to a handful of clicks across an 8 MWh pack.
@@ -22,9 +23,8 @@ export function operatorReserveTopics(
   view: Pick<TopologyViewType, "devices" | "templates_used">,
   siteId: string,
 ): { state: string; command: string } | null {
-  if (view.templates_used[DER_DISPATCH_TEMPLATE]?.measurements[RESERVE] === undefined) return null;
-  const device = Object.values(view.devices).find((dev) => dev.template === DER_DISPATCH_TEMPLATE);
-  if (device === undefined) return null;
+  const device = Object.values(view.devices).find((dev) => inFamily(dev.template, DER_DISPATCH_FAMILY));
+  if (device === undefined || view.templates_used[device.template]?.measurements[RESERVE] === undefined) return null;
   return {
     state: measurementTopic(siteId, device.device_id, RESERVE, "watt_hours"),
     command: commandTopic(siteId, device.device_id, "set", RESERVE, "watt_hours"),

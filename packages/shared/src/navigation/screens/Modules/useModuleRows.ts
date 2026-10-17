@@ -9,8 +9,8 @@
  * table when a new template lands.
  */
 
+import { inFamily } from "../../../data/topology/templateFamily";
 import { useMemo } from "react";
-import { match } from "ts-pattern";
 import { useTopologyView } from "../../../data/topology/useTopologyView";
 import { useAlarms, type ActiveAlarm } from "../../../data/alarms/useAlarms";
 import { useAggregateMeasurements } from "../../../data/mqtt/useAggregateMeasurements";
@@ -39,7 +39,8 @@ interface MetricSpec {
 }
 
 /**
- * Per-template: the three at-a-glance metrics to display. Each entry's
+ * Per-template family (variants share their family's row, unless listed
+ * themselves — bess_module_dc reports differently): the at-a-glance metrics. Each entry's
  * `measurementName` MUST exist on the template (else cell renders as "—").
  */
 const METRIC_SPEC: Record<string, MetricSpec[]> = {
@@ -55,8 +56,8 @@ const METRIC_SPEC: Record<string, MetricSpec[]> = {
     { label: "Export headroom", measurementName: "export_headroom", unit: "MW", format: (v) => `${(v / 1_000_000).toFixed(1)}` },
   ],
   compute_module: [
-    { label: "Util", measurementName: "gpu_utilization", unit: "%", colorHint: "compute" },
-    { label: "Draw", measurementName: "active_power", unit: "kW", format: (v) => `${(v / 1000).toFixed(1)}` },
+    { label: "Draw", measurementName: "total_power", unit: "kW", colorHint: "compute", format: (v) => `${(v / 1000).toFixed(1)}` },
+    { label: "Heat", measurementName: "total_thermal_load", unit: "kW", format: (v) => `${(v / 1000).toFixed(1)}` },
   ],
   grid_module: [
     { label: "Net", measurementName: "net_active_power", unit: "kW", colorHint: "grid", format: (v) => `${(v / 1000).toFixed(1)}` },
@@ -64,12 +65,23 @@ const METRIC_SPEC: Record<string, MetricSpec[]> = {
   ],
 };
 
-function templateToModuleType(templateName: string): ModuleType | null {
-  return match(templateName)
-    .with("bess_module", "bess_module_dc", () => "bess" as const)
-    .with("compute_module", () => "compute" as const)
-    .with("grid_module", () => "grid" as const)
-    .otherwise(() => null);
+/** Most specific METRIC_SPEC entry for a template (exact, else its family). */
+function specsFor(template: string): MetricSpec[] {
+  const key = Object.keys(METRIC_SPEC)
+    .filter((family) => inFamily(template, family))
+    .sort((a, b) => b.length - a.length)[0];
+  return key ? METRIC_SPEC[key] ?? [] : [];
+}
+
+const MODULE_FAMILIES: ReadonlyArray<[string, ModuleType]> = [
+  ["bess_module", "bess"],
+  ["compute_module", "compute"],
+  ["grid_module", "grid"],
+];
+
+/** Module card type by template family (variants included). Shared with the SLD badge strip. */
+export function moduleTypeOf(template: string): ModuleType | null {
+  return MODULE_FAMILIES.find(([family]) => inFamily(template, family))?.[1] ?? null;
 }
 
 function statusFromAlarms(alarms: ActiveAlarm[]): StatusVariant {
@@ -95,7 +107,7 @@ export function useModuleRows(): ModuleRow[] {
     for (const [deviceId, device] of Object.entries(view.devices)) {
       const tpl = view.templates_used[device.template];
       if (!tpl) continue;
-      const specs = METRIC_SPEC[device.template] ?? [];
+      const specs = specsFor(device.template);
       for (const s of specs) {
         const meas = tpl.measurements[s.measurementName];
         if (!meas) continue;
@@ -119,10 +131,10 @@ export function useModuleRows(): ModuleRow[] {
       // hardware only. `kind: leaf` devices (utility-side feeds, sub-
       // component sensors) surface contextually elsewhere.
       if (tpl.kind !== "module") continue;
-      const moduleType = templateToModuleType(device.template);
+      const moduleType = moduleTypeOf(device.template);
       if (!moduleType) continue;
       const deviceAlarms = allAlarms.filter((a) => a.deviceId === deviceId);
-      const specs = METRIC_SPEC[device.template] ?? [];
+      const specs = specsFor(device.template);
       const measurements: ModuleMeasurement[] = specs.map((s) => {
         const meas = tpl.measurements[s.measurementName];
         if (!meas) {

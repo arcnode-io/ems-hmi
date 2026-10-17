@@ -3,6 +3,7 @@
  * their latest values, plus the parent device and device_id.
  */
 
+import { inFamily } from "../../../data/topology/templateFamily";
 import React, { useMemo } from "react";
 import { View, Text, ScrollView, Pressable } from "react-native";
 import {
@@ -24,9 +25,9 @@ import { useLoto } from "../../../data/loto/useLoto";
 import type { RootStackParamList } from "../../routes";
 
 /** Template that exposes operator dispatch control. */
-const DISPATCHABLE_TEMPLATE = "bess_module";
+const DISPATCHABLE_FAMILY = "bess_module";
 /** Template with a real, dedicated detail body — see BessDetailBody's doc comment. */
-const RICH_DETAIL_TEMPLATE = "bess_module";
+const RICH_DETAIL_FAMILY = "bess_module";
 
 interface DeviceDetailScreenProps {
   route: { params: { deviceId: string } };
@@ -94,7 +95,7 @@ export function DeviceDetailScreen({ route }: DeviceDetailScreenProps): React.Re
       {/* Reason: LOTO is set on operator-owned modules (rule 3.15); racks inherit it. */}
       {template.kind === "module" ? <LotoPanel deviceId={device.device_id} /> : null}
 
-      {device.template === RICH_DETAIL_TEMPLATE ? (
+      {inFamily(device.template, RICH_DETAIL_FAMILY) ? (
         <BessDetailBody
           deviceId={device.device_id}
           deviceDisplayName={device.display_name ?? device.device_id}
@@ -135,7 +136,7 @@ export function DeviceDetailScreen({ route }: DeviceDetailScreenProps): React.Re
             )}
           </View>
 
-          {device.template === DISPATCHABLE_TEMPLATE ? (
+          {inFamily(device.template, DISPATCHABLE_FAMILY) ? (
             <CommandPanel
               deviceId={device.device_id}
               deviceDisplayName={device.display_name ?? device.device_id}

@@ -34,7 +34,8 @@ export function useBessSocHistory(deviceId: string): SocSample[] {
   const bufferRef = useRef<SocSample[]>([]);
 
   const topic = useMemo(() => {
-    const m = view?.templates_used["bess_module"]?.measurements["state_of_charge"];
+    const template = view?.devices[deviceId]?.template;
+    const m = template ? view?.templates_used[template]?.measurements["state_of_charge"] : undefined;
     if (!m) return null;
     return measurementTopic(siteId, deviceId, "state_of_charge", m.unit as TopicUnit);
   }, [view, siteId, deviceId]);

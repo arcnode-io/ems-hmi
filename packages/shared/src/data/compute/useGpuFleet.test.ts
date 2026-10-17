@@ -70,6 +70,21 @@ describe("gpuFleetFrom", () => {
 });
 
 describe("gpuNodeTopics", () => {
+  it("finds a GPU-variant node template (gpu_node_h100) — every H100 site's fleet", () => {
+    // Arrange — rename the template the way edp-api names a variant
+    const base = viewWithGpuTemplate();
+    const view = {
+      devices: { h1: { ...base.devices.gpu_node_01!, device_id: "h1", template: "gpu_node_h100" } },
+      templates_used: { gpu_node_h100: { ...base.templates_used.gpu_node!, template: "gpu_node_h100" } },
+    };
+
+    // Act
+    const topics = gpuNodeTopics(view, "s1");
+
+    // Assert
+    expect(topics.map((t) => [t.deviceId, t.throttle.length])).toEqual([["h1", 2]]);
+  });
+
   it("builds the per-node topics to read out of the fleet subscription, per template GPU", () => {
     // Arrange — template with 2 GPUs; a pdu in the view must be ignored
     const view = viewWithGpuTemplate();

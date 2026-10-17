@@ -21,7 +21,7 @@ function collectErrors(page: Page): string[] {
 const IGNORE_PATTERN =
   /shadow.*deprecated|HTTP 404 fetching .*sld(-portrait)?\.svg|Failed to load resource: net::ERR/i;
 
-const DEVICE = "/devices/bess_module_01";
+const DEVICE = "/devices/bess_module_1";
 
 /** The stepper's "+" — stands in for any write control in the lock tests. */
 const plus = (panel: Locator): Locator => panel.locator('[data-comp="SetpointStepper"]').getByRole("button", { name: "+" });

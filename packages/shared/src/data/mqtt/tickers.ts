@@ -22,7 +22,7 @@ export interface Ticker {
 
 const DEFAULT_POLL_HZ = 1;
 const MEAN_REVERSION = 0.05; // 5% pull toward nominal per tick
-const STEP_FRACTION = 0.02; // step magnitude as fraction of (max - min)
+const STEP_FRACTION = 0.02; // step magnitude as fraction of the safe band
 
 /** Build the ticker plan once from a ready topology view. */
 export function buildTickerPlan(view: TopologyViewType, siteId: string): Ticker[] {
@@ -59,7 +59,9 @@ function buildTicker(topic: string, meas: MeasurementViewType, now: number): Tic
 
 /** Compute the next value for a ticker — mean-reverting Gaussian step. */
 export function nextFloatValue(t: Ticker): number {
-  const range = t.bounds.max - t.bounds.min;
+  // Reason: scale noise to the band the walk may use — full scale (55–65 Hz)
+  // made every step 0.2 Hz and pinned frequency to the 60.5 warn edge.
+  const range = t.safeMax - t.safeMin;
   const drift = (t.bounds.nominal - t.current) * MEAN_REVERSION;
   const noise = (Math.random() - 0.5) * 2 * range * STEP_FRACTION;
   const next = t.current + drift + noise;

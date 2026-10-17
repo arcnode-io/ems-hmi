@@ -6,6 +6,7 @@
  * `device.parent` rather than needing an allowlist.
  */
 
+import { inFamily } from "../topology/templateFamily";
 import { useMemo } from "react";
 import { useTopologyView } from "../topology/useTopologyView";
 import { useAggregateMeasurements } from "../mqtt/useAggregateMeasurements";
@@ -56,16 +57,16 @@ export function useBessRackRoster(moduleDeviceId: string): BessRackRow[] {
   const racks = useMemo(() => {
     if (!view) return [];
     return Object.entries(view.devices).filter(
-      ([, d]) => d.template === "bess_rack" && d.parent === moduleDeviceId,
+      ([, d]) => inFamily(d.template, "bess_rack") && d.parent === moduleDeviceId,
     );
   }, [view, moduleDeviceId]);
 
   const topics = useMemo(() => {
     if (!view) return [];
-    const tpl = view.templates_used["bess_rack"];
-    if (!tpl) return [];
     const list: string[] = [];
-    for (const [deviceId] of racks) {
+    for (const [deviceId, device] of racks) {
+      const tpl = view.templates_used[device.template];
+      if (!tpl) continue;
       for (const name of MEASUREMENTS) {
         const m = tpl.measurements[name];
         if (m) list.push(measurementTopic(siteId, deviceId, name, m.unit as TopicUnit));
@@ -86,7 +87,7 @@ export function useBessRackRoster(moduleDeviceId: string): BessRackRow[] {
       let operatingState: RackOperatingState | null = null;
 
       for (const name of MEASUREMENTS) {
-        const tpl = view?.templates_used["bess_rack"];
+        const tpl = view?.templates_used[device.template];
         const m = tpl?.measurements[name];
         if (!m) continue;
         const topic = measurementTopic(siteId, deviceId, name, m.unit as TopicUnit);

@@ -6,7 +6,7 @@
 
 import { test, expect, type Page } from "@playwright/test";
 
-const DEVICE = "/devices/bess_module_01";
+const DEVICE = "/devices/bess_module_1";
 
 async function addLock(page: Page, holder: string, permit = ""): Promise<void> {
   await page.getByTestId("loto-holder").fill(holder);

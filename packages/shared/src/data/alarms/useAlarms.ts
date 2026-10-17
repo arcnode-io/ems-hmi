@@ -26,6 +26,7 @@
  *  - Latency / debounce — hysteresis / cool-down per measurement.
  */
 
+import { inFamily } from "../topology/templateFamily";
 import { useMemo } from "react";
 import { match } from "ts-pattern";
 import { useTopologyView } from "../topology/useTopologyView";
@@ -85,7 +86,7 @@ type Watch = FloatWatch | EnumWatch;
 /**
  * Templates that surface as UTILITY alarms per rule 3.12.
  */
-const UTILITY_TEMPLATES = new Set(["operating_envelope"]);
+const UTILITY_FAMILIES = ["operating_envelope"] as const;
 
 /**
  * Build the watch list: every float measurement with thresholds, plus
@@ -100,7 +101,7 @@ function buildWatchList(
   for (const [deviceId, device] of Object.entries(view.devices)) {
     const tpl = view.templates_used[device.template];
     if (!tpl) continue;
-    const category = UTILITY_TEMPLATES.has(device.template) ? "UTILITY" : undefined;
+    const category = UTILITY_FAMILIES.some((f) => inFamily(device.template, f)) ? "UTILITY" : undefined;
     for (const [measName, meas] of Object.entries(tpl.measurements)) {
       if (meas.type === "float" && meas.thresholds) {
         list.push({

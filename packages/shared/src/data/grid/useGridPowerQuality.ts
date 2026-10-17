@@ -19,7 +19,7 @@ import { useMemo } from "react";
 import { useTopologyView } from "../topology/useTopologyView";
 import { useAggregateMeasurements } from "../mqtt/useAggregateMeasurements";
 import { useDeploymentIdentity } from "../deployment/useDeploymentIdentity";
-import { measurementTopic, type TopicUnit } from "../topics/topicBuilder";
+import { familyTopics } from "../topology/templateFamily";
 
 export interface GridPowerQuality {
   /** Average of the three MV bus phase-to-neutral voltages, volts. */
@@ -28,26 +28,6 @@ export interface GridPowerQuality {
   voltageUnbalancePct: number | null;
   /** Average per-phase voltage THD at the POI meter, percent. */
   thdVPercent: number | null;
-}
-
-function topicsFor(
-  view: ReturnType<typeof useTopologyView>["view"],
-  siteId: string,
-  templateName: string,
-  measurementNames: readonly string[],
-): string[] {
-  if (!view) return [];
-  const list: string[] = [];
-  for (const [deviceId, device] of Object.entries(view.devices)) {
-    if (device.template !== templateName) continue;
-    const tpl = view.templates_used[device.template];
-    if (!tpl) continue;
-    for (const name of measurementNames) {
-      const m = tpl.measurements[name];
-      if (m) list.push(measurementTopic(siteId, deviceId, name, m.unit as TopicUnit));
-    }
-  }
-  return list;
 }
 
 function average(values: number[]): number | null {
@@ -64,13 +44,13 @@ export function useGridPowerQuality(): GridPowerQuality {
 
   const topics = useMemo(() => {
     return [
-      ...topicsFor(view, siteId, "protective_relay", [
+      ...familyTopics(view, siteId, "protective_relay", [
         "phase_voltage_a",
         "phase_voltage_b",
         "phase_voltage_c",
         "voltage_unbalance_pct",
       ]),
-      ...topicsFor(view, siteId, "poi_meter", [
+      ...familyTopics(view, siteId, "poi_meter", [
         "thd_voltage_a",
         "thd_voltage_b",
         "thd_voltage_c",

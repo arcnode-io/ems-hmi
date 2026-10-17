@@ -5,11 +5,11 @@
  * no DNP point (edp-api dbea150).
  */
 
+import { familyTopics } from "../topology/templateFamily";
 import { useMemo } from "react";
 import { useTopologyView } from "../topology/useTopologyView";
 import { useAggregateMeasurements } from "../mqtt/useAggregateMeasurements";
 import { useDeploymentIdentity } from "../deployment/useDeploymentIdentity";
-import { measurementTopic, type TopicUnit } from "../topics/topicBuilder";
 
 export interface GridProtection {
   antiIslandingArmed: boolean | null;
@@ -24,20 +24,10 @@ export function useGridProtection(): GridProtection {
   const { view } = useTopologyView();
   const { siteId } = useDeploymentIdentity();
 
-  const topics = useMemo(() => {
-    if (!view) return [];
-    const list: string[] = [];
-    for (const [deviceId, device] of Object.entries(view.devices)) {
-      if (device.template !== "protective_relay") continue;
-      const tpl = view.templates_used[device.template];
-      if (!tpl) continue;
-      for (const name of ["anti_islanding_armed", "ride_through_enabled"]) {
-        const m = tpl.measurements[name];
-        if (m) list.push(measurementTopic(siteId, deviceId, name, m.unit as TopicUnit));
-      }
-    }
-    return list;
-  }, [view, siteId]);
+  const topics = useMemo(
+    () => familyTopics(view, siteId, "protective_relay", ["anti_islanding_armed", "ride_through_enabled"]),
+    [view, siteId],
+  );
 
   const messages = useAggregateMeasurements<number | boolean>(topics);
 
