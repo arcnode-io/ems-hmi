@@ -61,6 +61,10 @@ const DeviceView = z.object({
   // false = address still the commissioning placeholder (ADR §25) — render
   // grey, not a fault. Absent (device-api before the flag) = today's behaviour.
   provisioned: z.boolean().optional(),
+  // Per-device ranges device-api derives (00db186): today a BESS module's
+  // active_power = sum of its racks, the gateway's own clamp. Null when
+  // nothing derives one; absent (older device-api) reads as null too.
+  bounds: z.object({ active_power: Bounds }).nullable().default(null),
 });
 
 const BusMember = z.object({
