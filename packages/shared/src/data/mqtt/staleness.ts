@@ -1,9 +1,9 @@
 /**
- * staleness — max age for periodic telemetry, from the topology's declared
- * per-measurement poll rate. Opt-in per consumer (useAggregateMeasurements
- * staleAfterMs): only for periodic telemetry. On-change state (event_active,
- * operator_reserve, import_limit…) declares a nominal rate it doesn't keep, so
- * it must never use this.
+ * staleness — the global stale-reading policy (Joe, 2026-10-17), applied by
+ * both subscription hooks to every reading: unknown after STALE_AFTER_MISSED
+ * missed publishes at the catalog's `poll_rate_hz`. On-change state declares
+ * `poll_rate_hz: null` in the catalog and never expires. Non-measurement
+ * topics (dispatch events) never expire either.
  */
 
 import type { TopologyViewType } from "../topology/topology.schema";

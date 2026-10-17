@@ -4,6 +4,8 @@ import { MqttClientContext } from "./MqttProvider";
 import type { MqttClient, MqttMessage } from "./MqttClient";
 import { DEFAULT_FLUSH_MS, useAggregateMeasurements } from "./useAggregateMeasurements";
 import { MockMqttClientImpl } from "./MockMqttProvider";
+import { TopologyContext } from "../topology/TopologyProvider";
+import { ON_CHANGE_TOPIC, PERIODIC_TOPIC, STALE_TEST_VIEW } from "./staleTestView";
 
 type Listener = (msg: MqttMessage<unknown>, topic: string) => void;
 
@@ -142,43 +144,45 @@ describe("useAggregateMeasurements default batching", () => {
   });
 });
 
-describe("useAggregateMeasurements staleAfterMs", () => {
-  it("drops a topic that's gone silent past its max age, and keeps one still arriving", () => {
-    // Arrange — gateway "go quiet": a derived total stops publishing when an input dies
-    const client = fakeClient();
-    const { result } = renderHook(
-      () => useAggregateMeasurements<number>(["quiet", "live"], { staleAfterMs: () => 3000 }),
-      { wrapper: wrapperFor(client) },
-    );
-    act(() => client.emit("quiet", 73_500));
-    act(() => client.emit("live", 1));
+function topologyWrapperFor(client: MqttClient) {
+  return ({ children }: { children: React.ReactNode }): React.ReactElement => (
+    <TopologyContext.Provider value={{ status: "ready", view: STALE_TEST_VIEW, error: null, refetch: () => undefined }}>
+      <MqttClientContext.Provider value={client}>{children}</MqttClientContext.Provider>
+    </TopologyContext.Provider>
+  );
+}
 
-    // Act — 4 s pass; only "live" keeps publishing
+describe("useAggregateMeasurements stale readings (global policy)", () => {
+  it("drops a reading after 3 missed publishes at its catalog rate, and keeps one still arriving", () => {
+    // Arrange — 1 Hz reading; a second device-less topic keeps arriving
+    const client = fakeClient();
+    const { result } = renderHook(() => useAggregateMeasurements<number>([PERIODIC_TOPIC, "live"]), {
+      wrapper: topologyWrapperFor(client),
+    });
+    act(() => client.emit(PERIODIC_TOPIC, 73_500));
+
+    // Act — 4 s of silence on the 1 Hz reading
     for (let s = 0; s < 4; s++) {
       act(() => client.emit("live", s));
       act(() => { jest.advanceTimersByTime(1000); });
     }
 
     // Assert — absent = unknown, which renders "—"
-    expect({ quiet: result.current.quiet?.value ?? null, live: result.current.live?.value ?? null }).toEqual({
-      quiet: null,
-      live: 3,
-    });
+    expect([result.current[PERIODIC_TOPIC]?.value ?? null, result.current.live?.value]).toEqual([null, 3]);
   });
 
-  it("never expires a topic whose max age is null (on-change state, e.g. event_active)", () => {
+  it("never expires an on-change reading (catalog poll_rate_hz: null)", () => {
     // Arrange
     const client = fakeClient();
-    const { result } = renderHook(
-      () => useAggregateMeasurements<number>(["state"], { staleAfterMs: () => null }),
-      { wrapper: wrapperFor(client) },
-    );
-    act(() => client.emit("state", 1));
+    const { result } = renderHook(() => useAggregateMeasurements<number>([ON_CHANGE_TOPIC]), {
+      wrapper: topologyWrapperFor(client),
+    });
+    act(() => client.emit(ON_CHANGE_TOPIC, 1));
 
     // Act
     act(() => { jest.advanceTimersByTime(60 * 60 * 1000); });
 
     // Assert
-    expect(result.current.state?.value).toBe(1);
+    expect(result.current[ON_CHANGE_TOPIC]?.value).toBe(1);
   });
 });

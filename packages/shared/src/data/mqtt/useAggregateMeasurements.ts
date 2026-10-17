@@ -15,6 +15,8 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { MqttClientContext } from "./MqttProvider";
 import type { MqttMessage } from "./MqttClient";
+import { TopologyContext } from "../topology/TopologyProvider";
+import { staleAfterFor } from "./staleness";
 
 export type MessagesByTopic<T = unknown> = Record<string, MqttMessage<T>>;
 
@@ -34,12 +36,6 @@ export interface AggregateOptions {
    * a component that genuinely needs it — never one high in the tree).
    */
   flushMs?: number;
-  /**
-   * Max age per arrival topic, ms; null = never expires (on-change state).
-   * A topic silent longer than this drops out of the result — absent reads as
-   * unknown ("—"), never as its last value. Checked on the flush tick.
-   */
-  staleAfterMs?: (topic: string) => number | null;
 }
 
 /**
@@ -56,12 +52,16 @@ export function useAggregateMeasurements<T = unknown>(
   topics: readonly string[],
   options: AggregateOptions = {},
 ): MessagesByTopic<T> {
-  const { flushMs = DEFAULT_FLUSH_MS, staleAfterMs } = options;
+  const { flushMs = DEFAULT_FLUSH_MS } = options;
+  // Reason: stale policy is global (staleness.ts) — every reading expires
+  // after 3 missed publishes at its catalog rate; on-change never does.
+  const view = useContext(TopologyContext)?.view ?? null;
+  const staleAfterMs = view ? staleAfterFor(view) : undefined;
   const pending = useRef<MessagesByTopic<T>>({});
   // Local arrival time per topic (not the payload ts — no clock-skew games).
   const receivedAt = useRef<Record<string, number>>({});
-  // Reason: callers pass inline closures; read through a ref so a new
-  // identity each render doesn't resubscribe everything.
+  // Reason: read through a ref so a new closure each render doesn't
+  // resubscribe everything.
   const maxAge = useRef(staleAfterMs);
   maxAge.current = staleAfterMs;
   const client = useContext(MqttClientContext);
@@ -102,10 +102,8 @@ export function useAggregateMeasurements<T = unknown>(
     };
     // Reason: staleness needs a tick even with per-message renders (flushMs 0).
     const tickMs = flushMs === 0 ? DEFAULT_FLUSH_MS : flushMs;
-    const timer =
-      flushMs === 0 && staleAfterMs === undefined
-        ? undefined
-        : setInterval(() => {
+    // Reason: always tick — the topology (and so the stale limits) can land after subscribing.
+    const timer = setInterval(() => {
             const batch = pending.current;
             const gone = expired();
             if (Object.keys(batch).length === 0 && gone.length === 0) return;
@@ -118,7 +116,7 @@ export function useAggregateMeasurements<T = unknown>(
             });
           }, tickMs);
     return (): void => {
-      if (timer !== undefined) clearInterval(timer);
+      clearInterval(timer);
       for (const off of unsubs) off();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -68,6 +68,8 @@ No clock glyph. No dimming. Offline is offline.
 
 An unprovisioned site has to read as unknown everywhere. It must not read as healthy and idle.
 
+**A stale reading is unknown.** Every reading goes to `"—"` after 3 missed publishes at its catalog `poll_rate_hz`. The policy is applied once, in the subscription layer, so it covers every screen. On-change state (envelope limits, event flags, the operator reserve) declares `poll_rate_hz: null` and never expires: its publisher owns its freshness.
+
 ### 3.5 Fleet vs unit naming (was DS-007)
 The status strip's `FLEET SoC`, `GPU UTIL`, `GRID` are fleet-level aggregates by definition. When a unit-level metric with the same name appears on a detail screen (e.g. a single BESS's SoC), it **must** carry a `UNIT` qualifier or the device display name.
 
