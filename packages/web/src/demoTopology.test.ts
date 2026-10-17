@@ -37,7 +37,7 @@ describe("demo topology", () => {
     expect(unprovisioned).toEqual([]);
   });
 
-  it("draws the full one-line: POI, site bus, switchgear, battery, LV board and every compute module", () => {
+  it("draws the full one-line: POI, site bus, switchgear, feeder relay, battery, LV board and every compute module", () => {
     // Arrange / Act
     const templates = layoutSld(VIEW)
       .nodes.map((node) => node.template)
@@ -53,6 +53,7 @@ describe("demo topology", () => {
         "compute_module_h100",
         "compute_module_h100",
         "lv_switchboard",
+        "protective_relay",
         "poi_meter",
         "switchgear",
       ].sort(),

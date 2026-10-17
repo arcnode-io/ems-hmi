@@ -2,33 +2,34 @@
  * Fold a TopologyView into the SLD's electrical plan: the POI, the site MV
  * bus, and its branches in bus order. Pure — no React.
  *
- * Branch shapes (edp-api a4dd812):
- * - feeder: a switchgear on the site bus. Its grid container (shared
- *   parent) holds the transformer + LV board; the board's LV bus feeds
- *   the compute modules. MV→LV is implied by parentage, not a bus.
- * - storage: any other site-bus member (battery pad), with its children.
+ * Every link comes from bus membership (edp-api 9155fc1): a bus lists its
+ * source first, so "the bus D feeds" is the bus whose first member is D.
+ * POI → site bus → switchgear → ac_main feeder (relay, transformer HV) →
+ * transformer → LV bus (board, compute). Nothing is inferred from
+ * parentage; a missing member ends the trace there.
+ * - feeder: a switchgear on the site bus.
+ * - storage: any other site-bus member (battery pad), with its children
+ *   (containment, drawn dashed — not a conductor).
  */
 
 import type { BusType, TopologyViewType } from "../../../../data/topology/topology.schema";
 import { inFamily } from "../../../../data/topology/templateFamily";
-import {
-  LV_BOARD_TEMPLATE,
-  POI_TEMPLATE,
-  SITE_BUS_PREFIX,
-  SWITCHGEAR_TEMPLATE,
-  TRANSFORMER_TEMPLATE,
-} from "./constants";
+import { LV_BOARD_TEMPLATE, POI_TEMPLATE, SWITCHGEAR_TEMPLATE, TRANSFORMER_TEMPLATE } from "./constants";
 
 export type SldDevice = TopologyViewType["devices"][string];
 
 export interface Feeder {
   kind: "feeder";
   switchgear: SldDevice;
+  /** Bus the switchgear feeds (ac_main_N); null when it feeds none. */
+  feederBus: BusType | null;
+  /** Feeder-bus members besides the transformer (protective relay). */
+  taps: SldDevice[];
   transformer: SldDevice | null;
-  board: SldDevice | null;
-  /** LV bus the board feeds; null when the container has no compute. */
+  /** Bus the transformer feeds (lv_main_N). */
   lvBus: BusType | null;
-  /** lvBus members minus the board, in bus (C) order. */
+  board: SldDevice | null;
+  /** lvBus members minus the transformer and board, in bus (C) order. */
   loads: SldDevice[];
 }
 
@@ -51,28 +52,33 @@ function isDevice(d: SldDevice | undefined): d is SldDevice {
   return Boolean(d);
 }
 
-function devicesOn(view: TopologyViewType, bus: BusType): SldDevice[] {
-  return bus.members.map((m) => view.devices[m.device_id]).filter(isDevice);
+/** Members after the source, resolved to devices. */
+function fedBy(view: TopologyViewType, bus: BusType): SldDevice[] {
+  return bus.members.slice(1).map((m) => view.devices[m.device_id]).filter(isDevice);
 }
 
-/** Same-container device of `template` (e.g. switchgear → its transformer). */
-function sibling(view: TopologyViewType, of: SldDevice, template: string): SldDevice | null {
-  if (!of.parent) return null;
-  return Object.values(view.devices).find((d) => d.parent === of.parent && inFamily(d.template, template)) ?? null;
+/** The bus `device` sources — its first member. */
+function busFedBy(view: TopologyViewType, device: SldDevice | null): BusType | null {
+  if (!device) return null;
+  return view.buses.find((b) => b.members[0]?.device_id === device.device_id) ?? null;
 }
 
 function feederOf(view: TopologyViewType, switchgear: SldDevice): Feeder {
-  const board = sibling(view, switchgear, LV_BOARD_TEMPLATE);
-  const lvBus = board
-    ? view.buses.find((b) => b.members.some((m) => m.device_id === board.device_id)) ?? null
-    : null;
+  const feederBus = busFedBy(view, switchgear);
+  const onFeeder = feederBus ? fedBy(view, feederBus) : [];
+  const transformer = onFeeder.find((d) => inFamily(d.template, TRANSFORMER_TEMPLATE)) ?? null;
+  const lvBus = busFedBy(view, transformer);
+  const onLv = lvBus ? fedBy(view, lvBus) : [];
+  const board = onLv.find((d) => inFamily(d.template, LV_BOARD_TEMPLATE)) ?? null;
   return {
     kind: "feeder",
     switchgear,
-    transformer: sibling(view, switchgear, TRANSFORMER_TEMPLATE),
-    board,
+    feederBus,
+    taps: onFeeder.filter((d) => d !== transformer),
+    transformer,
     lvBus,
-    loads: lvBus ? devicesOn(view, lvBus).filter((d) => d !== board) : [],
+    board,
+    loads: onLv.filter((d) => d !== board),
   };
 }
 
@@ -83,9 +89,9 @@ function storageOf(view: TopologyViewType, module: SldDevice): Storage {
 
 export function planSld(view: TopologyViewType): SldPlan {
   const poi = Object.values(view.devices).find((d) => inFamily(d.template, POI_TEMPLATE)) ?? null;
-  const siteBus = view.buses.find((b) => b.bus_id.startsWith(SITE_BUS_PREFIX)) ?? null;
+  const siteBus = busFedBy(view, poi);
   const branches = siteBus
-    ? devicesOn(view, siteBus).map((d) =>
+    ? fedBy(view, siteBus).map((d) =>
         inFamily(d.template, SWITCHGEAR_TEMPLATE) ? feederOf(view, d) : storageOf(view, d),
       )
     : [];

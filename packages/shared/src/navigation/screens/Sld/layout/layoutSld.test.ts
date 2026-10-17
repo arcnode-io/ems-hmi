@@ -1,9 +1,10 @@
 /**
  * Tests for layoutSld — pure layout function. The topology mirrors a real
- * edp-api dc_ext order (a4dd812): POI on ac_main_1, a site MV bus holding
- * each grid container's switchgear + the battery pad, and one LV bus per
- * grid container feeding its compute modules. Asserts placement invariants,
- * not pixels.
+ * edp-api order (9155fc1): every bus lists its source first. The POI
+ * sources the site MV bus (switchgears + battery pad); each switchgear
+ * sources its ac_main feeder (relay + transformer HV); each transformer
+ * sources its LV bus (board + compute). Asserts placement invariants, not
+ * pixels.
  */
 
 import { layoutSld } from "./layoutSld";
@@ -74,11 +75,11 @@ function makeTopology(): TopologyViewType {
       pcs_2: device("pcs_2", "pcs", "bess_module_dc_1", "PCS-2"),
     },
     buses: [
-      { bus_id: "ac_main_1", type: "ac", members: [member("switchgear_1", "line_out"), member("poi_meter_1", "voltage_in"), member("protective_relay_1", "line_in")] },
-      { bus_id: "ac_main_2", type: "ac", members: [member("switchgear_2", "line_out"), member("protective_relay_2", "line_in")] },
-      { bus_id: "site_mv_1", type: "ac", members: [member("switchgear_1", "line_in"), member("switchgear_2", "line_in"), member("bess_module_dc_1", "ac_out")] },
-      { bus_id: "lv_main_1", type: "ac", members: [member("lv_switchboard_1", "feeder_out"), member("compute_module_1", "ac_in"), member("compute_module_2", "ac_in")] },
-      { bus_id: "lv_main_2", type: "ac", members: [member("lv_switchboard_2", "feeder_out"), member("compute_module_3", "ac_in")] },
+      { bus_id: "site_mv_1", type: "ac", members: [member("poi_meter_1", "voltage_in"), member("switchgear_1", "line_in"), member("switchgear_2", "line_in"), member("bess_module_dc_1", "ac_out")] },
+      { bus_id: "ac_main_1", type: "ac", members: [member("switchgear_1", "line_out"), member("protective_relay_1", "line_in"), member("transformer_1", "hv_in")] },
+      { bus_id: "ac_main_2", type: "ac", members: [member("switchgear_2", "line_out"), member("protective_relay_2", "line_in"), member("transformer_2", "hv_in")] },
+      { bus_id: "lv_main_1", type: "ac", members: [member("transformer_1", "lv_out"), member("lv_switchboard_1", "feeder_out"), member("compute_module_1", "ac_in"), member("compute_module_2", "ac_in")] },
+      { bus_id: "lv_main_2", type: "ac", members: [member("transformer_2", "lv_out"), member("lv_switchboard_2", "feeder_out"), member("compute_module_3", "ac_in")] },
     ],
     templates_used: TEMPLATES,
     bess: null,
@@ -93,27 +94,28 @@ describe("layoutSld", () => {
     // Act
     const ids = layoutSld(view).nodes.map((n) => n.id).sort();
 
-    // Assert — relays, grid containers and compute internals stay off the one-line
+    // Assert — grid containers and compute internals stay off the one-line
     expect(ids).toEqual(
       [
         "poi_meter_1",
-        "switchgear_1", "lv_switchboard_1", "compute_module_1", "compute_module_2",
-        "switchgear_2", "lv_switchboard_2", "compute_module_3",
+        "switchgear_1", "protective_relay_1", "lv_switchboard_1", "compute_module_1", "compute_module_2",
+        "switchgear_2", "protective_relay_2", "lv_switchboard_2", "compute_module_3",
         "bess_module_dc_1", "bess_catl_1", "pcs_1", "pcs_2",
       ].sort(),
     );
   });
 
-  it("stacks POI → site bus → switchgear → transformer → LV board → LV bus → compute", () => {
+  it("stacks POI → site bus → switchgear → feeder bus → transformer → LV board → LV bus → compute", () => {
     // Arrange
     const layout = layoutSld(makeTopology());
     const y = (id: string): number => layout.nodes.find((n) => n.id === id)!.y;
     const siteBus = layout.conductors.find((c) => c.id === "site_mv_1")!;
+    const feederBus = layout.conductors.find((c) => c.id === "ac_main_1")!;
     const lvBus = layout.conductors.find((c) => c.id === "lv_main_1")!;
     const xfmr = layout.decorations.find((d) => d.id === "transformer_1")!;
 
     // Act
-    const ys = [y("poi_meter_1"), siteBus.y1, y("switchgear_1"), xfmr.y, y("lv_switchboard_1"), lvBus.y1, y("compute_module_1")];
+    const ys = [y("poi_meter_1"), siteBus.y1, y("switchgear_1"), feederBus.y1, xfmr.y, y("lv_switchboard_1"), lvBus.y1, y("compute_module_1")];
 
     // Assert
     expect(ys).toEqual([...ys].sort((a, b) => a - b));
@@ -177,7 +179,7 @@ describe("layoutSld", () => {
     const big = makeTopology();
     for (let n = 4; n <= 12; n++) {
       Object.assign(big.devices, compute(n));
-      big.buses[4]!.members.push(member(`compute_module_${n}`, "ac_in"));
+      big.buses[3]!.members.push(member(`compute_module_${n}`, "ac_in"));
     }
 
     // Act
@@ -198,5 +200,47 @@ describe("layoutSld", () => {
 
     // Assert
     expect([c3.kind, c3.width]).toEqual(["module", layoutSld(makeTopology()).nodes.find((n) => n.id === "compute_module_3")!.width]);
+  });
+
+  it("hangs the relay off its feeder bus, beside the transformer drop", () => {
+    // Arrange
+    const layout = layoutSld(makeTopology());
+    const relay = layout.nodes.find((n) => n.id === "protective_relay_1")!;
+    const feederBus = layout.conductors.find((c) => c.id === "ac_main_1")!;
+    const xfmr = layout.decorations.find((d) => d.id === "transformer_1")!;
+
+    // Act
+    const spans = [feederBus.x1, feederBus.x2];
+
+    // Assert
+    expect(relay.y).toBeGreaterThan(feederBus.y1);
+    expect(relay.x).not.toBe(xfmr.x);
+    expect(Math.min(...spans)).toBeLessThanOrEqual(Math.min(relay.x, xfmr.x));
+    expect(Math.max(...spans)).toBeGreaterThanOrEqual(Math.max(relay.x, xfmr.x));
+  });
+
+  it("draws nothing past a feeder bus that doesn't reach a transformer — no link is inferred", () => {
+    // Arrange — G2's transformer dropped off ac_main_2
+    const view = makeTopology();
+    view.buses[2]!.members = view.buses[2]!.members.filter((m) => m.device_id !== "transformer_2");
+
+    // Act
+    const ids = layoutSld(view).nodes.map((n) => n.id);
+
+    // Assert
+    expect([ids.includes("switchgear_2"), ids.includes("lv_switchboard_2"), ids.includes("compute_module_3")]).toEqual([true, false, false]);
+  });
+
+  it("draws no site bus when nothing on the POI's bus lists it as source", () => {
+    // Arrange — pre-9155fc1 shape: POI tapped onto a feeder, not sourcing the site bus
+    const view = makeTopology();
+    view.buses[0]!.members = view.buses[0]!.members.filter((m) => m.device_id !== "poi_meter_1");
+    view.buses[1]!.members.push(member("poi_meter_1", "voltage_in"));
+
+    // Act
+    const layout = layoutSld(view);
+
+    // Assert
+    expect(layout.conductors.some((c) => c.id === "site_mv_1")).toBe(false);
   });
 });
