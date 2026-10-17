@@ -12,7 +12,7 @@ import { ConductorPath, Particle } from "./Conductor";
 import { DecorationByKind } from "./Decorations";
 import { NodeBox } from "./NodeBox";
 
-export type SldNodeStatus = "ok" | "warn" | "alarm" | "offline" | "unprovisioned";
+export type SldNodeStatus = "ok" | "warn" | "alarm" | "offline" | "unprovisioned" | "unknown";
 
 export interface PoiOverlay {
   netAtMeter: string;
@@ -29,7 +29,7 @@ export interface SldTheme {
   text: string;
   textMid: string;
   textSoft: string;
-  statusOk: string;
+  statusOffline: string;
   statusLoto: string;
   fontLabel: string;
 }
@@ -43,7 +43,7 @@ export function sldThemeFrom(t: Theme): SldTheme {
     text: t.text,
     textMid: t.textMid,
     textSoft: t.textSoft,
-    statusOk: t.statusOk,
+    statusOffline: t.statusOffline,
     statusLoto: t.statusLoto,
     fontLabel: t.fontLabel,
   };
@@ -82,7 +82,7 @@ export function SldRenderer({
   poiOverlay,
   lockedDevices,
 }: SldRendererProps): React.ReactElement {
-  const statusFillFor = statusFillResolver(statusByDevice, statusColors, theme.statusOk);
+  const statusFillFor = statusFillResolver(statusByDevice, statusColors, theme.statusOffline);
   return (
     <Svg width={layout.width} height={layout.height} viewBox={`0 0 ${layout.width} ${layout.height}`}>
       {layout.conductors.map((c) => (

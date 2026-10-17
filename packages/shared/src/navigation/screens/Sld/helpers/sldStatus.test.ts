@@ -98,19 +98,21 @@ describe("buildPoiOverlay", () => {
 });
 
 describe("deviceStatuses", () => {
-  it("marks provisioned:false devices unprovisioned and leaves the rest to alarms", () => {
+  it("is unknown until a device reports, then ok unless alarmed; unprovisioned wins", () => {
     // Arrange
     const devices = {
       meter_01: { provisioned: false },
       bess_01: { provisioned: true },
       cdu_01: {},
+      pcs_01: {},
     };
+    const reporting = new Set(["bess_01", "cdu_01"]);
 
     // Act
-    const statuses = deviceStatuses(devices, [alarm("bess_01", "warn")]);
+    const statuses = deviceStatuses(devices, [alarm("bess_01", "warn")], reporting);
 
     // Assert
-    expect(statuses).toEqual({ meter_01: "unprovisioned", bess_01: "warn" });
+    expect(statuses).toEqual({ meter_01: "unprovisioned", bess_01: "warn", cdu_01: "ok", pcs_01: "unknown" });
   });
 });
 
@@ -120,6 +122,6 @@ describe("statusColorsFromTheme unprovisioned", () => {
     const colors = statusColorsFromTheme(SOLARPUNK);
 
     // Assert
-    expect(colors.unprovisioned).toBe(SOLARPUNK.statusOffline);
+    expect([colors.unprovisioned, colors.unknown]).toEqual([SOLARPUNK.statusOffline, SOLARPUNK.statusOffline]);
   });
 });

@@ -4,11 +4,12 @@
  * Tap a chip → focus that node in the diagram (future).
  *
  * Driven from useTopologyView + useAlarms — same shape as the Modules
- * filter chips but per-device, not per-class.
+ * filter chips but per-device, not per-class. A chip with no alarm is
+ * only green once its device reports; silent → offline grey (unknown).
  */
 
 import { moduleTypeOf } from "../../Modules/useModuleRows";
-import React from "react";
+import React, { useMemo } from "react";
 import { ScrollView, Pressable, View, Text } from "react-native";
 import { match } from "ts-pattern";
 import { useTheme } from "../../../../theme/ThemeProvider";
@@ -16,6 +17,7 @@ import { resolveTypeStyle, type Theme } from "../../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
 import { useTopologyView } from "../../../../data/topology/useTopologyView";
 import { useAlarms } from "../../../../data/alarms/useAlarms";
+import { useReportingDevices } from "../../../../data/alarms/reportingDevices";
 import type { ModuleType } from "../../../../components/composed/ModuleCard/ModuleCard";
 
 function domainColor(t: Theme, mt: ModuleType): string {
@@ -35,6 +37,11 @@ export function BadgeStrip({ onSelect }: BadgeStripProps): React.ReactElement {
   const t = useTheme();
   const { view } = useTopologyView();
   const alarms = useAlarms();
+  const chipIds = useMemo(
+    () => (view ? Object.values(view.devices).filter((d) => moduleTypeOf(d.template)).map((d) => d.device_id) : []),
+    [view],
+  );
+  const reporting = useReportingDevices(chipIds);
 
   const chips = view
     ? Object.entries(view.devices)
@@ -47,7 +54,9 @@ export function BadgeStrip({ onSelect }: BadgeStripProps): React.ReactElement {
               ? t.statusAlarm
               : deviceAlarms.some((a) => a.severity === "warn")
                 ? t.statusWarn
-                : t.statusOk;
+                : reporting.has(deviceId)
+                  ? t.statusOk
+                  : t.statusOffline;
           return {
             id: deviceId,
             label: device.display_name ?? deviceId,

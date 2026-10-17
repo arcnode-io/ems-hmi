@@ -10,6 +10,7 @@ import { useGridMode } from "../../../../data/grid/useGridMode";
 import { useDerEventActive } from "../../../../data/grid/useDerEventActive";
 import { useTopologyView } from "../../../../data/topology/useTopologyView";
 import { useAlarms } from "../../../../data/alarms/useAlarms";
+import { useReportingDevices } from "../../../../data/alarms/reportingDevices";
 import { useLoto } from "../../../../data/loto/useLoto";
 import { layoutSld } from "../layout/layoutSld";
 import { SldRenderer, sldThemeFrom } from "../layout/SldRenderer";
@@ -58,12 +59,14 @@ export function SldCanvas({ onSelectDevice }: SldCanvasProps = {}): React.ReactE
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   const layout = useMemo(() => (view ? layoutSld(view) : null), [view]);
+  const nodeIds = useMemo(() => layout?.nodes.map((n) => n.id) ?? [], [layout]);
+  const reporting = useReportingDevices(nodeIds);
   const panZoom = usePanZoom(containerRef, layout);
 
   const sldTheme = useMemo(() => sldThemeFrom(t), [t]);
   const statusByDevice = useMemo(
-    () => deviceStatuses(view?.devices ?? {}, alarms),
-    [view, alarms],
+    () => deviceStatuses(view?.devices ?? {}, alarms, reporting),
+    [view, alarms, reporting],
   );
   const statusColors = useMemo(() => statusColorsFromTheme(t), [t]);
   const poiOverlay = useMemo(

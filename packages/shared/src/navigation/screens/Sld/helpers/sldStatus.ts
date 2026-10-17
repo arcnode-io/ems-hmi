@@ -29,18 +29,22 @@ export function foldAlarmsToStatus(
 
 /**
  * Per-device node status: unprovisioned (ADR §25 — no address yet, not a
- * fault) wins, since such a device can't have data to alarm on; otherwise
- * the highest alarm severity. Devices absent from the map render ok.
+ * fault) wins, since such a device can't have data to alarm on; then the
+ * highest alarm severity; then ok if it reports, unknown if it doesn't —
+ * no alarm on a silent device proves nothing (constitution §3.4).
  */
 export function deviceStatuses(
   devices: Readonly<Record<string, { provisioned?: boolean }>>,
   alarms: readonly ActiveAlarm[],
+  reporting: ReadonlySet<string>,
 ): Record<string, SldNodeStatus> {
-  const byDevice = foldAlarmsToStatus(alarms);
-  for (const [id, device] of Object.entries(devices)) {
-    if (device.provisioned === false) byDevice[id] = "unprovisioned";
-  }
-  return byDevice;
+  const alarmed = foldAlarmsToStatus(alarms);
+  return Object.fromEntries(
+    Object.entries(devices).map(([id, device]) => [
+      id,
+      device.provisioned === false ? "unprovisioned" : alarmed[id] ?? (reporting.has(id) ? "ok" : "unknown"),
+    ]),
+  );
 }
 
 export function statusColorsFromTheme(t: Theme): Record<SldNodeStatus, string> {
@@ -50,6 +54,7 @@ export function statusColorsFromTheme(t: Theme): Record<SldNodeStatus, string> {
     alarm: t.statusAlarm,
     offline: t.statusOffline,
     unprovisioned: t.statusOffline,
+    unknown: t.statusOffline,
   };
 }
 
