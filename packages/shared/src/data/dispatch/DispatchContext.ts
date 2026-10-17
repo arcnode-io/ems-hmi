@@ -1,27 +1,18 @@
 /**
- * DispatchContext — the dispatch lifecycle, owned by MockMqttProvider.
- *
- * Holds only slow-changing state (phase + window bounds). Consumers derive
- * fast values (countdown, live SoC, revenue) locally so the provider
- * re-renders only on phase transitions.
+ * DispatchContext — the dispatch lifecycle. One implementation
+ * (useRealDispatch over MQTT) for every mode; the demo differs only in who
+ * answers on the wire (the mock gateway, not a real one).
  */
 
 import { createContext } from "react";
-import type { DispatchProposal, DispatchState } from "./dispatch.types";
+import type { DispatchCommand, DispatchState } from "./dispatch.types";
 
 export interface DispatchControls {
   state: DispatchState;
-  /** Arm a confirmed dispatch. `socStartPct` is the pack SoC at confirm time. */
-  confirm: (proposal: DispatchProposal, socStartPct: number) => void;
-  /** Abort a dispatch that has not begun executing. */
+  /** Publish a confirmed setpoint command. */
+  confirm: (command: DispatchCommand) => void;
+  /** Drop the in-flight command's tracking and return to idle. */
   cancel: () => void;
-  /**
-   * Autopilot — when on, the standing proposal auto-confirms each time the
-   * lifecycle rests, no operator step. Demo-only (a real EMS optimizer
-   * drives this server-side).
-   */
-  autopilotOn: boolean;
-  setAutopilot: (on: boolean) => void;
 }
 
 export const DispatchContext = createContext<DispatchControls | null>(null);

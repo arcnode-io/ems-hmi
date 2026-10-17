@@ -30,7 +30,7 @@ test.describe("LOTO", () => {
     await expect(page.locator('[data-comp="LotoChip"]').first()).toBeVisible();
     await expect(panel.locator('[data-region="unlock-unavailable"]')).toBeVisible();
     await expect(panel.getByRole("button", { name: "Unlock controls" })).toHaveCount(0);
-    await expect(panel.getByTestId("autopilot-toggle")).toBeDisabled();
+    await expect(panel.locator('[data-comp="SetpointStepper"]').getByRole("button", { name: "+" })).toBeDisabled();
     await expect(page.locator('[data-comp="LotoHistoryRow"]')).toHaveCount(1);
 
     // Act — the Modules list shows the same state on the card.

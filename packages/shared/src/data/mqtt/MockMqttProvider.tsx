@@ -1,55 +1,24 @@
 /**
- * MockMqttProvider — drop-in for RealMqttProvider in demo mode.
- *
- * Behavior:
- *  - Reads TopologyContext to build a tick plan (see ./tickers): one ticker
- *    per (device, measurement). A single rAF loop services all tickers and
- *    auto-pauses when the tab is hidden.
- *  - Owns the dispatch lifecycle (DispatchSimulator). The rAF loop advances
- *    it and, while a dispatch is executing, lets the simulator override the
- *    dispatched device's active_power + state_of_charge tickers.
- *  - Alt+Shift+D forces a der_dispatch curtailment event on/off on demand
- *    (see ./demoCurtailmentToggle) — for camera takes, since the random
- *    walk can't be relied on to fire within a single take.
+ * MockMqttProvider — drop-in for RealMqttProvider in demo/local mode. Same
+ * flow as product: topology → subscribe, and dispatch through
+ * useRealDispatch over the wire. Only the far end is simulated:
+ *  - tickers (./tickers) publish the catalog-rated floats from a single rAF
+ *    loop that auto-pauses with the tab;
+ *  - MockGateway answers commands on the gateway's dispatch contract and
+ *    holds the commanded measurement at its setpoint.
  *
  * NEVER alarms — random walks stay inside [warn_min, warn_max] by clamp.
  */
 
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { MqttProvider } from "./MqttProvider";
-import type {
-  MqttClient,
-  MessageListener,
-  MqttMessage,
-  Unsubscribe,
-} from "./MqttClient";
+import type { MqttClient, MessageListener, MqttMessage, Unsubscribe } from "./MqttClient";
 import { useTopologyView } from "../topology/useTopologyView";
 import { buildTickerPlan, nextFloatValue, type Ticker } from "./tickers";
-import { DispatchSimulator } from "../dispatch/DispatchSimulator";
-import {
-  DispatchContext,
-  type DispatchControls,
-} from "../dispatch/DispatchContext";
-import {
-  autopilotProposal,
-  shouldRearm,
-  DEMO_DISPATCH_DEVICE_ID,
-} from "../dispatch/autopilot";
-import type {
-  DispatchProposal,
-  DispatchState,
-} from "../dispatch/dispatch.types";
+import { DispatchContext } from "../dispatch/DispatchContext";
 import { assertSubscribable, isWildcard, topicMatches } from "./topicMatches";
-import {
-  useDemoCurtailmentToggle,
-  DEMO_CURTAILMENT_CAP_W,
-} from "./demoCurtailmentToggle";
+import { MockGateway } from "./mockGateway";
+import { useRealDispatch, type PublishFrame } from "./useRealDispatch";
 
 /** A concrete MqttClient that talks to local listeners only. */
 export class MockMqttClientImpl implements MqttClient {
@@ -73,7 +42,7 @@ export class MockMqttClientImpl implements MqttClient {
   }
 
   publish(): void {
-    // Commands flow through DispatchContext in demo mode, not the wire.
+    // Commands go out as raw frames (publishFrame → MockGateway), not envelopes.
   }
 
   broadcast(topic: string, msg: MqttMessage<unknown>): void {
@@ -85,193 +54,41 @@ export class MockMqttClientImpl implements MqttClient {
   }
 }
 
-/**
- * Demo-mode alarm injection: measurement-topic suffix → stuck value. Tickers
- * matching the suffix bypass the safe-band clamp so threshold-derivation in
- * useAlarms trips. Suffix match so we don't hardcode the site id.
- */
-const DEMO_ALARM_INJECTIONS: Readonly<Record<string, number>> = {
-  // bess_module_02 SoC stuck at 12% — below warn_min (15) → trips warn.
-  "devices/bess_module_02/measurements/state_of_charge/percent": 12,
-};
-
-/** Find a demo-injection stuck value for a topic, if any. */
-function demoInjectionFor(topic: string): number | null {
-  for (const [suffix, value] of Object.entries(DEMO_ALARM_INJECTIONS)) {
-    if (topic.endsWith(suffix)) return value;
-  }
-  return null;
-}
-
-const INITIAL_DISPATCH: DispatchState = {
-  phase: "proposed",
-  proposal: null,
-  executingStartedAt: null,
-  executingEndsAt: null,
-  reason: null,
-};
-
-/** Mirror the simulator's slow-changing state for the context. */
-function snapshot(sim: DispatchSimulator): DispatchState {
-  const w = sim.executingWindow();
-  return {
-    phase: sim.phase(),
-    proposal: sim.proposal(),
-    executingStartedAt: w?.startedAt ?? null,
-    executingEndsAt: w?.endsAt ?? null,
-    reason: null, // the demo simulator never fails
-  };
-}
-
 interface MockMqttProviderProps {
   /** Site id used in topic strings — the active cfg.yml profile's siteId. */
   siteId: string;
-  /** Pass `false` to disable the canned demo alarms. Default `true`. */
-  demoAlarms?: boolean;
   children: React.ReactNode;
 }
 
-/**
- * Provider — wires Topology + Mock client + rAF tick loop + dispatch
- * lifecycle. Renders children inside MqttProvider + DispatchContext.
- */
-export function MockMqttProvider({
-  siteId,
-  demoAlarms = true,
-  children,
-}: MockMqttProviderProps): React.ReactElement {
+export function MockMqttProvider({ siteId, children }: MockMqttProviderProps): React.ReactElement {
   const { status, view } = useTopologyView();
   const client = useMemo(() => new MockMqttClientImpl(), []);
-  const tickersRef = useRef<Ticker[]>([]);
-  const simRef = useRef<DispatchSimulator>(new DispatchSimulator());
-  const rafRef = useRef<number | null>(null);
-  const [, force] = useState(0); // force re-render once tickers are armed
-  const [dispatchState, setDispatchState] =
-    useState<DispatchState>(INITIAL_DISPATCH);
-
-  // Autopilot — read from a ref inside the rAF loop (which doesn't re-close
-  // over state); the setter keeps both in sync. `restingSinceRef` stamps the
-  // moment the lifecycle enters `proposed` so the re-arm beat can elapse.
-  const [autopilotOn, setAutopilotState] = useState(false);
-  const autopilotOnRef = useRef(false);
-  const restingSinceRef = useRef<number | null>(null);
-  const setAutopilot = useCallback((on: boolean): void => {
-    autopilotOnRef.current = on;
-    setAutopilotState(on);
-  }, []);
-
-  // Alt+Shift+D demo-only curtailment override — see demoCurtailmentToggle's
-  // doc comment. Mirrored into a ref (not the tick effect's deps) so
-  // toggling it doesn't rebuild the ticker plan and reset every random walk.
-  const curtailmentOverride = useDemoCurtailmentToggle();
-  const curtailmentOverrideRef = useRef(false);
-  useEffect(() => {
-    curtailmentOverrideRef.current = curtailmentOverride;
-  }, [curtailmentOverride]);
-
-  const confirm = useCallback(
-    (proposal: DispatchProposal, socStartPct: number): void => {
-      simRef.current.confirm(proposal, socStartPct, performance.now());
-      setDispatchState(snapshot(simRef.current));
-    },
-    [],
+  const gateway = useMemo(
+    () => new MockGateway((topic, msg) => client.broadcast(topic, msg as MqttMessage<unknown>)),
+    [client],
   );
-  const cancel = useCallback((): void => {
-    simRef.current.cancel();
-    setDispatchState(snapshot(simRef.current));
-  }, []);
+  const tickersRef = useRef<Ticker[]>([]);
+  const rafRef = useRef<number | null>(null);
 
-  /** Current SoC of the demo BESS from its live ticker, or a nominal fallback. */
-  const demoBessSoc = useCallback((): number => {
-    const tk = tickersRef.current.find(
-      (x) =>
-        x.kind === "float" &&
-        x.deviceId === DEMO_DISPATCH_DEVICE_ID &&
-        x.measurement === "state_of_charge",
-    );
-    return tk && tk.kind === "float" ? tk.current : 60;
-  }, []);
-
-  /**
-   * ADR-002 §16: real mode has no client-side autopilot (the EMS optimizer
-   * drives it server-side — see useRealDispatch's doc comment), so this
-   * guard only needs to exist here. Reads the live der_dispatch.event_active
-   * ticker directly (the override-forced value included) rather than a
-   * separate subscription, since the provider already owns that state.
-   */
-  const demoDerEventActive = useCallback((): boolean => {
-    const tk = tickersRef.current.find(
-      (x) => x.kind === "bool" && x.topic.endsWith("/event_active/none"),
-    );
-    return tk && tk.kind === "bool" ? tk.current : false;
-  }, []);
+  const publishFrame = useCallback<PublishFrame>(
+    (topic, frame) => gateway.command(topic, frame, performance.now()),
+    [gateway],
+  );
+  const dispatch = useRealDispatch(client, publishFrame, siteId);
 
   useEffect(() => {
     if (status !== "ready" || !view) return;
     tickersRef.current = buildTickerPlan(view, siteId);
-    // Reason: buildTicker's generic bool default (current: true) is a
-    // reasonable resting state for most bools (energize_enabled,
-    // anti_islanding_armed, ride_through_enabled), but wrong for
-    // event_active specifically — a fresh demo session should start with
-    // no curtailment event, not one already firing (and, since the ADR-002
-    // §16 lockout, permanently hiding the dispatch Apply button).
-    const eventActiveTk = tickersRef.current.find(
-      (x) => x.kind === "bool" && x.topic.endsWith("/event_active/none"),
-    );
-    if (eventActiveTk && eventActiveTk.kind === "bool") eventActiveTk.current = false;
-    force((n) => n + 1);
 
     const tick = (): void => {
       const now = performance.now();
-      const sim = simRef.current;
-      if (sim.tick(now)) setDispatchState(snapshot(sim));
-
-      // Autopilot — re-confirm the standing proposal after each resting beat.
-      if (sim.phase() === "proposed") {
-        if (restingSinceRef.current === null) restingSinceRef.current = now;
-        if (
-          autopilotOnRef.current &&
-          shouldRearm(restingSinceRef.current, now) &&
-          !demoDerEventActive()
-        ) {
-          restingSinceRef.current = null;
-          const soc = demoBessSoc();
-          confirm(autopilotProposal(DEMO_DISPATCH_DEVICE_ID, soc), soc);
-        }
-      } else {
-        restingSinceRef.current = null;
-      }
-
+      gateway.tick(now);
       for (const t of tickersRef.current) {
-        if (now < t.nextDueAt) continue;
+        // Reason: a commanded measurement reports its setpoint (gateway-owned), not the walk.
+        if (now < t.nextDueAt || gateway.holds(t.topic)) continue;
         t.nextDueAt = now + t.intervalMs;
-        let value: unknown;
-        if (t.kind === "float") {
-          // Priority: dispatch override > demo alarm injection >
-          // demo curtailment override > random walk.
-          const override = sim.overrideFor(t.deviceId, t.measurement, now);
-          const stuck = demoAlarms ? demoInjectionFor(t.topic) : null;
-          const curtailed =
-            curtailmentOverrideRef.current && t.topic.endsWith("/target_active_power/watts")
-              ? DEMO_CURTAILMENT_CAP_W
-              : null;
-          if (override !== null) t.current = override;
-          else if (stuck !== null) t.current = stuck;
-          else if (curtailed !== null) t.current = curtailed;
-          else t.current = nextFloatValue(t);
-          value = t.current;
-        } else if (t.kind === "bool") {
-          if (curtailmentOverrideRef.current && t.topic.endsWith("/event_active/none")) {
-            t.current = true;
-          } else if (Math.random() < 0.01) {
-            t.current = !t.current;
-          }
-          value = t.current;
-        } else {
-          if (Math.random() < 0.05) t.index = (t.index + 1) % t.values.length;
-          value = t.values[t.index];
-        }
-        client.broadcast(t.topic, { ts: new Date().toISOString(), value });
+        t.current = nextFloatValue(t);
+        client.broadcast(t.topic, { ts: new Date().toISOString(), value: t.current });
       }
       rafRef.current = requestAnimationFrame(tick);
     };
@@ -282,24 +99,11 @@ export function MockMqttProvider({
       rafRef.current = null;
       tickersRef.current = [];
     };
-  }, [status, view, siteId, client, demoAlarms, confirm, demoBessSoc]);
-
-  const controls = useMemo<DispatchControls>(
-    () => ({
-      state: dispatchState,
-      confirm,
-      cancel,
-      autopilotOn,
-      setAutopilot,
-    }),
-    [dispatchState, confirm, cancel, autopilotOn, setAutopilot],
-  );
+  }, [status, view, siteId, client, gateway]);
 
   return (
     <MqttProvider client={client}>
-      <DispatchContext.Provider value={controls}>
-        {children}
-      </DispatchContext.Provider>
+      <DispatchContext.Provider value={dispatch}>{children}</DispatchContext.Provider>
     </MqttProvider>
   );
 }

@@ -3,7 +3,7 @@
  *
  * Per ADR-002 §16 (Joe, 2026-09-15): while a DER event is active,
  * der-control-api owns every bess_module's commands/set/active_power/watts
- * setpoint — the HMI's economic dispatch (operator-confirmed or autopilot)
+ * setpoint — the operator's dispatch
  * must hold off and show the operator why, checking this same retained
  * der_dispatch.event_active flag it already reads for the Grid screen.
  * Outside an event, the HMI owns dispatch as before.

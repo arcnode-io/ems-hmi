@@ -25,7 +25,6 @@ import {
   type DeploymentMode,
 } from "./data/deployment/deploymentMode";
 import { analystStream } from "./data/analyst/sse/analystStream";
-import { mockAnalystStream } from "./data/analyst/mockAnalystStream";
 import { NavigationRoot } from "./navigation/NavigationRoot";
 import { LoginScreen } from "./navigation/screens/Login/LoginScreen";
 import type { LoginPrefill } from "./navigation/screens/Login/LoginCard";
@@ -58,23 +57,13 @@ function topologyUrl(cfg: AppRootCfg): string {
 }
 
 /**
- * Live SSE stream by default; `?mock` in the URL swaps in the canned stream
- * so the Playwright e2e + offline dev get a deterministic, server-free run.
- */
-function resolveAnalystStream(): typeof analystStream {
-  const search = (globalThis as { location?: { search?: string } }).location
-    ?.search;
-  return search?.includes("mock") ? mockAnalystStream : analystStream;
-}
-
-/**
  * The authenticated app: topology + MQTT + analyst + navigation. Real broker in
  * real-backend modes (the gateway publishes live telemetry); deterministic Mock in demo/local.
  */
 function AppShell({ cfg }: { cfg: AppRootCfg }): React.ReactElement {
   const inner = (
     <LotoProvider>
-      <AnalystConversationProvider stream={resolveAnalystStream()}>
+      <AnalystConversationProvider stream={analystStream}>
         <DerEventNoticeProvider>
           <NavigationRoot />
         </DerEventNoticeProvider>

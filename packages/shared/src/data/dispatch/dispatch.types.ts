@@ -1,50 +1,24 @@
 /**
- * Dispatch workflow types — a mocked BESS charge/discharge command and its
- * lifecycle. The autopilot stands a `proposal`; the operator confirms it
- * through ConfirmationModal; the simulated lifecycle then runs
- * proposed → pending → executing → settled → proposed.
- *
- * Demo-only: there is no real market or hardware behind this. See
- * [[project-sim-affordance-amendment]] for the SIM cue rules.
+ * Dispatch workflow types — an operator's BESS setpoint command and its
+ * lifecycle. The operator confirms through ConfirmationModal; the gateway
+ * (or the demo's mock gateway — same MQTT contract) acks on dispatch_state:
+ * idle → pending (received) → settled (done) | failed.
  */
 
-/**
- * Lifecycle phase. `proposed` is the resting state — autopilot standing by.
- * `failed` is reached only on the real path (gateway rejects / faults / times
- * out); the demo simulator never fails.
- */
-export type DispatchPhase =
-  | "proposed"
-  | "pending"
-  | "executing"
-  | "settled"
-  | "failed";
+/** Lifecycle phase. `idle` = nothing sent this session. */
+export type DispatchPhase = "idle" | "pending" | "settled" | "failed";
 
-/** A standing dispatch suggestion from the autopilot, or an operator override. */
-export interface DispatchProposal {
+/** An operator's power setpoint for one BESS. */
+export interface DispatchCommand {
   deviceId: string;
   /** Signed power setpoint, kW. Positive = discharge, negative = charge. */
   setpointKw: number;
-  /** Market price driving the proposal, USD/MWh. */
-  priceUsdPerMwh: number;
-  /** Human-readable rationale, e.g. "Arbitrage spread $187/MWh". */
-  reason: string;
 }
 
-/**
- * The slow-changing dispatch state mirrored into React context. Fast values
- * (live SoC, power, countdown, revenue) are derived locally by consumers
- * from `executingStartedAt`/`executingEndsAt` so the provider re-renders
- * only on phase transitions.
- */
 export interface DispatchState {
   phase: DispatchPhase;
-  /** The active or standing proposal. Null only before the autopilot arms one. */
-  proposal: DispatchProposal | null;
-  /** Wall-clock ms (performance.now basis) the executing window opened. */
-  executingStartedAt: number | null;
-  /** Wall-clock ms the executing window closes. */
-  executingEndsAt: number | null;
+  /** The last command sent; null while idle. */
+  command: DispatchCommand | null;
   /** Failure reason from the gateway, verbatim. Set only when phase is `failed`. */
   reason: string | null;
 }

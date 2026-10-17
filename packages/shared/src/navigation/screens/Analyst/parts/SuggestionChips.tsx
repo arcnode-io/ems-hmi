@@ -1,12 +1,10 @@
 /**
  * SuggestionChips — empty-state prompts to give the operator a starting
- * point. Tap → sends the question. Rendered as full-width rows: the demo
+ * point. Tap → sends the question. Rendered as full-width rows: the
  * questions are long, so a horizontal pill strip clipped them off-screen.
  *
- * Chips lead with questions the demo analyst-server actually answers:
- * historical + forecast DAM price (the forecasts table is demo-seeded),
- * query_markets / query_energy_breakdown, and listDevicesWhere. Live-ERCOT
- * prompts stay absent until the gridstatus quota resets (~2026-06-01).
+ * Chips only ask about the site's own data — no market prompts until a site
+ * is enrolled in one (constitution §3.4: nothing canned).
  */
 
 import React from "react";
@@ -16,10 +14,7 @@ import { resolveTypeStyle } from "../../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
 
 export const DEFAULT_SUGGESTIONS: readonly string[] = [
-  "Show me the day-ahead clearing price for market_01 over the last 24 hours",
-  "Show me the DAM LMP price forecast for the next 24 hours",
   "List devices currently in alarm",
-  "What was today's revenue by market?",
   "Break down today's energy consumption by source",
 ];
 

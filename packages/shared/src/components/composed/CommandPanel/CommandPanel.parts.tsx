@@ -7,16 +7,8 @@ import { useTheme } from "../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../theme/tokens/primitives";
 import { useDispatch } from "../../../data/dispatch/useDispatch";
-import { useDispatchTelemetry } from "../../../data/dispatch/useDispatchTelemetry";
-import {
-  MIN_SETPOINT_KW,
-  MAX_SETPOINT_KW,
-} from "../../../data/dispatch/constants";
-import {
-  formatSetpoint,
-  formatUsd,
-  formatCountdown,
-} from "../../../data/dispatch/format";
+import type { SetpointRange } from "../../../data/dispatch/setpointRange";
+import { formatSetpoint } from "../../../data/dispatch/format";
 
 const STEP_KW = 100;
 
@@ -61,6 +53,8 @@ function StepButton({
 
 interface SetpointStepperProps {
   valueKw: number;
+  /** Catalog-rated range; steps clamp to it. */
+  range: SetpointRange;
   onChange: (next: number) => void;
   disabled?: boolean;
 }
@@ -68,6 +62,7 @@ interface SetpointStepperProps {
 /** [−] signed-value [+] — positive = discharge, negative = charge. */
 export function SetpointStepper({
   valueKw,
+  range,
   onChange,
   disabled = false,
 }: SetpointStepperProps): React.ReactElement {
@@ -88,8 +83,8 @@ export function SetpointStepper({
     >
       <StepButton
         label="−"
-        disabled={disabled || valueKw <= MIN_SETPOINT_KW}
-        onPress={() => onChange(Math.max(MIN_SETPOINT_KW, valueKw - STEP_KW))}
+        disabled={disabled || valueKw <= range.minKw}
+        onPress={() => onChange(Math.max(range.minKw, valueKw - STEP_KW))}
       />
       <Text
         dataSet={{ field: "setpoint" }}
@@ -107,8 +102,8 @@ export function SetpointStepper({
       </Text>
       <StepButton
         label="+"
-        disabled={disabled || valueKw >= MAX_SETPOINT_KW}
-        onPress={() => onChange(Math.min(MAX_SETPOINT_KW, valueKw + STEP_KW))}
+        disabled={disabled || valueKw >= range.maxKw}
+        onPress={() => onChange(Math.min(range.maxKw, valueKw + STEP_KW))}
       />
     </View>
   );
@@ -132,11 +127,11 @@ function StatusLine({
   );
 }
 
-/** Live status while a dispatch is pending / executing / settled. */
+/** Status of the last command: in flight, accepted, or failed. */
 export function DispatchStatusCard(): React.ReactElement {
   const t = useTheme();
   const { state } = useDispatch();
-  const tel = useDispatchTelemetry();
+  const setpoint = state.command ? formatSetpoint(state.command.setpointKw) : "";
 
   return (
     <View
@@ -152,54 +147,12 @@ export function DispatchStatusCard(): React.ReactElement {
       }}
     >
       {match(state.phase)
-        .with("pending", () => (
-          <StatusLine text="Awaiting BESS ack…" color={t.textMid} />
-        ))
-        .with("executing", () => (
-          <>
-            <StatusLine
-              text={`Executing · settles in ${formatCountdown(tel.secondsRemaining)}`}
-              color={t.colorBess}
-            />
-            <View
-              style={{
-                height: 6,
-                borderRadius: 3,
-                backgroundColor: t.border,
-                overflow: "hidden",
-              }}
-            >
-              <View
-                style={{
-                  width: `${Math.round(tel.progress * 100)}%`,
-                  height: "100%",
-                  backgroundColor: t.colorBess,
-                }}
-              />
-            </View>
-            <Text
-              style={[
-                resolveTypeStyle(t, "caption"),
-                { color: t.textSoft, fontSize: 10 },
-              ]}
-            >
-              Revenue {formatUsd(tel.revenueUsd)}
-            </Text>
-          </>
-        ))
-        .with("settled", () => (
-          <StatusLine
-            text={`Settled · earned ${formatUsd(tel.revenueUsd)}`}
-            color={t.statusOk}
-          />
-        ))
+        .with("pending", () => <StatusLine text={`${setpoint} · awaiting BESS ack…`} color={t.textMid} />)
+        .with("settled", () => <StatusLine text={`${setpoint} · accepted by the BESS`} color={t.statusOk} />)
         .with("failed", () => (
-          <StatusLine
-            text={`Dispatch failed · ${state.reason ?? "no reason given"}`}
-            color={t.statusAlarm}
-          />
+          <StatusLine text={`${setpoint} · failed · ${state.reason ?? "no reason given"}`} color={t.statusAlarm} />
         ))
-        .with("proposed", () => <StatusLine text="Idle" color={t.textSoft} />)
+        .with("idle", () => <StatusLine text="No command sent" color={t.textSoft} />)
         .exhaustive()}
     </View>
   );

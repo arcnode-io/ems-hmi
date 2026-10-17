@@ -1,10 +1,7 @@
 /**
- * EnergyScreen — `/energy` route. Dispatch + markets + 60-min forecast.
- * Composition: header + (warning?) + MoneyStrip + flow diagram +
- * ActiveDispatchPanel + ForecastTrace + MarketsList.
- *
- * Most data still mocked (revenue, markets, forecast, dispatch). Wiring
- * to live hooks tracked in step 9b.
+ * EnergyScreen — `/energy` route. Markets, revenue and forecast come from the
+ * site's market enrollment; the DTM carries none yet, so the screen says so
+ * instead of showing anything (constitution §3.4 — no canned values).
  */
 
 import React from "react";
@@ -12,12 +9,7 @@ import { ScrollView, View, Text } from "react-native";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../theme/tokens";
 import { SPACE } from "../../../theme/tokens/primitives";
-import { EDSectionHead } from "./parts/EDPanel";
-import { MoneyStrip } from "./parts/MoneyStrip";
-import { ActiveDispatchPanel } from "./parts/ActiveDispatchPanel";
-import { EnergyFlowDiagram } from "./parts/EnergyFlowDiagram";
-import { ForecastTrace } from "./parts/ForecastTrace";
-import { MarketsList } from "./parts/MarketsList";
+import { EDPanel } from "./parts/EDPanel";
 
 export function EnergyScreen(): React.ReactElement {
   const t = useTheme();
@@ -67,64 +59,19 @@ export function EnergyScreen(): React.ReactElement {
               },
             ]}
           >
-            Dispatch · Markets · 5-min settlement
-          </Text>
-        </View>
-        <View style={{ alignItems: "flex-end", flexShrink: 0 }}>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              gap: 4,
-            }}
-          >
-            <View
-              style={{
-                width: 5,
-                height: 5,
-                borderRadius: 999,
-                backgroundColor: t.statusOk,
-              }}
-            />
-            <Text
-              style={[
-                resolveTypeStyle(t, "caption"),
-                {
-                  fontSize: 9,
-                  fontWeight: "600",
-                  letterSpacing: 0.18,
-                  color: t.statusOk,
-                  textTransform: "uppercase",
-                },
-              ]}
-            >
-              Live
-            </Text>
-          </View>
-          <Text
-            style={[
-              resolveTypeStyle(t, "caption"),
-              { fontSize: 9, color: t.textSoft, marginTop: 2 },
-            ]}
-          >
-            1s ago
+            Markets · revenue
           </Text>
         </View>
       </View>
 
-      <MoneyStrip />
-
-      <EDSectionHead title="Flow" meta="kW · live" />
-      <EnergyFlowDiagram />
-
-      <EDSectionHead title="Active dispatch" meta="autopilot" />
-      <ActiveDispatchPanel />
-
-      <EDSectionHead title="Planned dispatch" meta="next 60 min" />
-      <ForecastTrace />
-
-      <EDSectionHead title="Markets" />
-      <MarketsList />
+      <View style={{ marginHorizontal: SPACE[4] }}>
+        <EDPanel>
+          <Text style={[resolveTypeStyle(t, "cardHeading"), { color: t.text }]}>No market connected</Text>
+          <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.textMid, marginTop: SPACE[2] }]}>
+            This site isn&apos;t enrolled in a market. Prices, revenue and planned dispatch show here once it is.
+          </Text>
+        </EDPanel>
+      </View>
     </ScrollView>
   );
 }

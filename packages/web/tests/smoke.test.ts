@@ -11,7 +11,7 @@ import { test, expect, type Page, type ConsoleMessage } from "@playwright/test";
 const TABS: Array<{ tab: string; marker: RegExp }> = [
   { tab: "Overview", marker: /All systems nominal|Site status unknown|active alarm|active warning/i },
   { tab: "Modules", marker: /Single line diagram/i },
-  { tab: "Energy", marker: /Dispatch · Markets|Revenue today/i },
+  { tab: "Energy", marker: /No market connected/i },
   { tab: "Compute", marker: /Cluster · GPUs · Thermal|GPU heatmap/i },
   { tab: "Analyst", marker: /Ask about devices|Try one of these/i },
 ];

@@ -14,6 +14,8 @@ import { useSubscription } from "./useSubscription";
 import { measurementTopic } from "../topics/topicBuilder";
 import type { TopologyViewType } from "../topology/topology.schema";
 import type { MqttMessage } from "./MqttClient";
+import { useDispatch } from "../dispatch/useDispatch";
+import type { DispatchControls } from "../dispatch/DispatchContext";
 
 const fixtureView: TopologyViewType = {
   deployment_uuid: "00000000-0000-0000-0000-000000000000",
@@ -123,6 +125,47 @@ describe("MockMqttProvider end-to-end", () => {
     expect(msg.value).toBeGreaterThanOrEqual(10); // warn_min
     expect(msg.value).toBeLessThanOrEqual(90); // warn_max
     expect(typeof msg.ts).toBe("string");
+  });
+});
+
+describe("MockMqttProvider dispatch", () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    (global as unknown as { fetch: jest.Mock }).fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async (): Promise<TopologyViewType> => fixtureView,
+    });
+  });
+  afterEach(() => jest.useRealTimers());
+
+  it("answers a setpoint command over MQTT like a gateway, and the device then reports it", async () => {
+    // Arrange
+    let controls: DispatchControls | null = null;
+    let power: MqttMessage<number> | null = null;
+    function Console(): null {
+      controls = useDispatch();
+      power = useSubscription<number>(measurementTopic("demo-site", "bess_01", "active_power", "watts"));
+      return null;
+    }
+    await act(async () => {
+      render(
+        <TopologyProvider viewUrl="/api/topology/view">
+          <MockMqttProvider siteId="demo-site">
+            <Console />
+          </MockMqttProvider>
+        </TopologyProvider>,
+      );
+    });
+
+    // Act
+    act(() => controls!.confirm({ deviceId: "bess_01", setpointKw: 250 }));
+    const pending = controls!.state.phase;
+    await act(async () => {
+      jest.advanceTimersByTime(2500);
+    });
+
+    // Assert
+    expect([pending, controls!.state.phase, power?.value]).toEqual(["pending", "settled", 250_000]);
   });
 });
 
