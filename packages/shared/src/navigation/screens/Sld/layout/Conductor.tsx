@@ -20,8 +20,6 @@ import {
   STROKE_INFO,
 } from "./renderConstants";
 
-const AC_BUS_ID = "ac_bus_1";
-const DC_BUS_ID = "dc_bus_1";
 const AC_BUS_DASH = "6,3";
 const BUS_OPACITY = 0.55;
 
@@ -88,7 +86,7 @@ function visualsFor(c: SldConductor): ConductorVisuals {
       opacity: DROP_OPACITY,
       dasharray: undefined,
     }))
-    .with("ac", "dc", () => ({
+    .with("ac", () => ({
       strokeWidth: STROKE_BUS,
       opacity: 1,
       dasharray: undefined,
@@ -96,8 +94,9 @@ function visualsFor(c: SldConductor): ConductorVisuals {
     .exhaustive();
 }
 
+// Buses draw as the heavy dashed backbone; drops/info as thin lines.
 function isBusBackbone(c: SldConductor): boolean {
-  return c.id === AC_BUS_ID || c.id === DC_BUS_ID;
+  return c.kind === "ac";
 }
 
 interface ConductorPathProps {
@@ -115,7 +114,7 @@ export function ConductorPath({ c, theme }: ConductorPathProps): React.ReactElem
         stroke={theme.textMid}
         strokeWidth={3}
         strokeLinecap="round"
-        strokeDasharray={c.id === AC_BUS_ID ? AC_BUS_DASH : undefined}
+        strokeDasharray={AC_BUS_DASH}
         opacity={BUS_OPACITY}
       />
     );

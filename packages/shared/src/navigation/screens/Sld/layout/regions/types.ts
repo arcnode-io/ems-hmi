@@ -4,7 +4,7 @@
  */
 
 import type { SldConductor, SldDecoration, SldNode } from "../types";
-import type { ClassifiedDevice } from "../classify";
+import type { Branch } from "../classify";
 
 export interface RegionOutput {
   nodes: SldNode[];
@@ -32,22 +32,17 @@ export function mergeRegions(...outputs: RegionOutput[]): RegionOutput {
   );
 }
 
-/** Computed once after AC member placement; reused by DC + children regions. */
-export interface AcAnchor {
-  /** X positions of every AC bus member, aligned with `acMembers`. */
-  acXs: number[];
-  /** X of the grid_module device when present (where inverter taps in). */
-  gridX: number | null;
-}
-
 /** Common viewport metrics passed to every region. */
 export interface ViewportMetrics {
   width: number;
   midX: number;
 }
 
-/** Convenience bundle handed to AC-band-dependent regions. */
-export interface AcContext extends ViewportMetrics {
-  acMembers: ClassifiedDevice[];
-  anchor: AcAnchor;
+/** A site-bus branch with the columns it owns (one per load / child). */
+export interface PlacedBranch<B extends Branch = Branch> {
+  branch: B;
+  /** Column center Xs, left→right. */
+  xs: number[];
+  /** Branch node X — centered over its columns. */
+  x: number;
 }

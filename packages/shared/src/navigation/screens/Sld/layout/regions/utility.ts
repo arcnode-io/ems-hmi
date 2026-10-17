@@ -1,28 +1,28 @@
 /**
- * POI meter + main breaker, and the POI → AC-bus drop split around
- * it. POI is the topmost node in the diagram.
+ * POI meter + main breaker, and the POI → site-bus drop split around
+ * it. POI is the topmost node, feeding the site bus.
  */
 
 import {
   NODE_H_POI,
   NODE_W_POI,
   RING_RADIUS_BREAKER,
-  Y_AC_BUS,
+  Y_SITE_BUS,
   Y_BREAKER,
   Y_POI,
 } from "../constants";
 import { dropParticle } from "../geometry";
-import type { ClassifiedDevices } from "../classify";
+import type { SldPlan } from "../classify";
 import type { ViewportMetrics, RegionOutput } from "./types";
 
 const POI_DROP_DURATION_SEC = 3;
 const POI_DROP_BOTTOM_OFFSET_SEC = -POI_DROP_DURATION_SEC / 2;
 
 export function placePoiAndBreaker(
-  classified: ClassifiedDevices,
+  plan: SldPlan,
   ctx: ViewportMetrics,
 ): RegionOutput {
-  const { poi } = classified;
+  const { poi } = plan;
   if (!poi) return { nodes: [], conductors: [], decorations: [] };
 
   const poiNode = {
@@ -53,7 +53,7 @@ export function placePoiAndBreaker(
     x1: ctx.midX,
     y1: Y_BREAKER + RING_RADIUS_BREAKER,
     x2: ctx.midX,
-    y2: Y_AC_BUS,
+    y2: Y_SITE_BUS,
     kind: "drop" as const,
     flowSource: { kind: "poi" as const },
     particles: dropParticle(POI_DROP_DURATION_SEC, POI_DROP_BOTTOM_OFFSET_SEC),

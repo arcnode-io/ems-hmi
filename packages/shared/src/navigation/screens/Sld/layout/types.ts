@@ -10,7 +10,7 @@ export type FlowSource =
   /** Sign of a specific measurement on a specific device. Negative = reverse. */
   | { kind: "device"; deviceId: string; measurement: string };
 
-export type ConductorKind = "ac" | "dc" | "drop" | "info";
+export type ConductorKind = "ac" | "drop" | "info";
 
 export interface ParticleSpec {
   /** Animation cycle length, seconds. */
@@ -43,7 +43,7 @@ export interface SldConductor {
   dashed?: boolean;
 }
 
-export type DecorationKind = "breaker" | "inverter";
+export type DecorationKind = "breaker" | "transformer";
 
 export interface SldDecoration {
   id: string;

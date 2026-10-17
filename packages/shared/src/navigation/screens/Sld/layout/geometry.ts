@@ -1,55 +1,34 @@
-/** Geometry helpers: x-spread, particle factories, node sizing. */
+/** Geometry helpers: particle factory + device → positioned node. */
 
-import { match } from "ts-pattern";
-import type { DeviceRole } from "./types";
-import type { ParticleSpec } from "./types";
-import {
-  CDU_TEMPLATE,
-  COMPUTE_MODULE_TEMPLATE,
-  NODE_H,
-  NODE_H_CHILD,
-  NODE_H_POI,
-  NODE_W_CHILD,
-  NODE_W_COMPUTE,
-  NODE_W_MODULE,
-  NODE_W_POI,
-} from "./constants";
+import type { TopologyViewType } from "../../../../data/topology/topology.schema";
+import type { SldDevice } from "./classify";
+import type { DeviceRole, ParticleSpec, SldNode } from "./types";
 
-const BUS_PARTICLE_COUNT = 3;
-const BUS_PARTICLE_RADIUS = 2.5;
 const DROP_PARTICLE_RADIUS = 2;
-
-/** Center X of each item spread evenly across [minX, maxX]. */
-export function spreadX(count: number, minX: number, maxX: number): number[] {
-  if (count === 0) return [];
-  if (count === 1) return [(minX + maxX) / 2];
-  const step = (maxX - minX) / (count - 1);
-  return Array.from({ length: count }, (_, i) => minX + i * step);
-}
-
-export function busParticles(durationSec: number): ParticleSpec[] {
-  return Array.from({ length: BUS_PARTICLE_COUNT }, (_, i) => ({
-    durationSec,
-    beginOffsetSec: -(durationSec * i) / BUS_PARTICLE_COUNT,
-    radius: BUS_PARTICLE_RADIUS,
-  }));
-}
 
 export function dropParticle(durationSec: number, beginOffsetSec = 0): ParticleSpec[] {
   return [{ durationSec, beginOffsetSec, radius: DROP_PARTICLE_RADIUS }];
 }
 
-export function nodeWidthFor(template: string, role: DeviceRole): number {
-  return match<{ template: string; role: DeviceRole }, number>({ template, role })
-    .with({ role: "poi" }, () => NODE_W_POI)
-    .with({ template: COMPUTE_MODULE_TEMPLATE }, () => NODE_W_COMPUTE)
-    .with({ template: CDU_TEMPLATE }, () => NODE_W_CHILD)
-    .otherwise(() => NODE_W_MODULE);
+export interface NodeSpot {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  role?: DeviceRole;
 }
 
-export function nodeHeightFor(role: DeviceRole, template: string): number {
-  return match<{ role: DeviceRole; template: string }, number>({ role, template })
-    .with({ role: "poi" }, () => NODE_H_POI)
-    .with({ template: CDU_TEMPLATE }, () => NODE_H_CHILD)
-    .otherwise(() => NODE_H);
+/** Position a device; `kind` comes from its template (module vs leaf). */
+export function nodeFor(view: TopologyViewType, device: SldDevice, spot: NodeSpot): SldNode {
+  return {
+    id: device.device_id,
+    template: device.template,
+    kind: view.templates_used[device.template]?.kind ?? "leaf",
+    role: spot.role ?? null,
+    displayName: device.display_name ?? device.device_id,
+    x: spot.x,
+    y: spot.y,
+    width: spot.width,
+    height: spot.height,
+  };
 }

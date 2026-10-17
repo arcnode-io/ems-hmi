@@ -8,11 +8,11 @@ import { Platform } from "react-native";
 import { Circle, G, Rect, Text as SvgText } from "react-native-svg";
 import type { SldNode } from "./types";
 import type { PoiOverlay, SldTheme } from "./SldRenderer";
-import { CDU_TEMPLATE } from "./constants";
+import { NODE_H } from "./constants";
 import { LotoGlyph } from "./LotoGlyph";
 import {
   LABEL_NAME_Y,
-  LABEL_TEMPLATE_Y_CDU,
+  LABEL_TEMPLATE_Y_CHILD,
   LABEL_TEMPLATE_Y_DEFAULT,
   POI_LABEL_Y,
   POI_PRIMARY_VALUE_Y,
@@ -48,8 +48,9 @@ interface NodeBoxProps {
   locked?: boolean;
 }
 
-function labelTemplateY(template: string): number {
-  return template === CDU_TEMPLATE ? LABEL_TEMPLATE_Y_CDU : LABEL_TEMPLATE_Y_DEFAULT;
+// Child boxes (battery, PCS) are shorter, so the template line sits higher.
+function labelTemplateY(height: number): number {
+  return height < NODE_H ? LABEL_TEMPLATE_Y_CHILD : LABEL_TEMPLATE_Y_DEFAULT;
 }
 
 function bodyStroke(role: SldNode["role"], theme: SldTheme): { stroke: string; strokeWidth: number } {
@@ -123,7 +124,7 @@ function StandardLabels({ n, theme }: { n: SldNode; theme: SldTheme }): React.Re
       </SvgText>
       <SvgText
         x={0}
-        y={labelTemplateY(n.template)}
+        y={labelTemplateY(n.height)}
         textAnchor="middle"
         fill={theme.textSoft}
         fontSize={LABEL_TEMPLATE_FONT}

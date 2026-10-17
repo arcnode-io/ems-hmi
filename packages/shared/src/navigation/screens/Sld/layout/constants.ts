@@ -1,29 +1,26 @@
 /**
- * Shared layout constants. Y bands stack the canonical SLD grammar top→down;
- * sizing constants live alongside so region helpers don't sprinkle magic
- * numbers.
- *
- * POI is the topmost node: the SLD draws the site's own electrical
- * equipment, not utility-side feeds.
+ * Shared layout constants. Y bands stack the SLD top→down: POI, site MV
+ * bus, its branches (switchgear / battery pad), then per grid container
+ * the transformer, LV board, LV bus and the compute modules it feeds.
  */
 
 /** Y-coordinate of the row centers, top→bottom. */
 export const Y_POI = 50;
 export const Y_BREAKER = 115;
-export const Y_AC_BUS = 160;
-export const Y_AC_MODULE = 225;
-export const Y_AC_CHILD = 300;
-export const Y_INVERTER = 280;
-export const Y_DC_BUS = 330;
-export const Y_DC_MODULE = 372;
+export const Y_SITE_BUS = 160;
+export const Y_BRANCH = 215;
+export const Y_XFMR = 285;
+export const Y_CHILD = 300;
+export const Y_BOARD = 355;
+export const Y_LV_BUS = 410;
+export const Y_LOAD = 465;
 
-/** Outermost viewBox constraints. Width grows with device count. */
+/** Outermost viewBox constraints. Width grows with column count. */
 export const MIN_WIDTH = 720;
-export const HEIGHT = 400;
+export const HEIGHT = 520;
 export const COLUMN_PITCH = 180;
-export const MIN_COLS = 3;
 
-/** Node body dimensions per template/role. */
+/** Node body dimensions. */
 export const NODE_W_MODULE = 124;
 export const NODE_W_COMPUTE = 156;
 export const NODE_W_POI = 144;
@@ -35,12 +32,13 @@ export const NODE_H_CHILD = 36;
 /** Padding constants used by region helpers. */
 export const BUS_OVERSHOOT_PX = 50;
 export const RING_RADIUS_BREAKER = 7;
-export const RING_RADIUS_INVERTER = 9;
-export const DC_RIGHT_MARGIN = 80;
-export const DC_LEFT_OFFSET_FROM_GRID = COLUMN_PITCH * 0.5;
+/** Transformer glyph: two stacked rings, top-to-bottom extent ±this. */
+export const XFMR_HALF_H = 15;
 
-/** Template-based classification. */
+/** Template / bus-id classification (edp-api DTM vocabulary). */
 export const POI_TEMPLATE = "poi_meter";
-export const GRID_MODULE_TEMPLATE = "grid_module";
-export const COMPUTE_MODULE_TEMPLATE = "compute_module";
-export const CDU_TEMPLATE = "cdu";
+export const SWITCHGEAR_TEMPLATE = "switchgear";
+export const TRANSFORMER_TEMPLATE = "transformer";
+export const LV_BOARD_TEMPLATE = "lv_switchboard";
+/** edp-api names the MV bus tying grid containers + battery `site_mv_N`. */
+export const SITE_BUS_PREFIX = "site_mv_";

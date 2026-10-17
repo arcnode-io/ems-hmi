@@ -1,48 +1,92 @@
 /**
- * Classify topology devices into the SLD grammar's row slots: POI,
- * AC bus members, DC bus members, and module-children. Pure function —
- * easy to test, doesn't touch React.
+ * Fold a TopologyView into the SLD's electrical plan: the POI, the site MV
+ * bus, and its branches in bus order. Pure — no React.
+ *
+ * Branch shapes (edp-api a4dd812):
+ * - feeder: a switchgear on the site bus. Its grid container (shared
+ *   parent) holds the transformer + LV board; the board's LV bus feeds
+ *   the compute modules. MV→LV is implied by parentage, not a bus.
+ * - storage: any other site-bus member (battery pad), with its children.
  */
 
-import type { TopologyViewType } from "../../../../data/topology/topology.schema";
-import { POI_TEMPLATE } from "./constants";
+import type { BusType, TopologyViewType } from "../../../../data/topology/topology.schema";
+import {
+  LV_BOARD_TEMPLATE,
+  POI_TEMPLATE,
+  SITE_BUS_PREFIX,
+  SWITCHGEAR_TEMPLATE,
+  TRANSFORMER_TEMPLATE,
+} from "./constants";
 
-export type ClassifiedDevice = TopologyViewType["devices"][string];
+export type SldDevice = TopologyViewType["devices"][string];
 
-export interface ClassifiedDevices {
-  /** Single POI meter. Multi-POI sites get the first one. */
-  poi: ClassifiedDevice | null;
-  acMembers: ClassifiedDevice[];
-  dcMembers: ClassifiedDevice[];
-  /** Leaves with a module parent, excluding POI. */
-  moduleChildren: ClassifiedDevice[];
+export interface Feeder {
+  kind: "feeder";
+  switchgear: SldDevice;
+  transformer: SldDevice | null;
+  board: SldDevice | null;
+  /** LV bus the board feeds; null when the container has no compute. */
+  lvBus: BusType | null;
+  /** lvBus members minus the board, in bus (C) order. */
+  loads: SldDevice[];
 }
 
-function isDevice(d: ClassifiedDevice | undefined): d is ClassifiedDevice {
+export interface Storage {
+  kind: "storage";
+  module: SldDevice;
+  children: SldDevice[];
+}
+
+export type Branch = Feeder | Storage;
+
+export interface SldPlan {
+  /** Multi-POI sites get the first one. */
+  poi: SldDevice | null;
+  siteBus: BusType | null;
+  branches: Branch[];
+}
+
+function isDevice(d: SldDevice | undefined): d is SldDevice {
   return Boolean(d);
 }
 
-function membersOf(view: TopologyViewType, busType: "ac" | "dc"): ClassifiedDevice[] {
-  const bus = view.buses.find((b) => b.type === busType);
-  if (!bus) return [];
+function devicesOn(view: TopologyViewType, bus: BusType): SldDevice[] {
   return bus.members.map((m) => view.devices[m.device_id]).filter(isDevice);
 }
 
-/**
- * Fold a TopologyView into per-row device groupings.
- */
-export function classify(view: TopologyViewType): ClassifiedDevices {
-  const acMembers = membersOf(view, "ac");
-  const dcMembers = membersOf(view, "dc");
-  const acIds = new Set(acMembers.map((d) => d.device_id));
-  const poi: ClassifiedDevice | null =
-    Object.values(view.devices).find((d) => d?.template === POI_TEMPLATE) ?? null;
-  const moduleChildren: ClassifiedDevice[] = [];
-  for (const device of Object.values(view.devices)) {
-    if (!device || device === poi) continue;
-    if (device.parent && acIds.has(device.parent)) {
-      moduleChildren.push(device);
-    }
-  }
-  return { poi, acMembers, dcMembers, moduleChildren };
+/** Same-container device of `template` (e.g. switchgear → its transformer). */
+function sibling(view: TopologyViewType, of: SldDevice, template: string): SldDevice | null {
+  if (!of.parent) return null;
+  return Object.values(view.devices).find((d) => d.parent === of.parent && d.template === template) ?? null;
+}
+
+function feederOf(view: TopologyViewType, switchgear: SldDevice): Feeder {
+  const board = sibling(view, switchgear, LV_BOARD_TEMPLATE);
+  const lvBus = board
+    ? view.buses.find((b) => b.members.some((m) => m.device_id === board.device_id)) ?? null
+    : null;
+  return {
+    kind: "feeder",
+    switchgear,
+    transformer: sibling(view, switchgear, TRANSFORMER_TEMPLATE),
+    board,
+    lvBus,
+    loads: lvBus ? devicesOn(view, lvBus).filter((d) => d !== board) : [],
+  };
+}
+
+function storageOf(view: TopologyViewType, module: SldDevice): Storage {
+  const children = Object.values(view.devices).filter((d) => d.parent === module.device_id);
+  return { kind: "storage", module, children };
+}
+
+export function planSld(view: TopologyViewType): SldPlan {
+  const poi = Object.values(view.devices).find((d) => d.template === POI_TEMPLATE) ?? null;
+  const siteBus = view.buses.find((b) => b.bus_id.startsWith(SITE_BUS_PREFIX)) ?? null;
+  const branches = siteBus
+    ? devicesOn(view, siteBus).map((d) =>
+        d.template === SWITCHGEAR_TEMPLATE ? feederOf(view, d) : storageOf(view, d),
+      )
+    : [];
+  return { poi, siteBus, branches };
 }

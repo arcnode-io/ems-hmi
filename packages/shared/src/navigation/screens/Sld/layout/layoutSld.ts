@@ -1,61 +1,56 @@
 /**
- * Pure layout orchestrator. Each band is placed by a helper in
- * `./regions/`; this file sizes the viewport and merges their outputs.
+ * Pure layout orchestrator. Gives each site-bus branch one column per load
+ * (feeder) or child (battery pad), left→right in bus order, then merges the
+ * region helpers' outputs.
  */
 
+import { match } from "ts-pattern";
 import type { TopologyViewType } from "../../../../data/topology/topology.schema";
 import type { SldLayout } from "./types";
-import { classify, type ClassifiedDevices } from "./classify";
-import {
-  COLUMN_PITCH,
-  GRID_MODULE_TEMPLATE,
-  HEIGHT,
-  MIN_COLS,
-  MIN_WIDTH,
-} from "./constants";
+import { planSld, type Branch } from "./classify";
+import { COLUMN_PITCH, HEIGHT, MIN_WIDTH } from "./constants";
 import { placePoiAndBreaker } from "./regions/utility";
-import { placeAcBand } from "./regions/ac";
-import { placeDcBand } from "./regions/dc";
-import { placeModuleChildren } from "./regions/children";
-import { mergeRegions, type ViewportMetrics } from "./regions/types";
+import { placeSiteBus } from "./regions/site";
+import { placeFeeder } from "./regions/feeder";
+import { placeStorage } from "./regions/storage";
+import { mergeRegions, EMPTY_OUTPUT, type PlacedBranch, type RegionOutput } from "./regions/types";
 
-// Widest band sets the viewBox width. DC overhang past the AC bus shows up
-// when there are many BESS modules anchored to the grid module's x.
-function requiredColumns(classified: ClassifiedDevices): number {
-  const { acMembers, dcMembers } = classified;
-  const gridIdx = acMembers.findIndex((d) => d.template === GRID_MODULE_TEMPLATE);
-  const dcOverhang =
-    dcMembers.length > 0 && gridIdx >= 0 ? gridIdx + dcMembers.length + 1 : 0;
-  return Math.max(acMembers.length, dcOverhang, MIN_COLS);
+function columnsOf(branch: Branch): number {
+  const leaves = branch.kind === "feeder" ? branch.loads.length : branch.children.length;
+  return Math.max(1, leaves);
 }
 
-function buildViewport(classified: ClassifiedDevices): ViewportMetrics {
-  const cols = requiredColumns(classified);
-  const width = Math.max(MIN_WIDTH, cols * COLUMN_PITCH);
-  return { width, midX: width / 2 };
+/** Lay columns out centered in `width`, starting at the left edge of the band. */
+function placeBranches(branches: Branch[], width: number, totalCols: number): PlacedBranch[] {
+  let col = 0;
+  const left = (width - totalCols * COLUMN_PITCH) / 2 + COLUMN_PITCH / 2;
+  return branches.map((branch) => {
+    const n = columnsOf(branch);
+    const xs = Array.from({ length: n }, (_, i) => left + (col + i) * COLUMN_PITCH);
+    col += n;
+    return { branch, xs, x: (xs[0]! + xs[n - 1]!) / 2 };
+  });
+}
+
+function placeBranch(view: TopologyViewType, p: PlacedBranch): RegionOutput {
+  return match(p.branch)
+    .with({ kind: "feeder" }, (branch) => placeFeeder(view, { ...p, branch }))
+    .with({ kind: "storage" }, (branch) => placeStorage(view, { ...p, branch }))
+    .exhaustive();
 }
 
 /** Lay out an SLD from a topology view. */
 export function layoutSld(view: TopologyViewType): SldLayout {
-  const classified = classify(view);
-  const metrics = buildViewport(classified);
+  const plan = planSld(view);
+  const totalCols = plan.branches.reduce((sum, b) => sum + columnsOf(b), 0);
+  const width = Math.max(MIN_WIDTH, totalCols * COLUMN_PITCH);
+  const metrics = { width, midX: width / 2 };
+  const placed = placeBranches(plan.branches, width, totalCols);
 
-  const poi = placePoiAndBreaker(classified, metrics);
-  const ac = placeAcBand(classified, metrics);
-  const acContext = {
-    ...metrics,
-    acMembers: classified.acMembers,
-    anchor: ac.anchor,
-  };
-  const dc = placeDcBand(classified, acContext);
-  const children = placeModuleChildren(classified, acContext);
-
-  const merged = mergeRegions(poi, ac.output, dc, children);
-  return {
-    width: metrics.width,
-    height: HEIGHT,
-    nodes: merged.nodes,
-    conductors: merged.conductors,
-    decorations: merged.decorations,
-  };
+  const merged = mergeRegions(
+    placePoiAndBreaker(plan, metrics),
+    plan.siteBus ? placeSiteBus(view, plan.siteBus, placed, metrics) : EMPTY_OUTPUT,
+    ...placed.map((p) => placeBranch(view, p)),
+  );
+  return { width, height: HEIGHT, ...merged };
 }

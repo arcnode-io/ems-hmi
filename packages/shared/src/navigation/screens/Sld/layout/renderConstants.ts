@@ -15,13 +15,12 @@ export const STROKE_INFO = 1;
 export const STROKE_DROP = 1.5;
 export const STROKE_BUS = 2;
 
-/** Breaker + inverter glyph dimensions. */
+/** Breaker + transformer glyph dimensions. Transformer spans ±(offset + r) = XFMR_HALF_H. */
 export const RING_R_BREAKER = 7;
-export const RING_R_INVERTER = 9;
 export const BREAKER_BAR_HALF = 4;
 export const BREAKER_OPEN_LIFT = 5;
-export const INVERTER_GLYPH_FONT_PX = 11;
-export const INVERTER_GLYPH_BASELINE_Y = 3;
+export const RING_R_XFMR = 8;
+export const XFMR_RING_OFFSET = 7;
 
 /** Node body corner radius. */
 export const RADIUS_POI = 4;
@@ -43,7 +42,7 @@ export const POI_STATE_TOKEN_X = 22;
 /** Non-POI text-slot offsets. */
 export const LABEL_NAME_Y = -2;
 export const LABEL_TEMPLATE_Y_DEFAULT = 12;
-export const LABEL_TEMPLATE_Y_CDU = 10;
+export const LABEL_TEMPLATE_Y_CHILD = 10;
 
 /** Dasharrays. */
 export const DASH_INFO = "2 2";
