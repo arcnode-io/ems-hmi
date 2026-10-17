@@ -4,11 +4,13 @@
  * aggregate, so each carries a FLEET / GRID qualifier.
  *
  * Aggregations (initial set; more land as device templates grow):
- *  - FLEET SoC   — average of every bess_rack `state_of_charge`
+ *  - FLEET SoC   — average of every bess_module `state_of_charge`
  *  - BESS power  — sum of every bess_module `active_power`
  *  - Compute     — sum of every compute_module `total_power`
  *  - GRID        — label from grid_tap `active_power` sign + frequency
- *  - SITE        — `Nominal` when alarms = 0, otherwise highest-severity label
+ *  - SITE        — siteHealth level (Nominal needs every monitored reading in)
+ *
+ * Fleet sums/averages are unknown (null) until every device reports.
  *
  * Deferred (need history / out-of-scope this batch):
  *  - PUE 24h  — needs timeseries history
@@ -24,12 +26,22 @@ import { useTopologyView } from "../topology/useTopologyView";
 import { useAggregateMeasurements } from "../mqtt/useAggregateMeasurements";
 import { staleAfterFor } from "../mqtt/staleness";
 import { useDeploymentIdentity } from "../deployment/useDeploymentIdentity";
-import { useAlarms } from "../alarms/useAlarms";
+import { useSiteHealth } from "../alarms/useSiteHealth";
+import type { SiteHealth } from "../alarms/siteHealth";
 import { measurementTopic, type TopicUnit } from "../topics/topicBuilder";
 
+export type SiteLabel = "Nominal" | "Warn" | "Alarm" | "Unknown";
+
+const SITE_LABEL: Record<SiteHealth["level"], SiteLabel> = {
+  nominal: "Nominal",
+  warn: "Warn",
+  alarm: "Alarm",
+  unknown: "Unknown",
+};
+
 export interface FleetKpis {
-  /** Site-level status — highest active alarm severity, else "Nominal". */
-  site: { label: "Nominal" | "Warn" | "Alarm" | "Fire" };
+  /** Site-level status — see siteHealth: "Nominal" needs proof, else "Unknown". */
+  site: { label: SiteLabel };
   /** Fleet average state-of-charge across all BESS racks. */
   fleetSoc: { value: number | null };
   /** Summed bess_module active_power, W (+ discharge / - charge). */
@@ -72,19 +84,16 @@ function topicsForMeasurement(
   return matches;
 }
 
-/** Sum non-null numbers; null if none have reported. */
-function sumOrNull(values: (number | null)[]): number | null {
-  const present = values.filter((v): v is number => v !== null);
-  return present.length === 0 ? null : present.reduce((a, b) => a + b, 0);
+/** Sum, or null unless every device has reported (constitution §3.4). */
+export function sumIfComplete(values: readonly (number | null)[]): number | null {
+  if (values.length === 0 || values.includes(null)) return null;
+  return (values as number[]).reduce((a, b) => a + b, 0);
 }
 
-/**
- * Average non-null numbers; null if no contributing values yet.
- */
-function avg(values: (number | null)[]): number | null {
-  const filtered = values.filter((v): v is number => v !== null);
-  if (filtered.length === 0) return null;
-  return filtered.reduce((a, b) => a + b, 0) / filtered.length;
+/** Average, or null unless every device has reported. */
+export function avgIfComplete(values: readonly (number | null)[]): number | null {
+  const sum = sumIfComplete(values);
+  return sum === null ? null : sum / values.length;
 }
 
 /**
@@ -94,7 +103,7 @@ function avg(values: (number | null)[]): number | null {
 export function useFleetKpis(): FleetKpis {
   const { view } = useTopologyView();
   const { siteId } = useDeploymentIdentity();
-  const alarms = useAlarms();
+  const health = useSiteHealth();
 
   // Fleet aggregates come from module-tier rollup measurements, not the
   // underlying leaf devices. useMemo keeps the topic lists stable so the
@@ -129,13 +138,9 @@ export function useFleetKpis(): FleetKpis {
   const gridPowerMessages = useAggregateMeasurements<number>(gridPowerTopics, telemetry);
   const gridFreqMessages = useAggregateMeasurements<number>(gridFreqTopics, telemetry);
 
-  const fleetSocAvg = avg(
-    socTopics.map((t) => socMessages[t]?.value ?? null),
-  );
-  const bessPowerW = sumOrNull(bessPowerTopics.map((t) => bessPowerMessages[t]?.value ?? null));
-  // Reason: unknown until every module reports — a partial sum would read as a dip.
-  const computePowers = computePowerTopics.map((t) => computePowerMessages[t]?.value ?? null);
-  const computePowerW = computePowers.includes(null) ? null : sumOrNull(computePowers);
+  const fleetSocAvg = avgIfComplete(socTopics.map((t) => socMessages[t]?.value ?? null));
+  const bessPowerW = sumIfComplete(bessPowerTopics.map((t) => bessPowerMessages[t]?.value ?? null));
+  const computePowerW = sumIfComplete(computePowerTopics.map((t) => computePowerMessages[t]?.value ?? null));
   // Grid: net power at the POI meter. Positive = power flowing INTO the
   // site from the grid (Import). Negative = export.
   const gridPower = gridPowerTopics
@@ -153,13 +158,7 @@ export function useFleetKpis(): FleetKpis {
           ? "Export"
           : "Hold";
 
-  const siteLabel: FleetKpis["site"]["label"] = alarms.some(
-    (a) => a.severity === "alarm",
-  )
-    ? "Alarm"
-    : alarms.some((a) => a.severity === "warn")
-      ? "Warn"
-      : "Nominal";
+  const siteLabel = SITE_LABEL[health.level];
 
   return {
     site: { label: siteLabel },

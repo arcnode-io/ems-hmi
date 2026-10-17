@@ -61,6 +61,13 @@ Zero is a valid measurement. Missing data is a distinct state.
 
 No clock glyph. No dimming. Offline is offline.
 
+**Unknown is a state, not a default.** The same rule covers everything derived from readings: counts, sums, averages, and site health. A derived value is known only when every input it covers has reported. Otherwise it renders unknown (`"—"`, gray).
+- `Throttling 0 / 784` claims 784 GPUs reported `NA`. Until they have, it is `— / 784`.
+- "All systems nominal" claims every monitored reading came in within limits. If no alarms fired because nothing reported, or a device is unprovisioned, or no thresholds are configured, the site is **status unknown**, not nominal. Alarms are evidence, so they still show.
+- Never ship a hardcoded value (a PUE of `1.14`, a sparkline, a delta, a target) on a live surface. With no source, the tile is `"—"`.
+
+An unprovisioned site has to read as unknown everywhere. It must not read as healthy and idle.
+
 ### 3.5 Fleet vs unit naming (was DS-007)
 The status strip's `FLEET SoC`, `GPU UTIL`, `GRID` are fleet-level aggregates by definition. When a unit-level metric with the same name appears on a detail screen (e.g. a single BESS's SoC), it **must** carry a `UNIT` qualifier or the device display name.
 

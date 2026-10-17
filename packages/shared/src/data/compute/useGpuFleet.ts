@@ -47,7 +47,8 @@ export interface GpuNodeSummary {
 export interface GpuFleet {
   nodes: GpuNodeSummary[];
   gpuCount: number;
-  throttlingCount: number;
+  /** GPUs off NA; null until every GPU has reported (0 is a claim, not a default). */
+  throttlingCount: number | null;
   totalDrawW: number | null;
   perGpuW: number | null;
 }
@@ -165,7 +166,9 @@ export function gpuFleetFrom(nodes: readonly GpuNodeReadings[]): GpuFleet {
   return {
     nodes: summary,
     gpuCount: nodes.reduce((acc, node) => acc + node.throttleReasons.length, 0),
-    throttlingCount: summary.reduce((acc, node) => acc + node.throttling, 0),
+    throttlingCount: nodes.some((node) => node.throttleReasons.includes(null))
+      ? null
+      : summary.reduce((acc, node) => acc + node.throttling, 0),
     // Reason: a partial sum is a wrong number — on cold start it would read
     // as a load ramp. Unknown until every node has reported.
     totalDrawW: nodes.some((node) => node.nodePowerW === null)

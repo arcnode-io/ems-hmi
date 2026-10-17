@@ -70,7 +70,7 @@ export function ComputeHero({ fleet, capacityKw }: { fleet: GpuFleet; capacityKw
       <Kpi
         label="GPU throttle"
         {...kpis.throttling}
-        color={fleet.throttlingCount > 0 ? t.statusWarn : t.colorCompute}
+        color={(fleet.throttlingCount ?? 0) > 0 ? t.statusWarn : t.colorCompute}
         showDivider
       />
       <Kpi label="Draw" {...kpis.draw} color={t.text} showDivider />

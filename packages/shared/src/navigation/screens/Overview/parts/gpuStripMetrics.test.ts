@@ -18,14 +18,15 @@ describe("gpuStripMetrics", () => {
 
   it("shows a dash until values arrive, and kW below 1 MW", () => {
     // Arrange
-    const cold = { nodes: [], gpuCount: 16, throttlingCount: 0, totalDrawW: null, perGpuW: null };
+    const cold = { nodes: [], gpuCount: 16, throttlingCount: null, totalDrawW: null, perGpuW: null };
     const small = { ...cold, totalDrawW: 21_000 };
 
     // Act
     const [coldMetrics, smallMetrics] = [gpuStripMetrics(cold), gpuStripMetrics(small)];
 
     // Assert
-    expect([coldMetrics.totalDraw, coldMetrics.perGpu, smallMetrics.totalDraw]).toEqual([
+    expect([coldMetrics.throttling, coldMetrics.totalDraw, coldMetrics.perGpu, smallMetrics.totalDraw]).toEqual([
+      { value: "— / 16", unit: "GPUs" },
       { value: "—", unit: "kW" },
       { value: "—", unit: "W" },
       { value: "21.0", unit: "kW" },

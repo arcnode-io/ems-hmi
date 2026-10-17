@@ -33,6 +33,7 @@ interface Row {
 function stateColor(t: Theme, state: CapacityState): string {
   return match(state)
     .with("BALANCED", () => t.statusOk)
+    .with("UNKNOWN", () => t.statusOffline)
     .otherwise(() => t.statusWarn);
 }
 

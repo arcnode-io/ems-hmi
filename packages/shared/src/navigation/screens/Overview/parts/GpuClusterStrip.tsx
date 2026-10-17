@@ -180,7 +180,7 @@ export function GpuClusterStrip({ fleet }: { fleet: GpuFleet }): React.ReactElem
         <MetricCell
           label="Throttling"
           {...metrics.throttling}
-          tone={fleet.throttlingCount > 0 ? t.statusWarn : undefined}
+          tone={(fleet.throttlingCount ?? 0) > 0 ? t.statusWarn : undefined}
           showDivider
         />
         <MetricCell label="Total draw" {...metrics.totalDraw} showDivider />

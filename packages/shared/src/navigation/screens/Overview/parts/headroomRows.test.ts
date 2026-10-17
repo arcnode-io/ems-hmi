@@ -102,12 +102,12 @@ describe("constraintSummary", () => {
     expect(summary).toEqual({ state: "POWER LIMITED", footer: "Power is the closest constraint (92% used)." });
   });
 
-  it("is BALANCED below 85%, and waits when nothing reports", () => {
+  it("is BALANCED below 85%, and UNKNOWN — not balanced — when nothing reports", () => {
     // Arrange / Act
     const calm = constraintSummary([{ limit: "GRID LIMITED", label: "Grid", ratio: 0.5 }]);
     const cold = constraintSummary([{ limit: "GRID LIMITED", label: "Grid", ratio: null }]);
 
     // Assert
-    expect([calm.state, cold]).toEqual(["BALANCED", { state: "BALANCED", footer: "Waiting on live data." }]);
+    expect([calm.state, cold]).toEqual(["BALANCED", { state: "UNKNOWN", footer: "Waiting on live data." }]);
   });
 });

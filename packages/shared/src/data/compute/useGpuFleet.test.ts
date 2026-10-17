@@ -55,6 +55,7 @@ describe("gpuFleetFrom", () => {
   });
 
   it("reads not-yet-reported values as null, never as zero or throttling", () => {
+    // Reason: "0 throttling" claims every GPU reported NA — unknown until they have.
     // Arrange
     const nodes = [
       { deviceId: "a", nodePowerW: null, nodeLimitW: null, gpuPowerW: null, gpuLimitsW: [null, null], throttleReasons: [null, null] },
@@ -64,7 +65,7 @@ describe("gpuFleetFrom", () => {
     const fleet = gpuFleetFrom(nodes);
 
     // Assert
-    expect([fleet.totalDrawW, fleet.perGpuW, fleet.throttlingCount, fleet.gpuCount]).toEqual([null, null, 0, 2]);
+    expect([fleet.totalDrawW, fleet.perGpuW, fleet.throttlingCount, fleet.gpuCount]).toEqual([null, null, null, 2]);
   });
 });
 

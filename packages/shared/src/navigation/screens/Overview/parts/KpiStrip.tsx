@@ -3,7 +3,7 @@
  * PUE) in a horizontal scroll. Each tile has its own layout — this is NOT
  * the canonical KPITile because every visible field is screen-specific.
  *
- * BESS + net power are live (useFleetKpis); PUE is still static.
+ * BESS + net power are live (useFleetKpis); PUE reads unknown until a source lands.
  */
 
 import React from "react";

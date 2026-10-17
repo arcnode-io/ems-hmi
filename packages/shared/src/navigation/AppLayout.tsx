@@ -11,6 +11,7 @@
  * Desktop: Sidebar + (TopBar + StatusStrip + screen content).
  */
 
+import { match } from "ts-pattern";
 import React, { useContext } from "react";
 import { View } from "react-native";
 import { useTheme } from "../theme/ThemeProvider";
@@ -85,12 +86,12 @@ export function AppLayout({
 
   const fmtPct = (v: number | null): string =>
     v === null ? "—" : `${Math.round(v)}%`;
-  const siteColor =
-    kpis.site.label === "Nominal"
-      ? t.statusOk
-      : kpis.site.label === "Warn"
-        ? t.statusWarn
-        : t.statusAlarm;
+  const siteColor = match(kpis.site.label)
+    .with("Nominal", () => t.statusOk)
+    .with("Warn", () => t.statusWarn)
+    .with("Alarm", () => t.statusAlarm)
+    .with("Unknown", () => t.statusOffline)
+    .exhaustive();
 
   const statusItems = [
     { label: "SITE", value: kpis.site.label, color: siteColor, dot: true },
@@ -104,7 +105,7 @@ export function AppLayout({
       // power-engineer); throttle count is live and is the demo's point anyway.
       label: "GPU THROTTLE",
       value: gpuStripMetrics(gpuFleet).throttling.value,
-      color: gpuFleet.throttlingCount > 0 ? t.statusWarn : t.colorCompute,
+      color: (gpuFleet.throttlingCount ?? 0) > 0 ? t.statusWarn : t.colorCompute,
     },
     {
       label: "GRID",
@@ -122,8 +123,8 @@ export function AppLayout({
     },
     // TODO: PUE · 24h needs timeseries history hook
     { label: "PUE · 24h", value: "—", color: t.colorThermal, sub: "24h avg" },
-    // TODO: CLOCK needs incident tracking
-    { label: "CLOCK", value: "T+00:00", color: t.textMid, sub: "since last incident" },
+    // TODO: CLOCK needs incident tracking — unknown until then, never a made-up T+00:00
+    { label: "CLOCK", value: "—", color: t.textMid, sub: "since last incident" },
   ];
 
   const breadcrumbs = (() => {

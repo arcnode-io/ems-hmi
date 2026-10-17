@@ -65,7 +65,8 @@ export function runwayRow(
 }
 
 export type Limit = "POWER LIMITED" | "RUNWAY LIMITED" | "GRID LIMITED";
-export type CapacityState = "BALANCED" | Limit;
+/** UNKNOWN = no constraint reporting; never shown as BALANCED (constitution §3.4). */
+export type CapacityState = "BALANCED" | "UNKNOWN" | Limit;
 
 export interface Constraint {
   limit: Limit;
@@ -81,7 +82,7 @@ export function constraintSummary(
   constraints: readonly Constraint[],
 ): { state: CapacityState; footer: string } {
   const live = constraints.filter((con): con is Constraint & { ratio: number } => con.ratio !== null);
-  if (live.length === 0) return { state: "BALANCED", footer: "Waiting on live data." };
+  if (live.length === 0) return { state: "UNKNOWN", footer: "Waiting on live data." };
   const top = live.reduce((best, con) => (con.ratio > best.ratio ? con : best));
   return {
     state: top.ratio >= LIMITED_AT ? top.limit : "BALANCED",

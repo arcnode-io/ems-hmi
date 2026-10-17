@@ -159,18 +159,27 @@ function classifyStatus(value: string): AlarmSeverity | null {
     .otherwise(() => null);
 }
 
+export interface AlarmState {
+  /** Active alarms, sorted alarm-first. */
+  alarms: ActiveAlarm[];
+  /** Readings with alarm limits (the watch list). */
+  watched: number;
+  /** How many of those have reported a value. */
+  reporting: number;
+}
+
 /**
- * Hook returning the active alarms, sorted alarm-first.
- * @returns Array of active alarms; empty when nothing is tripping
+ * Active alarms plus coverage — an empty list only means "fine" when every
+ * watched reading has reported (see siteHealth).
  */
-export function useAlarms(): ActiveAlarm[] {
+export function useAlarmState(): AlarmState {
   const { view } = useTopologyView();
   const { siteId } = useDeploymentIdentity();
   const watchList = useMemo(() => buildWatchList(view, siteId), [view, siteId]);
   const topics = useMemo(() => watchList.map((w) => w.topic), [watchList]);
   const messages = useAggregateMeasurements<number | string>(topics);
 
-  return useMemo(() => {
+  const alarms = useMemo(() => {
     const active: ActiveAlarm[] = [];
     for (const w of watchList) {
       const msg = messages[w.topic];
@@ -208,4 +217,14 @@ export function useAlarms(): ActiveAlarm[] {
       a.severity === b.severity ? 0 : a.severity === "alarm" ? -1 : 1,
     );
   }, [watchList, messages]);
+  const reporting = topics.filter((topic) => messages[topic] !== undefined).length;
+  return { alarms, watched: topics.length, reporting };
+}
+
+/**
+ * Hook returning the active alarms, sorted alarm-first.
+ * @returns Array of active alarms; empty when nothing is tripping
+ */
+export function useAlarms(): ActiveAlarm[] {
+  return useAlarmState().alarms;
 }

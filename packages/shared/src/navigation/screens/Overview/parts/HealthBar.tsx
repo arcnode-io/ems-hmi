@@ -1,7 +1,7 @@
 /**
  * HealthBar — Overview Zone A. Site-level summary card with status accent +
- * count line. Static for now; driver hook lands when site-state aggregation
- * is wired (see [[useFleetKpis]]).
+ * count line, driven by useSiteHealth. The check only shows on proven
+ * nominal; unknown gets no glyph (constitution §3.4).
  */
 
 import React from "react";
@@ -10,20 +10,24 @@ import { useTheme } from "../../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
 import { IconCheck } from "../../../../components/icons/IconCheck";
+import { IconWarning } from "../../../../components/icons/IconWarning";
+import type { SiteHealth } from "../../../../data/alarms/siteHealth";
 
 interface HealthBarProps {
   /** Headline e.g. "All systems nominal". */
   headline: string;
   /** Sub-line e.g. "17 modules online · 2 active warnings". */
   detail: string;
-  /** Accent color — theme.statusOk / statusWarn / statusAlarm. */
+  /** Accent color — theme.statusOk / statusWarn / statusAlarm / statusOffline. */
   accentColor: string;
+  level: SiteHealth["level"];
 }
 
 export function HealthBar({
   headline,
   detail,
   accentColor,
+  level,
 }: HealthBarProps): React.ReactElement {
   const t = useTheme();
   return (
@@ -68,18 +72,24 @@ export function HealthBar({
           {detail}
         </Text>
       </View>
-      <View
-        style={{
-          width: 32,
-          height: 32,
-          borderRadius: 999,
-          backgroundColor: `${accentColor}18`,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <IconCheck size={18} color={accentColor} />
-      </View>
+      {level === "unknown" ? null : (
+        <View
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 999,
+            backgroundColor: `${accentColor}18`,
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {level === "nominal" ? (
+            <IconCheck size={18} color={accentColor} />
+          ) : (
+            <IconWarning size={18} color={accentColor} />
+          )}
+        </View>
+      )}
     </View>
   );
 }

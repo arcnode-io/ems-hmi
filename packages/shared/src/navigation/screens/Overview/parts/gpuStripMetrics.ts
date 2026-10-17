@@ -26,7 +26,7 @@ function draw(watts: number | null): StripMetric {
 /** @example gpuStripMetrics(fleet).throttling // { value: "0 / 784", unit: "GPUs" } */
 export function gpuStripMetrics(fleet: GpuFleet): GpuStripMetrics {
   return {
-    throttling: { value: `${fleet.throttlingCount} / ${fleet.gpuCount}`, unit: "GPUs" },
+    throttling: { value: `${fleet.throttlingCount ?? DASH} / ${fleet.gpuCount}`, unit: "GPUs" },
     totalDraw: draw(fleet.totalDrawW),
     perGpu: { value: fleet.perGpuW === null ? DASH : fleet.perGpuW.toFixed(0), unit: "W" },
   };

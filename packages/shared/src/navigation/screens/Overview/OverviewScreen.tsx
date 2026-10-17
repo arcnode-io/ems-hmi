@@ -9,6 +9,7 @@
  */
 
 import React from "react";
+import { match } from "ts-pattern";
 import { ScrollView, View } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -16,7 +17,8 @@ import type { RootStackParamList } from "../../routes";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { SPACE } from "../../../theme/tokens/primitives";
 import { useTopologyView } from "../../../data/topology/useTopologyView";
-import { useAlarms } from "../../../data/alarms/useAlarms";
+import { useSiteHealth } from "../../../data/alarms/useSiteHealth";
+import { healthLine } from "./parts/healthLine";
 import { useGpuFleet } from "../../../data/compute/useGpuFleet";
 import { useGridState } from "../../../data/grid/useGridState";
 import { isAtLimit, useOperatingEnvelope } from "../../../data/grid/useOperatingEnvelope";
@@ -38,7 +40,7 @@ export function OverviewScreen(): React.ReactElement {
   const t = useTheme();
   const nav = useNavigation<Nav>();
   const { view } = useTopologyView();
-  const alarms = useAlarms();
+  const health = useSiteHealth();
   const gpuFleet = useGpuFleet();
   const gridState = useGridState();
   const envelope = useOperatingEnvelope();
@@ -47,7 +49,7 @@ export function OverviewScreen(): React.ReactElement {
   const curtailment = useCurtailmentPhase(
     gridState.curtailmentActive,
     envelope.importHeadroomW !== null && isAtLimit(envelope.importHeadroomW),
-    gpuFleet.throttlingCount > 0,
+    (gpuFleet.throttlingCount ?? 0) > 0,
   );
   const balance = usePowerBalance({
     gridW: kpis.grid.powerKw === null ? null : kpis.grid.powerKw * 1000,
@@ -62,17 +64,13 @@ export function OverviewScreen(): React.ReactElement {
         (d) => view.templates_used[d.template]?.kind === "module",
       ).length
     : 0;
-  const warnCount = alarms.filter((a) => a.severity === "warn").length;
-  const alarmCount = alarms.filter((a) => a.severity === "alarm").length;
-  const accent =
-    alarmCount > 0 ? t.statusAlarm : warnCount > 0 ? t.statusWarn : t.statusOk;
-  const headline =
-    alarmCount > 0
-      ? `${alarmCount} active alarm${alarmCount === 1 ? "" : "s"}`
-      : warnCount > 0
-        ? `${warnCount} active warning${warnCount === 1 ? "" : "s"}`
-        : "All systems nominal";
-  const detail = `${moduleCount} module${moduleCount === 1 ? "" : "s"} online`;
+  const accent = match(health.level)
+    .with("alarm", () => t.statusAlarm)
+    .with("warn", () => t.statusWarn)
+    .with("nominal", () => t.statusOk)
+    .with("unknown", () => t.statusOffline)
+    .exhaustive();
+  const { headline, detail } = healthLine(health, moduleCount);
   return (
     <ScrollView
       dataSet={{ comp: "OverviewScreen" }}
@@ -80,13 +78,13 @@ export function OverviewScreen(): React.ReactElement {
       contentContainerStyle={{ paddingBottom: SPACE[2] }}
     >
       <View>
-        <HealthBar headline={headline} detail={detail} accentColor={accent} />
+        <HealthBar headline={headline} detail={detail} accentColor={accent} level={health.level} />
         {/* Reason: story order — the utility's ask, the balance proving the
             battery covered it and GPU draw held, then the fleet detail. */}
         <CurtailmentBanner phase={curtailment} state={gridState} envelope={envelope} />
         <PowerBalancePanel balance={balance} />
         <GpuClusterStrip fleet={gpuFleet} />
-        <KpiStrip gpusCapped={gpuFleet.throttlingCount > 0} />
+        <KpiStrip gpusCapped={(gpuFleet.throttlingCount ?? 0) > 0} />
         <StrandedCapacity fleet={gpuFleet} />
         <EventHistoryPanel
           history={events}
