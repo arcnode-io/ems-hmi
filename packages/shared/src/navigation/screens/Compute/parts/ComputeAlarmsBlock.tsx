@@ -17,7 +17,8 @@ import { computeAlarms } from "./computeView";
 export function ComputeAlarmsBlock(): React.ReactElement {
   const t = useTheme();
   const { view } = useTopologyView();
-  const alarms = computeAlarms(useAlarms(), (id) => view?.devices[id]?.template);
+  const allAlarms = useAlarms();
+  const alarms = view ? computeAlarms(allAlarms, view) : [];
   return (
     <View
       style={{

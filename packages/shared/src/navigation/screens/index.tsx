@@ -17,6 +17,7 @@ import { AnalystScreen as RealAnalystScreen } from "./Analyst/AnalystScreen";
 import { ComputeScreen as RealComputeScreen } from "./Compute/ComputeScreen";
 import { SettingsScreen as RealSettingsScreen } from "./Settings/SettingsScreen";
 import { EventHistoryScreen as RealEventHistoryScreen } from "./EventHistory/EventHistoryScreen";
+import { AlarmsScreen as RealAlarmsScreen } from "./Alarms/AlarmsScreen";
 
 export function OverviewScreen(): ReactElement {
   return <RealOverviewScreen />;
@@ -52,6 +53,10 @@ export function SettingsScreen(): ReactElement {
 
 export function EventHistoryScreen(): ReactElement {
   return <RealEventHistoryScreen />;
+}
+
+export function AlarmsScreen({ navigation }: NativeStackScreenProps<RootStackParamList, "Alarms">): ReactElement {
+  return <RealAlarmsScreen onOpen={(deviceId): void => navigation.navigate("DeviceDetail", { deviceId })} />;
 }
 
 export function DeviceDetailScreen({

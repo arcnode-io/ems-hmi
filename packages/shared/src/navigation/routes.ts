@@ -21,6 +21,7 @@ export type RootStackParamList = {
   Analyst: undefined;
   Settings: undefined;
   EventHistory: undefined;
+  Alarms: undefined;
 };
 
 export type RouteName = keyof RootStackParamList;
@@ -54,6 +55,8 @@ export const ROUTES: readonly RouteSpec[] = [
   { name: "Settings", path: "settings", sidebar: "/settings", bottomTab: null },
   // Reason: reached from Overview's History link, so it keeps Overview lit.
   { name: "EventHistory", path: "events", sidebar: "/overview", bottomTab: "overview" },
+  // Reason: reached from the bell / SITE cell / health bar, which sit over every screen.
+  { name: "Alarms", path: "alarms", sidebar: "/overview", bottomTab: "overview" },
 ] as const;
 
 /** Look up a route spec by name. */

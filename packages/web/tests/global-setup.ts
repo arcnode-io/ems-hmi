@@ -20,6 +20,9 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
   execSync("npm run build", { cwd: WEB_ROOT, stdio: "inherit", env: { ...process.env, VITE_ENV: "deployed" } });
   const stack = await startStack(join(import.meta.dirname, "fixtures", "dtm.json"));
   const gateway = await startGatewayStub(stack.brokerUrl);
+  // Reason: Playwright hands env set here to the test workers — specs that
+  // play a device publish to this broker.
+  process.env.INTEGRATION_BROKER_URL = stack.brokerUrl;
 
   const res = await fetch(`${ORIGIN}/api/auth/login`, {
     method: "POST",

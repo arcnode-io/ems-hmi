@@ -94,7 +94,7 @@ export function AppLayout({
     .exhaustive();
 
   const statusItems = [
-    { label: "SITE", value: kpis.site.label, color: siteColor, dot: true },
+    { label: "SITE", value: kpis.site.label, color: siteColor, dot: true, onPress: (): void => onNavigate("Alarms") },
     {
       label: "FLEET SoC",
       value: fmtPct(kpis.fleetSoc.value),
@@ -165,6 +165,7 @@ export function AppLayout({
             userInitials={userInitials}
             breadcrumbs={breadcrumbs}
             onUserPress={(): void => onNavigate("Settings")}
+            onAlarmsPress={(): void => onNavigate("Alarms")}
           />
           <StatusStrip items={statusItems} />
           <View style={{ flex: 1 }}>{children}</View>
@@ -182,6 +183,7 @@ export function AppLayout({
         alarmCount={alarmCount}
         userInitials={userInitials}
         onUserPress={(): void => onNavigate("Settings")}
+        onAlarmsPress={(): void => onNavigate("Alarms")}
       />
       <StatusStrip items={statusItems} />
       <View style={{ flex: 1 }}>{children}</View>

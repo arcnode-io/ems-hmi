@@ -13,8 +13,7 @@ import React from "react";
 import { View, Text, Pressable } from "react-native";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { useBreakpoint } from "../../../hooks/useBreakpoint";
-import { usePulseOpacity } from "../../../hooks/usePulseOpacity";
-import { IconBell } from "../../icons";
+import { AlarmBell } from "./AlarmBell";
 import type { ThemeName } from "../../../theme/tokens";
 
 export interface TopBarProps {
@@ -32,12 +31,13 @@ export interface TopBarProps {
   breadcrumbs?: string[];
   /** Tap-handler for the avatar (phone settings entry point). */
   onUserPress?: () => void;
+  /** Tap-handler for the bell — opens the alarms list. */
+  onAlarmsPress?: () => void;
 }
 
 const HEADING_FONT_SIZE_PHONE = 20;
 const HEADING_FONT_SIZE_DESKTOP = 16;
 const AVATAR_DIAMETER = 30;
-const BELL_TARGET = 32;
 
 /**
  * Pick the heading weight + transform per theme. Sovereign uses Bebas Neue
@@ -111,59 +111,6 @@ function ModePill({
 }
 
 /**
- * Bell icon + alarm-count badge in the top-right.
- */
-function AlarmBell({ alarmCount }: { alarmCount: number }): React.ReactElement {
-  const t = useTheme();
-  // Reason: rule 3.2 — badge breathes 0.7↔1.0 over 800ms while alarms outstanding.
-  const opacity = usePulseOpacity(alarmCount > 0);
-  return (
-    <View
-      style={{
-        position: "relative",
-        width: BELL_TARGET,
-        height: BELL_TARGET,
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <IconBell size={20} color={t.textMid} />
-      {alarmCount > 0 && (
-        <View
-          dataSet={{ region: "alarm-count" }}
-          style={{
-            position: "absolute",
-            top: 2,
-            right: 2,
-            minWidth: 16,
-            height: 16,
-            paddingHorizontal: 4,
-            borderRadius: 8,
-            backgroundColor: t.statusAlarm,
-            borderWidth: 1.5,
-            borderColor: t.bg,
-            alignItems: "center",
-            justifyContent: "center",
-            opacity,
-          }}
-        >
-          <Text
-            style={{
-              color: "#fff",
-              fontFamily: t.fontLabel,
-              fontSize: 10,
-              fontWeight: "700",
-            }}
-          >
-            {alarmCount}
-          </Text>
-        </View>
-      )}
-    </View>
-  );
-}
-
-/**
  * Phone TopBar — name on the left, SIM/LIVE + bell + avatar on the right.
  */
 function PhoneTopBar(props: TopBarProps): React.ReactElement {
@@ -213,7 +160,7 @@ function PhoneTopBar(props: TopBarProps): React.ReactElement {
         ) : null}
       </View>
       <ModePill mode={props.mode} size="phone" />
-      <AlarmBell alarmCount={props.alarmCount} />
+      <AlarmBell alarmCount={props.alarmCount} onPress={props.onAlarmsPress} />
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`User menu, ${props.userInitials}`}
@@ -306,7 +253,7 @@ function DesktopTopBar(props: TopBarProps): React.ReactElement {
         })}
       </View>
       <ModePill mode={props.mode} size="desktop" />
-      <AlarmBell alarmCount={props.alarmCount} />
+      <AlarmBell alarmCount={props.alarmCount} onPress={props.onAlarmsPress} />
     </View>
   );
 }

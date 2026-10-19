@@ -16,6 +16,7 @@ import {
   AnalystScreen,
   SettingsScreen,
   EventHistoryScreen,
+  AlarmsScreen,
   DeviceDetailScreen,
 } from "./screens";
 import type { RootStackParamList } from "./routes";
@@ -42,6 +43,7 @@ export function Navigator(): React.ReactElement {
       <Stack.Screen name="Analyst" component={AnalystScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="EventHistory" component={EventHistoryScreen} />
+      <Stack.Screen name="Alarms" component={AlarmsScreen} />
     </Stack.Navigator>
   );
 }

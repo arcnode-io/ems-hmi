@@ -13,6 +13,7 @@ import { inFamily } from "../../../data/topology/templateFamily";
 import { useMemo } from "react";
 import { useTopologyView } from "../../../data/topology/useTopologyView";
 import { useAlarms, type ActiveAlarm } from "../../../data/alarms/useAlarms";
+import { owningModule } from "../../../data/alarms/owningModule";
 import { useAggregateMeasurements } from "../../../data/mqtt/useAggregateMeasurements";
 import { useDeploymentIdentity } from "../../../data/deployment/useDeploymentIdentity";
 import { measurementTopic, type TopicUnit } from "../../../data/topics/topicBuilder";
@@ -133,7 +134,8 @@ export function useModuleRows(): ModuleRow[] {
       if (tpl.kind !== "module") continue;
       const moduleType = moduleTypeOf(device.template);
       if (!moduleType) continue;
-      const deviceAlarms = allAlarms.filter((a) => a.deviceId === deviceId);
+      // A child's alarm (a PDU under a compute container) is the module's alarm.
+      const deviceAlarms = allAlarms.filter((a) => owningModule(view, a.deviceId) === deviceId);
       const specs = specsFor(device.template);
       const measurements: ModuleMeasurement[] = specs.map((s) => {
         const meas = tpl.measurements[s.measurementName];

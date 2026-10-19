@@ -19,6 +19,7 @@ function alarm(
     measurementLabel: "x",
     severity,
     displayValue: "—",
+    limitLabel: null,
     ts: new Date().toISOString(),
   };
 }

@@ -8,6 +8,7 @@ const ALARM: ActiveAlarm = {
   measurementLabel: "Cell temp",
   severity: "alarm",
   displayValue: "61.00 C",
+  limitLabel: null,
   ts: "2026-10-17T00:00:00Z",
 };
 

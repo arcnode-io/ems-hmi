@@ -16,7 +16,7 @@
  */
 
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { useBreakpoint } from "../../../hooks/useBreakpoint";
 
@@ -31,6 +31,10 @@ export interface StatusStripItem {
   dot?: boolean;
   /** Optional sub-line shown only on the desktop variant ("6.2 h runway"). */
   sub?: string;
+  /** Makes the segment a link (SITE → alarms list). */
+  onPress?: () => void;
+  /** Accessible name when pressable; defaults to "label value". */
+  pressLabel?: string;
 }
 
 export interface StatusStripProps {
@@ -58,8 +62,12 @@ function StripSegment({
   const dotColor = item.color ?? t.text;
   const valueColor = isHero ? dotColor : t.text;
   return (
-    <View
+    <Pressable
       dataSet={{ comp: "StatusStrip.Segment", label: item.label }}
+      onPress={item.onPress}
+      disabled={item.onPress === undefined}
+      accessibilityRole={item.onPress ? "link" : undefined}
+      accessibilityLabel={item.onPress ? item.pressLabel ?? `${item.label} ${item.value}` : undefined}
       style={{
         flex: 1,
         borderRightWidth: position < total - 1 ? 1 : 0,
@@ -133,7 +141,7 @@ function StripSegment({
           )}
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

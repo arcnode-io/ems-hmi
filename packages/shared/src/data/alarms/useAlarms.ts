@@ -33,8 +33,9 @@ import { useTopologyView } from "../topology/useTopologyView";
 import { useAggregateMeasurements } from "../mqtt/useAggregateMeasurements";
 import { useDeploymentIdentity } from "../deployment/useDeploymentIdentity";
 import { measurementTopic, type TopicUnit } from "../topics/topicBuilder";
+import { classifyFloat, type AlarmSeverity } from "./classifyFloat";
 
-export type AlarmSeverity = "warn" | "alarm";
+export type { AlarmSeverity } from "./classifyFloat";
 
 export interface ActiveAlarm {
   /** Owning device id (DTM slug). */
@@ -49,6 +50,8 @@ export interface ActiveAlarm {
   severity: AlarmSeverity;
   /** Pre-formatted display value (e.g. "4.21 V" or "STALE"). */
   displayValue: string;
+  /** The limit it crossed, e.g. "below 381 volts"; null for status enums. */
+  limitLabel: string | null;
   /** Most-recent message timestamp (ISO). */
   ts: string;
   /**
@@ -136,19 +139,6 @@ function buildWatchList(
 }
 
 /**
- * Classify a numeric value against a threshold envelope.
- * @returns 'alarm' | 'warn' | null when within the warn band
- */
-function classifyFloat(
-  value: number,
-  th: FloatWatch["thresholds"],
-): AlarmSeverity | null {
-  if (value < th.alarm_min || value > th.alarm_max) return "alarm";
-  if (value < th.warn_min || value > th.warn_max) return "warn";
-  return null;
-}
-
-/**
  * Classify a status-enum string per the standard OK/STALE/INVALID/
  * COMM_FAIL severity mapping.
  */
@@ -186,15 +176,16 @@ export function useAlarmState(): AlarmState {
       const msg = messages[w.topic];
       if (!msg) continue;
       if (w.kind === "float" && typeof msg.value === "number") {
-        const severity = classifyFloat(msg.value, w.thresholds);
-        if (!severity) continue;
+        const verdict = classifyFloat(msg.value, w.thresholds);
+        if (!verdict) continue;
         active.push({
           deviceId: w.deviceId,
           deviceDisplayName: w.deviceDisplayName,
           measurementName: w.measurementName,
           measurementLabel: w.measurementLabel,
-          severity,
+          severity: verdict.severity,
           displayValue: `${msg.value.toFixed(2)} ${w.unit}`,
+          limitLabel: `${verdict.limit.side === "min" ? "below" : "above"} ${verdict.limit.value} ${w.unit}`,
           ts: msg.ts,
           category: w.category,
         });
@@ -208,6 +199,7 @@ export function useAlarmState(): AlarmState {
           measurementLabel: `${w.measurementLabel} ${msg.value.replace("_", " ").toLowerCase()}`,
           severity,
           displayValue: msg.value,
+          limitLabel: null,
           ts: msg.ts,
           category: w.category,
         });

@@ -78,7 +78,13 @@ export function OverviewScreen(): React.ReactElement {
       contentContainerStyle={{ paddingBottom: SPACE[2] }}
     >
       <View>
-        <HealthBar headline={headline} detail={detail} accentColor={accent} level={health.level} />
+        <HealthBar
+          headline={headline}
+          detail={detail}
+          accentColor={accent}
+          level={health.level}
+          onPress={(): void => nav.navigate("Alarms")}
+        />
         {/* Reason: story order — the utility's ask, the balance proving the
             battery covered it and GPU draw held, then the fleet detail. */}
         <CurtailmentBanner phase={curtailment} state={gridState} envelope={envelope} />

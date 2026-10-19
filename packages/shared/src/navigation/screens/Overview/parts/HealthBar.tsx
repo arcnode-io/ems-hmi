@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, Pressable } from "react-native";
 import { useTheme } from "../../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../../theme/tokens";
 import { SPACE, RADIUS } from "../../../../theme/tokens/primitives";
@@ -21,6 +21,8 @@ interface HealthBarProps {
   /** Accent color — theme.statusOk / statusWarn / statusAlarm / statusOffline. */
   accentColor: string;
   level: SiteHealth["level"];
+  /** Opens the alarms list. */
+  onPress: () => void;
 }
 
 export function HealthBar({
@@ -28,11 +30,15 @@ export function HealthBar({
   detail,
   accentColor,
   level,
+  onPress,
 }: HealthBarProps): React.ReactElement {
   const t = useTheme();
   return (
-    <View
+    <Pressable
       dataSet={{ comp: "HealthBar" }}
+      accessibilityRole="link"
+      accessibilityLabel={`${headline} — open alarms`}
+      onPress={onPress}
       style={{
         marginHorizontal: SPACE[4],
         marginTop: SPACE[3],
@@ -90,6 +96,6 @@ export function HealthBar({
           )}
         </View>
       )}
-    </View>
+    </Pressable>
   );
 }

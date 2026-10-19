@@ -3,6 +3,7 @@
 import { inFamily } from "../../../../data/topology/templateFamily";
 import type { GpuFleet, GpuNodeSummary } from "../../../../data/compute/useGpuFleet";
 import type { ActiveAlarm } from "../../../../data/alarms/useAlarms";
+import { owningModule, type ModuleTree } from "../../../../data/alarms/owningModule";
 import { gpuStripMetrics, type StripMetric } from "../../Overview/parts/gpuStripMetrics";
 
 const DASH = "—";
@@ -57,13 +58,14 @@ export function drawSamples(fleet: GpuFleet): { samples: number[]; warnAtW: numb
   return { samples, warnAtW: limits.length === 0 ? null : Math.max(...limits) * WARN_FRACTION };
 }
 
-/** Alarms scoped to the compute cluster (gpu_node + compute_module devices). */
-export function computeAlarms(
-  alarms: readonly ActiveAlarm[],
-  templateOf: (deviceId: string) => string | undefined,
-): ActiveAlarm[] {
-  return alarms.filter((alarm) => {
-    const template = templateOf(alarm.deviceId);
+/**
+ * Alarms scoped to the compute cluster: on a gpu_node / compute_module, or
+ * on any device a compute module owns (its PDUs, CDUs, switches).
+ */
+export function computeAlarms(alarms: readonly ActiveAlarm[], view: ModuleTree): ActiveAlarm[] {
+  const isCompute = (deviceId: string | null): boolean => {
+    const template = deviceId === null ? undefined : view.devices[deviceId]?.template;
     return template !== undefined && COMPUTE_FAMILIES.some((family) => inFamily(template, family));
-  });
+  };
+  return alarms.filter((alarm) => isCompute(alarm.deviceId) || isCompute(owningModule(view, alarm.deviceId)));
 }

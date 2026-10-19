@@ -1,6 +1,7 @@
 import { capCell, computeAlarms, drawSamples, heroKpis, topNodes } from "./computeView";
 import type { GpuFleet, GpuNodeSummary } from "../../../../data/compute/useGpuFleet";
 import type { ActiveAlarm } from "../../../../data/alarms/useAlarms";
+import type { ModuleTree } from "../../../../data/alarms/owningModule";
 
 function node(deviceId: string, over: Partial<GpuNodeSummary> = {}): GpuNodeSummary {
   return { deviceId, throttling: 0, nodePowerW: 10_500, nodeLimitW: 26_400, gpuPowerW: 8_000, gpuCapW: 1000, ...over };
@@ -75,21 +76,42 @@ describe("drawSamples", () => {
 });
 
 describe("computeAlarms", () => {
-  it("keeps only alarms on gpu_node / compute_module devices", () => {
-    // Arrange
+  it("keeps alarms on compute devices and on anything a compute module owns", () => {
+    // Arrange — pdu_01 sits under the compute container; bess_rack_01 under the BESS
     const alarm = (deviceId: string): ActiveAlarm => ({
       deviceId, deviceDisplayName: deviceId, measurementName: "m", measurementLabel: "M",
-      severity: "warn", displayValue: "1", ts: "2026-01-01T00:00:00Z",
+      severity: "warn", displayValue: "1", limitLabel: null, ts: "2026-01-01T00:00:00Z",
     });
-    const templates = { gpu_node_01: "gpu_node", compute_module_01: "compute_module", bess_rack_01: "bess_rack" };
+    const device = (id: string, template: string, parent: string | null): ModuleTree["devices"][string] => ({
+      device_id: id, template, parent, display_name: null, extra_measurements: null, bounds: null,
+    });
+    const template = (name: string, kind: "module" | "leaf"): ModuleTree["templates_used"][string] => ({
+      template: name, kind, equipment_id: null, vendor: null, model: null, description: "", commands: {}, measurements: {},
+    });
+    const view: ModuleTree = {
+      devices: {
+        compute_module_01: device("compute_module_01", "compute_module", null),
+        gpu_node_01: device("gpu_node_01", "gpu_node", "compute_module_01"),
+        pdu_01: device("pdu_01", "pdu", "compute_module_01"),
+        bess_module_01: device("bess_module_01", "bess_module", null),
+        bess_rack_01: device("bess_rack_01", "bess_rack", "bess_module_01"),
+      },
+      templates_used: {
+        compute_module: template("compute_module", "module"),
+        gpu_node: template("gpu_node", "leaf"),
+        pdu: template("pdu", "leaf"),
+        bess_module: template("bess_module", "module"),
+        bess_rack: template("bess_rack", "leaf"),
+      },
+    };
 
     // Act
     const kept = computeAlarms(
-      [alarm("gpu_node_01"), alarm("bess_rack_01"), alarm("compute_module_01")],
-      (id) => templates[id as keyof typeof templates],
+      [alarm("gpu_node_01"), alarm("bess_rack_01"), alarm("pdu_01"), alarm("compute_module_01")],
+      view,
     );
 
     // Assert
-    expect(kept.map((row) => row.deviceId)).toEqual(["gpu_node_01", "compute_module_01"]);
+    expect(kept.map((row) => row.deviceId)).toEqual(["gpu_node_01", "pdu_01", "compute_module_01"]);
   });
 });
