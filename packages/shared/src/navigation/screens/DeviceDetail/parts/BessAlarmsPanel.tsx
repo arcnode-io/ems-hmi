@@ -1,5 +1,5 @@
 /**
- * BessAlarmsPanel — active alarms for a bess_module and its bess_rack
+ * BessAlarmsPanel — active alarms for a bess_module and its components (racks, or bank + PCS)
  * children, reusing the same useAlarms + AlarmRow pattern as
  * ComputeAlarmsBlock. No BMS-specific alarm codes exist for real (no cell-level
  * telemetry) — these are the same generic threshold-crossing alarms
@@ -53,7 +53,7 @@ export function BessAlarmsPanel({ deviceIds }: BessAlarmsPanelProps): React.Reac
       {alarms.length === 0 ? (
         <View style={{ paddingHorizontal: SPACE[3], paddingBottom: SPACE[3] }}>
           <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.textSoft }]}>
-            No active alarms on this module or its racks.
+            No active alarms on this module or its components.
           </Text>
         </View>
       ) : (

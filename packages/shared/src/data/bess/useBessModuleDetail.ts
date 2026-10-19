@@ -5,10 +5,9 @@
  * already surfaces on the Modules list, resubscribed here at full
  * precision for the detail hero).
  *
- * Per-rack detail (voltage, frequency, operating state, energy
- * discharged) lives in useBessRackRoster — bess_rack is a real, separate
- * leaf template (Tesla Megapack), not something this module-level
- * rollup exposes.
+ * Per-component detail (racks, or a DC module's bank + PCS) lives in
+ * useBessComponents — those are separate leaf templates, not something
+ * this module-level rollup exposes.
  */
 
 import { useMemo } from "react";

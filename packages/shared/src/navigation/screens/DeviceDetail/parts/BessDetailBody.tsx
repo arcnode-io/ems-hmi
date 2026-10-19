@@ -1,6 +1,7 @@
 /**
  * BessDetailBody — real BESS module detail view, rendered by
- * DeviceDetailScreen when device.template === "bess_module".
+ * DeviceDetailScreen for the bess_module family (AC Megapack or DC-coupled
+ * bess_module_dc).
  *
  * Deliberately missing vs. the bess-detail-screen.jsx handoff mockup —
  * none of these exist anywhere in the real device catalog (confirmed by
@@ -22,12 +23,12 @@
 
 import React from "react";
 import { useBessModuleDetail } from "../../../../data/bess/useBessModuleDetail";
-import { useBessRackRoster } from "../../../../data/bess/useBessRackRoster";
+import { useBessComponents } from "../../../../data/bess/bessComponents";
 import { useBessSocHistory } from "../../../../data/bess/useBessSocHistory";
 import { CommandPanel } from "../../../../components/composed/CommandPanel/CommandPanel";
 import { BessHeroPanel } from "./BessHeroPanel";
 import { BessSocTrend } from "./BessSocTrend";
-import { BessRacksPanel } from "./BessRacksPanel";
+import { BessComponentsPanel } from "./BessComponentsPanel";
 import { BessAlarmsPanel } from "./BessAlarmsPanel";
 import { ReserveFloorPanel } from "./ReserveFloorPanel";
 
@@ -38,15 +39,15 @@ interface BessDetailBodyProps {
 
 export function BessDetailBody({ deviceId, deviceDisplayName }: BessDetailBodyProps): React.ReactElement {
   const detail = useBessModuleDetail(deviceId);
-  const racks = useBessRackRoster(deviceId);
+  const components = useBessComponents(deviceId);
   const socHistory = useBessSocHistory(deviceId);
-  const alarmDeviceIds = [deviceId, ...racks.map((r) => r.id)];
+  const alarmDeviceIds = [deviceId, ...components.map((c) => c.id)];
 
   return (
     <>
       <BessHeroPanel detail={detail} />
       <BessSocTrend samples={socHistory} />
-      <BessRacksPanel racks={racks} />
+      <BessComponentsPanel components={components} />
       <BessAlarmsPanel deviceIds={alarmDeviceIds} />
       <ReserveFloorPanel />
       <CommandPanel deviceId={deviceId} deviceDisplayName={deviceDisplayName} />
