@@ -8,6 +8,10 @@ check-web:
   script:
     - npm ci --legacy-peer-deps
     - npx playwright install --with-deps chromium
+    # The integration stack pulls public ECR images anonymously. A stale login
+    # from any job on this shared runner would be offered instead and rejected,
+    # so clear it first.
+    - docker logout public.ecr.aws >/dev/null 2>&1 || true
     - npm run checks -w packages/web
     - npm run cover -w packages/web
   coverage: '/All files\s*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*(\d+(?:\.\d+)?)/'
