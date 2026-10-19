@@ -1,6 +1,7 @@
 /**
- * ChartCanvas — the TimeseriesChart SVG: grid, y-axis ticks, threshold
- * lines, fault-gap hatches, and the series polylines.
+ * ChartCanvas — the TimeseriesChart SVG: grid, y-axis ticks, x-axis ticks
+ * (when the axis has a label format), threshold lines, fault-gap hatches,
+ * and the series polylines.
  */
 
 import React from "react";
@@ -40,7 +41,12 @@ export interface ChartCanvasProps {
   height: number;
   /** Series point index to mark with readout dots, or null. */
   readoutIndex?: number | null;
+  /** Formats an x value as an axis label; absent = no x ticks. */
+  xTickLabel?: (x: number) => string;
 }
+
+/** x-tick positions as fractions of the plot width, ends included. */
+const X_TICKS = [0, 0.25, 0.5, 0.75, 1] as const;
 
 export function ChartCanvas({
   scale,
@@ -51,6 +57,7 @@ export function ChartCanvas({
   chartH,
   height,
   readoutIndex,
+  xTickLabel,
 }: ChartCanvasProps): React.ReactElement {
   const t = useTheme();
   const plotW = canvasW - PAD_L - PAD_R;
@@ -87,6 +94,24 @@ export function ChartCanvas({
             </SvgText>
           );
         })}
+
+      {/* x-axis tick labels, in the bottom padding; ends anchor inward */}
+      {scale &&
+        xTickLabel &&
+        X_TICKS.map((g) => (
+          <SvgText
+            key={`xtick-${g}`}
+            data-region="xtick"
+            x={PAD_L + plotW * g}
+            y={PAD_T + chartH + 14}
+            fill={t.textSoft}
+            fontSize={9}
+            fontFamily={t.fontLabel}
+            textAnchor={g === 0 ? "start" : g === 1 ? "end" : "middle"}
+          >
+            {xTickLabel(scale.xMin + (scale.xMax - scale.xMin) * g)}
+          </SvgText>
+        ))}
 
       {/* threshold lines */}
       {scale &&

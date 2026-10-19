@@ -154,6 +154,7 @@ export function TimeseriesChart({
           chartH={chartH}
           height={H}
           readoutIndex={readout}
+          xTickLabel={xAxis.kind === "time" ? (x): string => formatXLabel(x, "time") : undefined}
         />
         {readoutPoint !== undefined ? (
           <ChartReadout

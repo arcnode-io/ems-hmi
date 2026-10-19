@@ -144,4 +144,42 @@ describe("TimeseriesChart", () => {
     const root = container.querySelector('[data-comp="TimeseriesChart"]');
     expect(root?.getAttribute("data-state")).toBe("no-data");
   });
+
+  it("labels a time axis with clock times from the first point to the last", () => {
+    // Arrange — 4 h of hourly points
+    const start = Date.UTC(2026, 9, 19, 12, 0);
+    const hourly = [0, 1, 2, 3, 4].map((h) => ({ x: start + h * 3_600_000, y: 20 + h }));
+    const clock = (ms: number): string => {
+      const d = new Date(ms);
+      return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    };
+
+    // Act
+    const { container } = render(
+      withTheme(
+        <TimeseriesChart
+          title="Price"
+          xAxis={{ label: "Time", kind: "time" }}
+          yAxis={{ label: "Price", unit: "$/MWh" }}
+          series={[{ label: "Forecast", points: hourly }]}
+        />,
+      ),
+    );
+
+    // Assert
+    const ticks = [...container.querySelectorAll('[data-region="xtick"]')].map((el) => el.textContent);
+    expect(ticks).toEqual(hourly.map((p) => clock(p.x)));
+  });
+
+  it("leaves a numeric axis unlabelled", () => {
+    // Arrange / Act
+    const { container } = render(
+      withTheme(
+        <TimeseriesChart title="n" xAxis={{ label: "t", kind: "numeric" }} yAxis={{ label: "v", unit: "" }} series={[HIST]} />,
+      ),
+    );
+
+    // Assert
+    expect(container.querySelectorAll('[data-region="xtick"]')).toHaveLength(0);
+  });
 });
