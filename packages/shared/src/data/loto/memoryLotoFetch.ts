@@ -1,8 +1,8 @@
 /**
- * In-browser stand-in for device-api's LOTO routes, injected as the LotoFetch
- * in mock builds (public demo, Playwright). Follows the contract's semantics —
- * group lockout, subtree expansion, 400/404/409 — so the UI behaves the same
- * against it as against the real API. The mock session is always an operator.
+ * In-memory stand-in for device-api's LOTO routes — the LotoFetch unit tests
+ * inject. Follows the contract's semantics (group lockout, subtree expansion,
+ * 400/404/409) so components behave as against the real API. Every caller is
+ * treated as an operator; the integration suite covers the real one.
  */
 
 import { match, P } from "ts-pattern";
@@ -19,7 +19,7 @@ function reply(status: number, body: unknown): ReturnType<LotoFetch> {
 }
 
 function problem(status: number, message: string): ReturnType<LotoFetch> {
-  return reply(status, { statusCode: status, message, error: "Mock" });
+  return reply(status, { statusCode: status, message, error: "Memory" });
 }
 
 /** Locked ids plus every device whose parent chain reaches one, sorted. */
@@ -38,7 +38,7 @@ function expand(locked: ReadonlySet<string>, devices: DeviceParents): string[] {
  * @param devices current topology's devices (read per call — topology can refetch)
  * @param now clock, injectable for tests
  */
-export function createMockLotoFetch(devices: () => DeviceParents, now: () => Date = () => new Date()): LotoFetch {
+export function createMemoryLotoFetch(devices: () => DeviceParents, now: () => Date = () => new Date()): LotoFetch {
   const rows: Lock[] = [];
   const active = (): Lock[] => rows.filter((r) => r.cleared_at === null);
 
@@ -82,6 +82,6 @@ export function createMockLotoFetch(devices: () => DeviceParents, now: () => Dat
         rows[index] = cleared;
         return reply(200, cleared);
       })
-      .otherwise(() => problem(404, `mock LOTO has no route for ${path}`));
+      .otherwise(() => problem(404, `memory LOTO has no route for ${path}`));
   };
 }

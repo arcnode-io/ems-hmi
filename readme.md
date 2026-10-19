@@ -77,21 +77,26 @@ ems_device_api --> sld_context: svg string
 
 On `system/topology_changed`, both contexts re-fetch and swap. Components re-render against the new device list / buses / SVG.
 
-### Demo deployment (S3)
+### Integration tests (Playwright)
+`npm run integration -w packages/web` builds the `deployed` HMI and runs it against the minimal real
+services in testcontainers — the same images product deploys, `ENV=beta`. Full-stack e2e (gateway +
+mock devices) is platform-api's.
 ```plantuml
-rectangle s3_bucket {
-  rectangle dist {
-    rectangle js_bundle
-    rectangle index_html
-  }
-  rectangle api_fixtures {
-    rectangle topology_view_json
-    rectangle sld_svg
-  }
+rectangle testcontainers_network {
+  rectangle hmi_nginx_image
+  rectangle ems_device_api
+  rectangle ems_der_control_api
+  rectangle ems_hivemq
+  rectangle postgres
 }
-
-rectangle ec2_sandbox_analyst_api 
-ec2_sandbox_analyst_api - js_bundle 
+rectangle playwright {
+  rectangle gateway_stub
+  rectangle analyst_route_stub
+}
+hmi_nginx_image - ems_device_api
+hmi_nginx_image - ems_der_control_api
+hmi_nginx_image - ems_hivemq
+gateway_stub - ems_hivemq
 ```
 
 

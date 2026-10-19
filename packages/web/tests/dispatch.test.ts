@@ -1,11 +1,12 @@
 /**
- * E2E — the BESS dispatch workflow. An operator at the desk console opens a
+ * Integration — the BESS dispatch workflow. An operator at the desk console opens a
  * BESS device, sets a setpoint within its rated range, confirms through the
- * two-step ConfirmationModal, and the command goes out over MQTT — the demo's
- * mock gateway acks it on the same contract a real gateway uses.
+ * two-step ConfirmationModal, and the command goes out over the real broker —
+ * the gateway stub acks it on the gateway's dispatch contract.
  */
 
-import { test, expect, type Page, type ConsoleMessage, type Locator } from "@playwright/test";
+import { type Page, type ConsoleMessage, type Locator } from "@playwright/test";
+import { test, expect } from "./fixtures/test";
 
 function collectErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -16,8 +17,8 @@ function collectErrors(page: Page): string[] {
   return errors;
 }
 
-// Ignores benign deprecation noise, expected static-fixture 404s, and
-// sandbox network flakes (ERR_NETWORK_CHANGED) — none are app defects.
+// Ignores benign deprecation noise, the SLD SVG 404, and sandbox network
+// flakes (ERR_NETWORK_CHANGED) — none are app defects.
 const IGNORE_PATTERN =
   /shadow.*deprecated|HTTP 404 fetching .*sld(-portrait)?\.svg|Failed to load resource: net::ERR/i;
 
@@ -46,7 +47,7 @@ test.describe("BESS dispatch workflow", () => {
     await expect(panel.getByText("Discharge 200 kW").first()).toBeAttached();
     await page.locator('[data-action="apply"]').first().click();
     await expect(page.locator('[data-comp="ConfirmationModal"]')).toBeAttached();
-    // Demo runs in sim mode → the SIMULATED band is the SIM affordance.
+    // The DTM is ems_mode sim → the SIMULATED band is the SIM affordance.
     await expect(page.locator('[data-region="sim-band"]')).toBeAttached();
 
     // Act — confirm; the gateway acks received, then done.

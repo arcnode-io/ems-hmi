@@ -17,7 +17,7 @@ import {
   type ConfigBlock,
 } from "@ems-hmi/shared/data/deployment/siteConfig";
 
-export type BakedProfiles = Record<"local" | "ai-demo", ConfigBlock>;
+export type BakedProfiles = Record<"local", ConfigBlock>;
 export type ConfigType = ConfigBlock & { mode: DeploymentMode };
 
 /**
@@ -41,7 +41,7 @@ function withDevOverlay(
 /**
  * Resolve the active config for a build.
  * @param build VITE_ENV build mode
- * @param baked cfg.yml's baked profiles (local, ai-demo)
+ * @param baked cfg.yml's baked profile (local)
  * @param overlay parsed /cfg.customer.yml, or null when absent
  * @param host the browser's host (location.host) — a deployed site's real host
  * @returns the active config with its mode
@@ -59,7 +59,6 @@ export function resolveConfig(
       mode: build,
     }))
     .with("local", () => withDevOverlay(baked.local, overlay, build))
-    .with("ai-demo", () => withDevOverlay(baked["ai-demo"], overlay, build))
     .with("device-demo", () => {
       throw new Error(
         "'device-demo' is a mobile-only profile; web real-backend builds are 'deployed'",

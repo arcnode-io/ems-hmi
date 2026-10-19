@@ -1,6 +1,6 @@
 /**
  * RealMqttClient — the measurement-side MqttClient backed by an mqtt.js
- * connection. Mirrors MockMqttClientImpl's per-filter listener map; dedupes
+ * connection. Mirrors MemoryMqttClient's per-filter listener map; dedupes
  * broker subscribes (subscribe once per filter, unsubscribe when the last
  * listener drops). Wildcard filters (`+` / `#`) fan out by topicMatches.
  * Payloads are the `{ ts, value }` envelope per system_adr.

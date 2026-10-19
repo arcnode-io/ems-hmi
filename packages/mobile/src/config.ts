@@ -42,7 +42,6 @@ export type ConfigType = z.infer<typeof Config> & { mode: DeploymentMode };
 
 export const ConfigMap = z.object({
   local: Config,
-  "ai-demo": Config,
   "device-demo": Config,
 });
 
@@ -62,7 +61,6 @@ export function loadConfig(): ConfigType | null {
   const environment = parseDeploymentMode(ENV as string | undefined);
   const block = match(environment)
     .with("local", () => config.local)
-    .with("ai-demo", () => config["ai-demo"])
     .with("device-demo", () => config["device-demo"])
     .with("deployed", () => null)
     .exhaustive();

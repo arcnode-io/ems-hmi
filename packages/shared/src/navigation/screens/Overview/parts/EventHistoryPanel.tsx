@@ -47,7 +47,6 @@ export function EventHistoryPanel({ history, floorMwh, onOpenHistory }: EventHis
   const empty = match(history)
     .with({ status: "ready" }, () => "No events in the last 24 h.")
     .with({ status: "loading" }, () => "Loading event history…")
-    .with({ status: "unavailable" }, () => "Event history is available on a live site.")
     .with({ status: "error" }, () => "Couldn't load event history.")
     .exhaustive();
 

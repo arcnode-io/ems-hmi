@@ -5,7 +5,7 @@ import type { DeploymentMode } from "../deployment/deploymentMode";
 import { AuthContext, type AuthState } from "../auth/AuthProvider";
 import type { AuthRole } from "../auth/authClient";
 import { MqttProvider } from "../mqtt/MqttProvider";
-import { MockMqttClientImpl } from "../mqtt/MockMqttProvider";
+import { MemoryMqttClient } from "../mqtt/memoryMqttClient";
 import { TopologyContext, type TopologyContextValue } from "../topology/TopologyProvider";
 import type { TopologyViewType } from "../topology/topology.schema";
 import { systemTopic } from "../topics/topicBuilder";
@@ -24,7 +24,7 @@ const auth = (role: AuthRole): AuthState => ({
   status: "authenticated", token: "tok", role, login: () => Promise.resolve(), logout: () => undefined,
 });
 
-function wrapperFor(opts: { mode: DeploymentMode; auth: AuthState | null; client: MockMqttClientImpl; fetchFn?: LotoFetch }) {
+function wrapperFor(opts: { mode: DeploymentMode; auth: AuthState | null; client: MemoryMqttClient; fetchFn?: LotoFetch }) {
   const base: DeploymentIdentityBase = {
     name: "T", host: "h", siteId: "s", mode: opts.mode, chatApiUri: "", deviceApiUri: "/api", derControlUri: "",
   };
@@ -48,24 +48,9 @@ const flush = async (): Promise<void> => {
 };
 
 describe("LotoProvider", () => {
-  it("locks a module in a mock build and padlocks its racks", async () => {
-    // Arrange
-    const { result } = renderHook(() => useLoto(), {
-      wrapper: wrapperFor({ mode: "local", auth: null, client: new MockMqttClientImpl() }),
-    });
-    await flush();
-
-    // Act
-    await act(() => result.current.lock("bess_module_01", { holder_name: "Ann", permit_ref: null }));
-    await flush();
-
-    // Assert
-    expect([...result.current.lockedDevices]).toEqual(["bess_module_01", "bess_rack_01"]);
-  });
-
   it("re-reads GET /loto when the loto_changed beacon arrives", async () => {
     // Arrange
-    const client = new MockMqttClientImpl();
+    const client = new MemoryMqttClient();
     const urls: string[] = [];
     const fetchFn: LotoFetch = (url) => {
       urls.push(url);
@@ -84,7 +69,7 @@ describe("LotoProvider", () => {
 
   it("lets operators write and viewers only read", async () => {
     // Arrange
-    const client = new MockMqttClientImpl();
+    const client = new MemoryMqttClient();
     const fetchFn: LotoFetch = () =>
       Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve({ locks: [], locked_devices: [] }) });
 

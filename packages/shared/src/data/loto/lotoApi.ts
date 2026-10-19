@@ -39,7 +39,7 @@ export interface LotoInit {
   body?: string;
 }
 
-/** The slice of fetch this module uses — injectable for tests and mock builds. */
+/** The slice of fetch this module uses — injectable for tests. */
 export type LotoFetch = (
   url: string,
   init: LotoInit,

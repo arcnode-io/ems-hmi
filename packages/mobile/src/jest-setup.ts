@@ -15,7 +15,7 @@ jest.mock("./config", () => ({
     deviceApiUri: "/api",
     chatApiUri: "http://localhost:3000",
     derControlUri: "/der-control",
-    mode: "ai-demo",
+    mode: "local",
   }),
 }));
 

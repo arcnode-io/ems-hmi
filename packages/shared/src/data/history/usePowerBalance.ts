@@ -8,7 +8,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useTopologyView } from "../topology/useTopologyView";
 import { useDeploymentIdentity } from "../deployment/useDeploymentIdentity";
-import { usesRealBackend } from "../deployment/deploymentMode";
 import { appendPoint, EMPTY_BALANCE, stitchHistory, WINDOW_MS, type BalanceSeries } from "./powerBalance";
 import { loadHistory } from "./loadHistory";
 
@@ -52,19 +51,18 @@ export interface PowerBalance {
 }
 
 /**
- * Live samples, seeded with analyst history on real-backend profiles. Mock
- * profiles skip history — the hosted analyst's data wouldn't match the sim.
+ * Live samples, seeded with analyst history.
  */
 export function usePowerBalance(live: LiveBalance): PowerBalance {
   const samples = useLiveSamples(live);
   const { view } = useTopologyView();
-  const { mode, chatApiUri } = useDeploymentIdentity();
+  const { chatApiUri } = useDeploymentIdentity();
   const [history, setHistory] = useState<{ ok: boolean; series: BalanceSeries }>({
     ok: false,
     series: EMPTY_BALANCE,
   });
   useEffect(() => {
-    if (!view || !usesRealBackend(mode)) return;
+    if (!view) return;
     let current = true;
     void loadHistory(view, chatApiUri, (url) => fetch(url), Date.now()).then((loaded) => {
       if (current) setHistory(loaded);
@@ -72,7 +70,7 @@ export function usePowerBalance(live: LiveBalance): PowerBalance {
     return (): void => {
       current = false;
     };
-  }, [view, mode, chatApiUri]);
+  }, [view, chatApiUri]);
   return {
     series: {
       grid: stitchHistory(history.series.grid, samples.grid),

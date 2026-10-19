@@ -2,7 +2,6 @@ import React from "react";
 import { act, renderHook } from "@testing-library/react";
 import { DeploymentIdentityProvider, type DeploymentIdentityBase } from "../deployment/DeploymentIdentityProvider";
 import { AuthContext, type AuthState } from "../auth/AuthProvider";
-import type { DeploymentMode } from "../deployment/deploymentMode";
 import type { EventRow, EventsFetch } from "./eventsApi";
 import { REFRESH_MS, useEventHistory } from "./useEventHistory";
 
@@ -16,13 +15,13 @@ const row = (id: number): EventRow => ({
   actor: "operator", program: null, status: null, state: null, value: null, detail: "AUTO",
 });
 
-function wrapperFor(mode: DeploymentMode) {
+function wrapperFor(signedIn: boolean) {
   const base: DeploymentIdentityBase = {
-    name: "T", host: "h", siteId: "s", mode, chatApiUri: "", deviceApiUri: "/api", derControlUri: "/der-control",
+    name: "T", host: "h", siteId: "s", mode: "deployed", chatApiUri: "", deviceApiUri: "/api", derControlUri: "/der-control",
   };
   return ({ children }: { children: React.ReactNode }): React.ReactElement => (
     <DeploymentIdentityProvider base={base}>
-      <AuthContext.Provider value={mode === "deployed" ? AUTH : null}>{children}</AuthContext.Provider>
+      <AuthContext.Provider value={signedIn ? AUTH : null}>{children}</AuthContext.Provider>
     </DeploymentIdentityProvider>
   );
 }
@@ -55,7 +54,7 @@ describe("useEventHistory", () => {
     // Arrange
     const log = [row(1), row(2)];
     const { fetchFn, urls } = server(log);
-    const { result } = renderHook(() => useEventHistory(fetchFn), { wrapper: wrapperFor("deployed") });
+    const { result } = renderHook(() => useEventHistory(fetchFn), { wrapper: wrapperFor(true) });
     await flush();
     const first = result.current;
 
@@ -71,16 +70,16 @@ describe("useEventHistory", () => {
     }).toEqual({ first: [2, 1], next: [3, 2, 1], base: true });
   });
 
-  it("is unavailable on in-browser mock builds — there's no der-control-api to ask", async () => {
+  it("asks nothing until there is a session token", async () => {
     // Arrange
     const { fetchFn, urls } = server([row(1)]);
 
     // Act
-    const { result } = renderHook(() => useEventHistory(fetchFn), { wrapper: wrapperFor("local") });
+    const { result } = renderHook(() => useEventHistory(fetchFn), { wrapper: wrapperFor(false) });
     await flush(REFRESH_MS);
 
     // Assert
-    expect({ status: result.current.status, calls: urls.length }).toEqual({ status: "unavailable", calls: 0 });
+    expect({ status: result.current.status, calls: urls.length }).toEqual({ status: "loading", calls: 0 });
   });
 
   it("reports an error when the server refuses, rather than an empty history", async () => {
@@ -88,7 +87,7 @@ describe("useEventHistory", () => {
     const fetchFn: EventsFetch = () => Promise.resolve({ ok: false, status: 502, json: () => Promise.resolve(null) });
 
     // Act
-    const { result } = renderHook(() => useEventHistory(fetchFn), { wrapper: wrapperFor("deployed") });
+    const { result } = renderHook(() => useEventHistory(fetchFn), { wrapper: wrapperFor(true) });
     await flush();
 
     // Assert

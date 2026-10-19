@@ -1,19 +1,17 @@
 /**
  * useEventLog — the event history page's data: the newest page for the
  * current filters, older pages on demand (stable id cursor), and new events
- * merged in at the top every REFRESH_MS. Real-backend builds only.
+ * merged in at the top every REFRESH_MS. Stays loading until there's a session token.
  */
 
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { AuthContext } from "../auth/AuthProvider";
 import { useDeploymentIdentity } from "../deployment/useDeploymentIdentity";
-import { usesRealBackend } from "../deployment/deploymentMode";
 import { BROWSER_FETCH, fetchEventPage, fetchRetentionDays, type EventRow, type EventsFetch } from "./eventsApi";
 import { filterParams, type EventFilter } from "./eventFilter";
 import { REFRESH_MS } from "./useEventHistory";
 
 export type EventLog = { retentionDays: number | null } & (
-  | { status: "unavailable" }
   | { status: "loading" }
   | { status: "error" }
   | { status: "ready"; rows: EventRow[]; end: boolean; loadingOlder: boolean; loadOlder: () => void }
@@ -34,10 +32,9 @@ function merge(current: EventRow[], incoming: EventRow[]): EventRow[] {
  * @param fetchFn injectable for tests; defaults to the browser's fetch
  */
 export function useEventLog(filter: EventFilter, fetchFn: EventsFetch = BROWSER_FETCH): EventLog {
-  const { mode, derControlUri } = useDeploymentIdentity();
-  // Reason: mock builds have no AuthProvider, and useAuth() throws outside one.
+  const { derControlUri } = useDeploymentIdentity();
+  // Reason: read the context directly — useAuth() throws outside an AuthProvider.
   const token = useContext(AuthContext)?.token ?? null;
-  const live = usesRealBackend(mode) && token !== null;
   const [page, setPage] = useState<PageState>({ status: "loading" });
   const [retentionDays, setRetentionDays] = useState<number | null>(null);
   // Reason: the range start is fixed when the filters are picked, so older
@@ -46,7 +43,7 @@ export function useEventLog(filter: EventFilter, fetchFn: EventsFetch = BROWSER_
   const filterKey = `${filter.kind}|${filter.program}|${filter.range}`;
 
   useEffect(() => {
-    if (!live || token === null) return undefined;
+    if (token === null) return undefined;
     let current = true;
     void fetchRetentionDays({ baseUri: derControlUri, token }, fetchFn).then(
       (days) => current && setRetentionDays(days),
@@ -55,10 +52,10 @@ export function useEventLog(filter: EventFilter, fetchFn: EventsFetch = BROWSER_
     return (): void => {
       current = false;
     };
-  }, [live, token, derControlUri, fetchFn]);
+  }, [token, derControlUri, fetchFn]);
 
   useEffect(() => {
-    if (!live || token === null) return undefined;
+    if (token === null) return undefined;
     let current = true;
     params.current = filterParams(filter, Date.now());
     setPage({ status: "loading" });
@@ -83,7 +80,7 @@ export function useEventLog(filter: EventFilter, fetchFn: EventsFetch = BROWSER_
     };
     // Reason: filterKey stands in for the filter object, which callers rebuild each render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [live, token, derControlUri, fetchFn, filterKey]);
+  }, [token, derControlUri, fetchFn, filterKey]);
 
   const loadOlder = useCallback((): void => {
     if (page.status !== "ready" || page.end || page.loadingOlder || token === null) return;
@@ -102,6 +99,5 @@ export function useEventLog(filter: EventFilter, fetchFn: EventsFetch = BROWSER_
     );
   }, [page, token, derControlUri, fetchFn]);
 
-  if (!live) return { status: "unavailable", retentionDays: null };
   return page.status === "ready" ? { ...page, loadOlder, retentionDays } : { status: page.status, retentionDays };
 }

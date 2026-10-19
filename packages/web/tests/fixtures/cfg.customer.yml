@@ -1,0 +1,9 @@
+# The site overlay a deployer mounts at /opt/arcnode/hmi-cfg.customer.yml —
+# same shape platform-api's UserData writes. Same-origin paths: nginx proxies.
+deploymentName: "E2E Site"
+# beta_site: the site id every service's beta cfg block carries.
+siteId: "beta_site"
+mqttUri: ""
+deviceApiUri: "/api"
+chatApiUri: "/api"
+derControlUri: "/der-control"

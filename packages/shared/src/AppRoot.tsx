@@ -3,10 +3,8 @@
  * web and native; each platform's `main` feeds it cfg loaded from its own
  * cfg.yml.
  *
- * Real-backend modes (device-demo, deployed) gate the shell behind AuthProvider + a
- * login screen; mock modes (local, ai-demo) bypass auth entirely (offline,
- * deterministic — the public demo and the Playwright specs depend on instant
- * entry).
+ * Every mode talks to a real backend (device-api + broker), so the shell sits
+ * behind AuthProvider + a login screen.
  */
 
 import React from "react";
@@ -15,15 +13,11 @@ import { DeploymentIdentityProvider } from "./data/deployment/DeploymentIdentity
 import { AuthProvider } from "./data/auth/AuthProvider";
 import { useAuth } from "./data/auth/useAuth";
 import { TopologyProvider } from "./data/topology/TopologyProvider";
-import { MockMqttProvider } from "./data/mqtt/MockMqttProvider";
 import { RealMqttProvider } from "./data/mqtt/RealMqttProvider";
 import { AnalystConversationProvider } from "./data/analyst/AnalystConversationProvider";
 import { LotoProvider } from "./data/loto/LotoProvider";
 import { DerEventNoticeProvider } from "./data/grid/DerEventNoticeProvider";
-import {
-  usesRealBackend,
-  type DeploymentMode,
-} from "./data/deployment/deploymentMode";
+import type { DeploymentMode } from "./data/deployment/deploymentMode";
 import { analystStream } from "./data/analyst/sse/analystStream";
 import { NavigationRoot } from "./navigation/NavigationRoot";
 import { LoginScreen } from "./navigation/screens/Login/LoginScreen";
@@ -51,9 +45,7 @@ export interface AppRootProps {
 }
 
 function topologyUrl(cfg: AppRootCfg): string {
-  // Static fixtures are served as JSON files in the mock modes; real-backend
-  // modes talk to a device-api that responds at /topology/view.
-  return `${cfg.deviceApiUri}/topology/view${usesRealBackend(cfg.mode) ? "" : ".json"}`;
+  return `${cfg.deviceApiUri}/topology/view`;
 }
 
 /**
@@ -72,11 +64,7 @@ function AppShell({ cfg }: { cfg: AppRootCfg }): React.ReactElement {
   );
   return (
     <TopologyProvider viewUrl={topologyUrl(cfg)}>
-      {usesRealBackend(cfg.mode) ? (
-        <RealMqttProvider>{inner}</RealMqttProvider>
-      ) : (
-        <MockMqttProvider siteId={cfg.siteId}>{inner}</MockMqttProvider>
-      )}
+      <RealMqttProvider>{inner}</RealMqttProvider>
     </TopologyProvider>
   );
 }
@@ -97,14 +85,10 @@ export function AppRoot({
   errorBoundary: Boundary,
   onChangeSite,
 }: AppRootProps): React.ReactElement {
-  // Real-backend modes require a human login; mock modes enter straight in.
-  const requiresAuth = usesRealBackend(cfg.mode);
-  const inner = requiresAuth ? (
+  const inner = (
     <AuthProvider>
       <AuthGate cfg={cfg} onChangeSite={onChangeSite} />
     </AuthProvider>
-  ) : (
-    <AppShell cfg={cfg} />
   );
   const tree = (
     <DeploymentIdentityProvider

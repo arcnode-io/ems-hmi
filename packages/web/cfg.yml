@@ -1,6 +1,5 @@
-# Baked profiles for the builds that have no deployer: the dev server and the
-# public S3 demo (both run on in-browser mock data). The container image is
-# built `deployed` and bakes NO site — whoever deploys it mounts
+# The one baked profile: the dev server, against a local stack. The container
+# image is built `deployed` and bakes NO site — whoever deploys it mounts
 # /cfg.customer.yml (platform-api UserData for cloud/ISO, the device-demo
 # launcher), and it fails closed without one. See src/resolveConfig.ts.
 
@@ -13,16 +12,4 @@ local:
   mqttUri: "ws://localhost:8083/mqtt"
   deviceApiUri: "/api"
   chatApiUri: "http://localhost:8000"
-  derControlUri: "/der-control"
-
-# Public S3 web demo: mock devices + fixture topology, hosted analyst.
-ai-demo:
-  logLevel: INFO
-  e2e: false
-  deploymentName: "Brookside DC-1"
-  deploymentHost: "arcnode.customer-site.internal"
-  siteId: "demo-site"
-  mqttUri: ""
-  deviceApiUri: "/api"
-  chatApiUri: "https://analyst.arcnode.io"
   derControlUri: "/der-control"

@@ -19,12 +19,12 @@ const CFG: Record<string, Profile> = parse(
 ) as Record<string, Profile>;
 
 describe("web cfg.yml", () => {
-  it("bakes only the mock profiles — real sites come from the deployer's overlay", () => {
+  it("bakes only the dev profile — real sites come from the deployer's overlay", () => {
     // Arrange + Act
     const names = Object.keys(CFG);
 
     // Assert
-    expect(names).toEqual(["local", "ai-demo"]);
+    expect(names).toEqual(["local"]);
   });
 
   it("gives local an ADR-002 §16 snake_case site id of its own", () => {

@@ -3,8 +3,8 @@ import { renderWithScreen } from "../screenTestHarness";
 import { EventHistoryScreen } from "./EventHistoryScreen";
 
 describe("EventHistoryScreen", () => {
-  it("titles the page, offers the filters, and says why there's no log without a backend", () => {
-    // Arrange / Act — the harness has no login, so there's no der-control-api to ask
+  it("titles the page, offers the filters, and waits for a session before loading", () => {
+    // Arrange / Act — the harness has no login, so nothing is fetched yet
     const view = renderWithScreen(<EventHistoryScreen />, []);
     const text = view.container.textContent ?? "";
 
@@ -13,7 +13,7 @@ describe("EventHistoryScreen", () => {
       text.includes("Event history"),
       text.includes("Curtailment"),
       text.includes("Last 24 h"),
-      text.includes("Event history is available on a live site."),
+      text.includes("Loading event history…"),
     ]).toEqual([true, true, true, true]);
   });
 });

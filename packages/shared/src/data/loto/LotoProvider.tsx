@@ -4,16 +4,12 @@
  * session's own set/clear. LOTO is a state, not an alarm — nothing here is
  * acknowledged. The gateway is the authority on writes; this only informs UI.
  *
- * Real-backend builds talk to device-api; mock builds get an in-browser
- * stand-in (mockLotoFetch) over the fixture topology. `fetchFn` overrides
- * both, for tests.
+ * Talks to device-api; `fetchFn` overrides it for tests.
  */
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { AuthContext } from "../auth/AuthProvider";
 import { useDeploymentIdentity } from "../deployment/useDeploymentIdentity";
-import { usesRealBackend } from "../deployment/deploymentMode";
-import { useTopologyView } from "../topology/useTopologyView";
 import { useSubscription } from "../mqtt/useSubscription";
 import { systemTopic } from "../topics/topicBuilder";
 import {
@@ -26,11 +22,8 @@ import {
   type LockRequest,
   type LotoFetch,
 } from "./lotoApi";
-import { createMockLotoFetch } from "./mockLotoFetch";
 
 const BEACON_TOPIC = systemTopic("loto_changed");
-// Reason: mock builds have no AuthProvider and no token; the mock API ignores it.
-const MOCK_TOKEN = "mock";
 
 export interface LotoState {
   status: "loading" | "ready" | "error";
@@ -38,7 +31,7 @@ export interface LotoState {
   locks: Lock[];
   /** Every locked device incl. subtrees (device-api expands them). */
   lockedDevices: ReadonlySet<string>;
-  /** operator (or a mock build); viewers read only. */
+  /** operator; viewers read only. */
   canWrite: boolean;
   /** Bumps on every successful re-read — lets history views follow along. */
   revision: number;
@@ -53,25 +46,17 @@ export interface LotoState {
 export const LotoContext = createContext<LotoState | null>(null);
 
 interface LotoProviderProps {
-  /** Test override; defaults to device-api (real builds) or mockLotoFetch. */
+  /** Test override; defaults to the browser's fetch against device-api. */
   fetchFn?: LotoFetch;
   children: React.ReactNode;
 }
 
 export function LotoProvider({ fetchFn, children }: LotoProviderProps): React.ReactElement {
-  const { mode, deviceApiUri } = useDeploymentIdentity();
+  const { deviceApiUri } = useDeploymentIdentity();
   const auth = useContext(AuthContext);
-  const { view } = useTopologyView();
-  // Reason: the mock store must outlive topology refetches, so it reads devices through a ref.
-  const devicesRef = useRef(view?.devices ?? {});
-  devicesRef.current = view?.devices ?? {};
-  const real = usesRealBackend(mode);
-  const api = useMemo<LotoFetch>(
-    () => fetchFn ?? (real ? BROWSER_LOTO_FETCH : createMockLotoFetch(() => devicesRef.current)),
-    [fetchFn, real],
-  );
-  const token = auth?.token ?? (real ? null : MOCK_TOKEN);
-  const canWrite = auth === null ? !real : auth.role === "operator";
+  const api = fetchFn ?? BROWSER_LOTO_FETCH;
+  const token = auth?.token ?? null;
+  const canWrite = auth?.role === "operator";
 
   const [snapshot, setSnapshot] = useState<{ status: LotoState["status"]; locks: Lock[]; locked: string[]; revision: number }>(
     { status: "loading", locks: [], locked: [], revision: 0 },

@@ -1,5 +1,5 @@
 /**
- * Web config I/O: the bundled cfg.yml (baked mock profiles) + the runtime
+ * Web config I/O: the bundled cfg.yml (the baked dev profile) + the runtime
  * `/cfg.customer.yml` overlay, resolved by resolveConfig (pure, tested).
  */
 
@@ -10,7 +10,7 @@ import configYamlRaw from "../cfg.yml?raw";
 import { Config } from "@ems-hmi/shared/data/deployment/siteConfig";
 import { resolveConfig, type ConfigType } from "./resolveConfig";
 
-const BakedProfiles = z.object({ local: Config, "ai-demo": Config });
+const BakedProfiles = z.object({ local: Config });
 
 /** Path the deployed nginx serves the per-deployment runtime overlay from. */
 const OVERLAY_URL = "/cfg.customer.yml";
@@ -35,7 +35,7 @@ async function fetchOverlay(): Promise<Record<string, unknown> | null> {
 }
 
 /**
- * Load the active config for this build (`VITE_ENV`: local | ai-demo | deployed).
+ * Load the active config for this build (`VITE_ENV`: local | deployed).
  * @returns Active config with `mode` attached
  * @throws if cfg.yml is unparseable, VITE_ENV names no web build, or a
  * deployed build has no complete /cfg.customer.yml

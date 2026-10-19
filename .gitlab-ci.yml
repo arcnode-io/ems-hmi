@@ -10,12 +10,9 @@ check-web:
     - npx playwright install --with-deps chromium
     - npm run checks -w packages/web
     - npm run cover -w packages/web
-    - VITE_ENV=ai-demo npm run build -w packages/web
   coverage: '/All files\s*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*[\d.]+\s*\|\s*(\d+(?:\.\d+)?)/'
   artifacts:
     when: always
-    paths:
-      - packages/web/dist/
     reports:
       coverage_report:
         coverage_format: cobertura
@@ -31,14 +28,18 @@ build-web:
   stage: publish
   # The ONE docker image for every real-backend stack (cloud, ISO, the
   # device-demo launcher). Built `deployed`: no site baked in — each deployer
-  # mounts /opt/arcnode/hmi-cfg.customer.yml and the HMI fails closed without
-  # it. NOT the ai-demo build check-web produces for the public S3 demo site.
+  # mounts /opt/arcnode/hmi-cfg.customer.yml and the HMI fails closed without it.
   script:
     - npm ci --legacy-peer-deps
     - VITE_ENV=deployed npm run build -w packages/web
     - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws
     - docker build -t public.ecr.aws/y1d2j6a8/ems-hmi packages/web
     - docker push public.ecr.aws/y1d2j6a8/ems-hmi
+  # Reason: shared shell runner — a login left behind expires after 12 h and then
+  # breaks every job's anonymous pulls (check-web's integration stack pulls from
+  # public ECR). after_script runs even when the push fails.
+  after_script:
+    - docker logout public.ecr.aws
   dependencies: []
 
 publish-apk:
@@ -54,19 +55,6 @@ publish-apk:
     - (cd packages/mobile/android; ENV=deployed ./gradlew assembleRelease --no-daemon)
     - aws s3 cp packages/mobile/android/app/build/outputs/apk/release/app-release.apk s3://arcnode-public/ems-hmi/latest.apk --content-type application/vnd.android.package-archive
   dependencies: []
-  only:
-    - main
-
-deploy-s3:
-  stage: publish
-  image:
-    name: amazon/aws-cli:latest
-    entrypoint: [""]
-  script:
-    - aws s3 sync packages/web/dist/ s3://ems-hmi --delete
-    - aws cloudfront create-invalidation --distribution-id E21B2WFRU2XXK9 --paths "/*"
-  dependencies:
-    - check-web
   only:
     - main
 

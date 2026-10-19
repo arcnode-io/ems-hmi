@@ -1,5 +1,5 @@
 import { clearLock, fetchLoto, fetchLotoHistory, setLock } from "./lotoApi";
-import { createMockLotoFetch } from "./mockLotoFetch";
+import { createMemoryLotoFetch } from "./memoryLotoFetch";
 
 const DEVICES = {
   bess_module_01: { parent: null },
@@ -7,13 +7,13 @@ const DEVICES = {
   bess_rack_02: { parent: "bess_module_01" },
   bess_module_02: { parent: null },
 };
-const WRITER = { baseUri: "", token: "mock" };
+const WRITER = { baseUri: "", token: "tok" };
 
-function arrange(): ReturnType<typeof createMockLotoFetch> {
-  return createMockLotoFetch(() => DEVICES, () => new Date("2026-10-10T19:00:00.000Z"));
+function arrange(): ReturnType<typeof createMemoryLotoFetch> {
+  return createMemoryLotoFetch(() => DEVICES, () => new Date("2026-10-10T19:00:00.000Z"));
 }
 
-describe("mockLotoFetch", () => {
+describe("memoryLotoFetch", () => {
   it("locks a module and its racks", async () => {
     // Arrange
     const fetchFn = arrange();

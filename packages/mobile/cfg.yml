@@ -9,18 +9,6 @@ local:
   chatApiUri: "http://localhost:8000"
   derControlUri: "http://localhost:8080"
 
-# Web-demo counterpart: mock devices + fixture topology, hosted analyst.
-ai-demo:
-  logLevel: "INFO"
-  e2e: false
-  deploymentName: "Brookside DC-1"
-  deploymentHost: "arcnode.customer-site.internal"
-  siteId: "demo-site"
-  mqttUri: ""
-  deviceApiUri: ""
-  chatApiUri: "https://sandbox-analyst.arcnode.io"
-  derControlUri: ""
-
 # End-to-end device demo against the local compose stack, through its nginx
 # (same paths as web). Absolute URLs so Settings' host override can repoint
 # them at the compose machine; empty mqttUri → ws://<host>/mqtt.

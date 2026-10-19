@@ -2,11 +2,12 @@
  * Smoke test — visits every tab + asserts no console errors. Guards against
  * regressions when porting new screens or refactoring shared components.
  *
- * The legacy template tests in this dir (healthcheck/chat/call-api) target a
- * different app shell and need replacement; this is the new baseline.
+ * Runs on the integration stack (global-setup.ts): real device-api,
+ * der-control-api and broker behind the HMI image, logged in as operator.
  */
 
-import { test, expect, type Page, type ConsoleMessage } from "@playwright/test";
+import { type Page, type ConsoleMessage } from "@playwright/test";
+import { test, expect } from "./fixtures/test";
 
 const TABS: Array<{ tab: string; marker: RegExp }> = [
   { tab: "Overview", marker: /All systems nominal|Site status unknown|active alarm|active warning/i },
@@ -86,9 +87,10 @@ test.describe("event history", () => {
 
     await page.getByLabel("View event history").click();
 
-    // Reason: the preview build is a mock build — no der-control-api, so the page says so.
+    // Reason: a fresh der-control-api — its retention, and no events yet.
     await expect(page).toHaveURL(/\/events$/);
-    await expect(page.getByText("Event history is available on a live site.").last()).toBeAttached({ timeout: 5000 });
+    await expect(page.getByText("Events are kept for 90 days.").last()).toBeAttached({ timeout: 5000 });
+    await expect(page.getByText("No events match these filters.").last()).toBeAttached();
     const meaningful = errors.filter((err) => !IGNORE_PATTERN.test(err));
     expect(meaningful, `unexpected console errors:\n${meaningful.join("\n")}`).toEqual([]);
   });

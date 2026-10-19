@@ -1,11 +1,12 @@
 /**
- * E2E — the Analyst screen. The analyst server is stubbed at the network
+ * Integration — the Analyst screen. The analyst server is stubbed at the network
  * (`POST …/analyst/chat` answered with a fixed SSE turn), so the app runs its
  * real stream client — nothing canned ships in the bundle. Covers the mobile
  * inline stream and the desktop two-pane.
  */
 
-import { test, expect, type Page, type ConsoleMessage } from "@playwright/test";
+import { type Page, type ConsoleMessage } from "@playwright/test";
+import { test, expect } from "./fixtures/test";
 
 function collectErrors(page: Page): string[] {
   const errors: string[] = [];

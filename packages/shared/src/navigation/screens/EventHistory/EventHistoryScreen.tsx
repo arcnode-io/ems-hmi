@@ -26,7 +26,6 @@ export function EventHistoryScreen(): React.ReactElement {
   const message = match(log)
     .with({ status: "ready" }, () => null)
     .with({ status: "loading" }, () => "Loading event history…")
-    .with({ status: "unavailable" }, () => "Event history is available on a live site.")
     .with({ status: "error" }, () => "Couldn't load event history. It retries every few seconds.")
     .exhaustive();
   const body = resolveTypeStyle(t, "bodyDense");

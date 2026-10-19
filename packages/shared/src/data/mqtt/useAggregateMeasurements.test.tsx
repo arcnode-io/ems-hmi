@@ -3,7 +3,7 @@ import { act, renderHook } from "@testing-library/react";
 import { MqttClientContext } from "./MqttProvider";
 import type { MqttClient, MqttMessage } from "./MqttClient";
 import { DEFAULT_FLUSH_MS, useAggregateMeasurements } from "./useAggregateMeasurements";
-import { MockMqttClientImpl } from "./MockMqttProvider";
+import { MemoryMqttClient } from "./memoryMqttClient";
 import { TopologyContext } from "../topology/TopologyProvider";
 import { ON_CHANGE_TOPIC, PERIODIC_TOPIC, STALE_TEST_VIEW } from "./staleTestView";
 
@@ -64,7 +64,7 @@ describe("useAggregateMeasurements flushMs", () => {
 describe("useAggregateMeasurements wildcard", () => {
   it("keys messages by the concrete topic they arrived on, not the filter", () => {
     // Arrange — one node-level filter, two measurements under it
-    const client = new MockMqttClientImpl();
+    const client = new MemoryMqttClient();
     const { result } = renderHook(() => useAggregateMeasurements<number>(["sites/s/devices/+/measurements/p/watts"]), {
       wrapper: wrapperFor(client),
     });

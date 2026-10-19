@@ -11,10 +11,7 @@ const LOCAL = {
   chatApiUri: "http://localhost:8000",
   derControlUri: "/der-control",
 };
-const BAKED: BakedProfiles = {
-  local: LOCAL,
-  "ai-demo": { ...LOCAL, siteId: "demo-site" },
-};
+const BAKED: BakedProfiles = { local: LOCAL };
 
 // What platform-api's UserData writes today — deployment-specific keys only.
 const PLATFORM_OVERLAY = {
@@ -101,13 +98,12 @@ describe("resolveConfig — baked builds", () => {
   it("uses the baked profile, with an optional dev overlay on top", () => {
     // Arrange / Act
     const plain = resolveConfig("local", BAKED, null, "h");
-    const overlaid = resolveConfig("ai-demo", BAKED, { siteId: "x" }, "h");
+    const overlaid = resolveConfig("local", BAKED, { siteId: "x" }, "h");
 
     // Assert
-    expect([plain, overlaid.siteId, overlaid.mode]).toEqual([
+    expect([plain, overlaid.siteId]).toEqual([
       { ...LOCAL, mode: "local" },
       "x",
-      "ai-demo",
     ]);
   });
 

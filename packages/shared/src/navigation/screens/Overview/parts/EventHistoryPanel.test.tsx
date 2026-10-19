@@ -77,19 +77,14 @@ describe("EventHistoryPanel", () => {
     });
   });
 
-  it("says why it's empty — none yet, no backend, or the request failed", () => {
+  it("says why it's empty — none yet, or the request failed", () => {
     // Arrange / Act
-    const texts = [
-      textOf({ status: "ready", rows: [] }),
-      textOf({ status: "unavailable" }),
-      textOf({ status: "error" }),
-    ];
+    const texts = [textOf({ status: "ready", rows: [] }), textOf({ status: "error" })];
 
     // Assert
     expect([
       texts[0]?.includes("No events in the last 24 h"),
-      texts[1]?.includes("Event history is available on a live site"),
-      texts[2]?.includes("Couldn't load event history"),
-    ]).toEqual([true, true, true]);
+      texts[1]?.includes("Couldn't load event history"),
+    ]).toEqual([true, true]);
   });
 });

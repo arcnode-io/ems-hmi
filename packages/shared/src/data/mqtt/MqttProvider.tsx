@@ -1,6 +1,6 @@
 /**
  * MqttProvider — React Context that hands a MqttClient impl to descendants.
- * Both RealMqttProvider and MockMqttProvider wrap this with their own client.
+ * RealMqttProvider wraps this with the broker client; tests pass a MemoryMqttClient.
  *
  * Consumers don't access the client directly — they use useSubscription<T>(topic).
  */

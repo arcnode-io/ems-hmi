@@ -2,7 +2,7 @@ import React from "react";
 import { renderHook } from "@testing-library/react";
 import { DeploymentIdentityProvider } from "../../../data/deployment/DeploymentIdentityProvider";
 import { MqttProvider } from "../../../data/mqtt/MqttProvider";
-import { MockMqttClientImpl } from "../../../data/mqtt/MockMqttProvider";
+import { MemoryMqttClient } from "../../../data/mqtt/memoryMqttClient";
 import { TopologyContext } from "../../../data/topology/TopologyProvider";
 import type { TopologyViewType } from "../../../data/topology/topology.schema";
 import { useModuleRows } from "./useModuleRows";
@@ -37,7 +37,7 @@ function wrapperFor(view: TopologyViewType) {
       base={{ name: "T", host: "h", siteId: "s", mode: "local", chatApiUri: "", deviceApiUri: "", derControlUri: "" }}
     >
       <TopologyContext.Provider value={{ status: "ready", view, error: null, refetch: () => undefined }}>
-        <MqttProvider client={new MockMqttClientImpl()}>{children}</MqttProvider>
+        <MqttProvider client={new MemoryMqttClient()}>{children}</MqttProvider>
       </TopologyContext.Provider>
     </DeploymentIdentityProvider>
   );

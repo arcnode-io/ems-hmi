@@ -2,33 +2,34 @@ import React from "react";
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { ThemeProvider } from "../../../../theme/ThemeProvider";
 import { DeploymentIdentityProvider } from "../../../../data/deployment/DeploymentIdentityProvider";
-import type { DeploymentMode } from "../../../../data/deployment/deploymentMode";
 import { AuthContext, type AuthState } from "../../../../data/auth/AuthProvider";
 import { MqttProvider } from "../../../../data/mqtt/MqttProvider";
-import { MockMqttClientImpl } from "../../../../data/mqtt/MockMqttProvider";
+import { MemoryMqttClient } from "../../../../data/mqtt/memoryMqttClient";
 import { TopologyContext } from "../../../../data/topology/TopologyProvider";
 import type { TopologyViewType } from "../../../../data/topology/topology.schema";
 import { LotoProvider } from "../../../../data/loto/LotoProvider";
-import { createMockLotoFetch } from "../../../../data/loto/mockLotoFetch";
+import { createMemoryLotoFetch } from "../../../../data/loto/memoryLotoFetch";
 import { setLock, type LotoFetch } from "../../../../data/loto/lotoApi";
 import { LotoPanel } from "./LotoPanel";
 
 const DEVICES = { bess_module_01: { parent: null } };
 const VIEW = { devices: DEVICES } as unknown as TopologyViewType;
-const VIEWER: AuthState = {
-  status: "authenticated", token: "tok", role: "viewer", login: () => Promise.resolve(), logout: () => undefined,
-};
+const session = (role: "operator" | "viewer"): AuthState => ({
+  status: "authenticated", token: "tok", role, login: () => Promise.resolve(), logout: () => undefined,
+});
+const OPERATOR = session("operator");
+const VIEWER = session("viewer");
 
-function renderPanel(opts: { mode: DeploymentMode; auth: AuthState | null; fetchFn?: LotoFetch }): void {
+function renderPanel(opts: { auth: AuthState; fetchFn?: LotoFetch }): void {
   render(
     <ThemeProvider>
       <DeploymentIdentityProvider
-        base={{ name: "T", host: "h", siteId: "s", mode: opts.mode, chatApiUri: "", deviceApiUri: "", derControlUri: "" }}
+        base={{ name: "T", host: "h", siteId: "s", mode: "deployed", chatApiUri: "", deviceApiUri: "", derControlUri: "" }}
       >
         <AuthContext.Provider value={opts.auth}>
           <TopologyContext.Provider value={{ status: "ready", view: VIEW, error: null, refetch: () => undefined }}>
-            <MqttProvider client={new MockMqttClientImpl()}>
-              <LotoProvider fetchFn={opts.fetchFn}>
+            <MqttProvider client={new MemoryMqttClient()}>
+              <LotoProvider fetchFn={opts.fetchFn ?? createMemoryLotoFetch(() => DEVICES)}>
                 <LotoPanel deviceId="bess_module_01" />
               </LotoProvider>
             </MqttProvider>
@@ -56,7 +57,7 @@ const holders = (): string[] => screen.queryAllByTestId("loto-active-holder").ma
 describe("LotoPanel", () => {
   it("an operator's lock shows in the active list", async () => {
     // Arrange
-    renderPanel({ mode: "local", auth: null });
+    renderPanel({ auth: OPERATOR });
     await settle();
 
     // Act
@@ -68,7 +69,7 @@ describe("LotoPanel", () => {
 
   it("clearing one of two locks leaves the device locked", async () => {
     // Arrange
-    renderPanel({ mode: "local", auth: null });
+    renderPanel({ auth: OPERATOR });
     await settle();
     await addLock("Ann");
     await addLock("Bo");
@@ -87,7 +88,7 @@ describe("LotoPanel", () => {
 
   it("refuses a blank name without calling the API", async () => {
     // Arrange
-    renderPanel({ mode: "local", auth: null });
+    renderPanel({ auth: OPERATOR });
     await settle();
 
     // Act
@@ -99,11 +100,11 @@ describe("LotoPanel", () => {
 
   it("a viewer sees the locks but no lock or clear buttons", async () => {
     // Arrange
-    const fetchFn = createMockLotoFetch(() => DEVICES);
+    const fetchFn = createMemoryLotoFetch(() => DEVICES);
     await setLock({ baseUri: "", token: "t" }, "bess_module_01", { holder_name: "Ann", permit_ref: "WO-1" }, fetchFn);
 
     // Act
-    renderPanel({ mode: "deployed", auth: VIEWER, fetchFn });
+    renderPanel({ auth: VIEWER, fetchFn });
     await settle();
 
     // Assert

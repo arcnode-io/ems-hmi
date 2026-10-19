@@ -1,0 +1,4 @@
+# The image is nginx + the built SPA; nothing else belongs in the context.
+*
+!dist
+!nginx.conf

@@ -1,15 +1,20 @@
 import { defineConfig, devices } from '@playwright/test';
+import { STORAGE_STATE } from './tests/global-setup';
 
 export default defineConfig({
   testDir: './tests',
-  fullyParallel: true,
+  // Reason: one shared backend — LOTO state and dispatch on the same BESS
+  // would race across workers.
+  fullyParallel: false,
+  globalSetup: './tests/global-setup.ts',
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI !== undefined ? 2 : 0,
-  workers: process.env.CI !== undefined ? 1 : undefined,
+  workers: 1,
   reporter: 'html',
   use: {
     baseURL: 'http://localhost:4173',
     trace: 'on-first-retry',
+    storageState: STORAGE_STATE,
   },
 
   projects: [
@@ -18,10 +23,4 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'] },
     },
   ],
-
-  webServer: {
-    command: 'npm run build && npm run preview',
-    url: 'http://localhost:4173',
-    reuseExistingServer: process.env.CI === undefined,
-  },
 });

@@ -1,6 +1,6 @@
 /**
- * MqttClient — interface implemented by RealMqttProvider (mqtt.js over WS)
- * and MockMqttProvider (rAF random-walk for demo mode).
+ * MqttClient — interface implemented by RealMqttClient (mqtt.js over WS)
+ * and MemoryMqttClient (unit tests).
  *
  * Wire envelope shape per system_adr §12: `{ ts, value }`. Status (quality)
  * lives on a separate measurement topic, time-joined at query time.

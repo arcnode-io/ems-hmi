@@ -2,7 +2,6 @@ import React from "react";
 import { act, renderHook } from "@testing-library/react";
 import { DeploymentIdentityProvider, type DeploymentIdentityBase } from "../deployment/DeploymentIdentityProvider";
 import { AuthContext, type AuthState } from "../auth/AuthProvider";
-import type { DeploymentMode } from "../deployment/deploymentMode";
 import { PAGE_SIZE, type EventRow, type EventsFetch } from "./eventsApi";
 import { DEFAULT_FILTER, type EventFilter } from "./eventFilter";
 import { REFRESH_MS } from "./useEventHistory";
@@ -18,13 +17,13 @@ const row = (id: number): EventRow => ({
   actor: "operator", program: null, status: null, state: null, value: null, detail: "AUTO",
 });
 
-function wrapperFor(mode: DeploymentMode) {
+function wrapperFor(signedIn: boolean) {
   const base: DeploymentIdentityBase = {
-    name: "T", host: "h", siteId: "s", mode, chatApiUri: "", deviceApiUri: "/api", derControlUri: "/der-control",
+    name: "T", host: "h", siteId: "s", mode: "deployed", chatApiUri: "", deviceApiUri: "/api", derControlUri: "/der-control",
   };
   return ({ children }: { children: React.ReactNode }): React.ReactElement => (
     <DeploymentIdentityProvider base={base}>
-      <AuthContext.Provider value={mode === "deployed" ? AUTH : null}>{children}</AuthContext.Provider>
+      <AuthContext.Provider value={signedIn ? AUTH : null}>{children}</AuthContext.Provider>
     </DeploymentIdentityProvider>
   );
 }
@@ -63,7 +62,7 @@ describe("useEventLog", () => {
   it("pages back through the log until the start, newest first", async () => {
     // Arrange — 60 rows: one full page, then 10
     const { fetchFn } = server(Array.from({ length: 60 }, (_, i) => row(i + 1)));
-    const { result } = renderHook(() => useEventLog(DEFAULT_FILTER, fetchFn), { wrapper: wrapperFor("deployed") });
+    const { result } = renderHook(() => useEventLog(DEFAULT_FILTER, fetchFn), { wrapper: wrapperFor(true) });
     await flush();
     const firstPage = ids(result.current);
 
@@ -87,7 +86,7 @@ describe("useEventLog", () => {
     // Arrange
     const log = [row(1), row(2)];
     const { fetchFn } = server(log);
-    const { result } = renderHook(() => useEventLog(DEFAULT_FILTER, fetchFn), { wrapper: wrapperFor("deployed") });
+    const { result } = renderHook(() => useEventLog(DEFAULT_FILTER, fetchFn), { wrapper: wrapperFor(true) });
     await flush();
 
     // Act
@@ -102,7 +101,7 @@ describe("useEventLog", () => {
     // Arrange
     const { fetchFn, urls } = server([row(1)]);
     const { rerender } = renderHook(({ filter }: { filter: EventFilter }) => useEventLog(filter, fetchFn), {
-      wrapper: wrapperFor("deployed"),
+      wrapper: wrapperFor(true),
       initialProps: { filter: DEFAULT_FILTER },
     });
     await flush();
@@ -125,22 +124,22 @@ describe("useEventLog", () => {
       });
 
     // Act
-    const { result } = renderHook(() => useEventLog(DEFAULT_FILTER, fetchFn), { wrapper: wrapperFor("deployed") });
+    const { result } = renderHook(() => useEventLog(DEFAULT_FILTER, fetchFn), { wrapper: wrapperFor(true) });
     await flush();
 
     // Assert
     expect(ids(result.current)).toEqual([2, 1]);
   });
 
-  it("is unavailable on in-browser mock builds", async () => {
+  it("asks nothing until there is a session token", async () => {
     // Arrange
     const { fetchFn, urls } = server([row(1)]);
 
     // Act
-    const { result } = renderHook(() => useEventLog(DEFAULT_FILTER, fetchFn), { wrapper: wrapperFor("local") });
+    const { result } = renderHook(() => useEventLog(DEFAULT_FILTER, fetchFn), { wrapper: wrapperFor(false) });
     await flush(REFRESH_MS);
 
     // Assert
-    expect({ status: result.current.status, calls: urls.length }).toEqual({ status: "unavailable", calls: 0 });
+    expect({ status: result.current.status, calls: urls.length }).toEqual({ status: "loading", calls: 0 });
   });
 });
