@@ -1,7 +1,8 @@
 /**
- * EnergyScreen — `/energy` route. Markets, revenue and forecast come from the
- * site's market enrollment; the DTM carries none yet, so the screen says so
- * instead of showing anything (constitution §3.4 — no canned values).
+ * EnergyScreen — `/energy` route. The day-ahead price forecast for the
+ * site's settlement point, from analyst `/forecast`. Revenue and planned
+ * dispatch have no source yet, so they aren't shown (constitution §3.4 — no
+ * canned values).
  */
 
 import React from "react";
@@ -9,10 +10,13 @@ import { ScrollView, View, Text } from "react-native";
 import { useTheme } from "../../../theme/ThemeProvider";
 import { resolveTypeStyle } from "../../../theme/tokens";
 import { SPACE } from "../../../theme/tokens/primitives";
-import { EDPanel } from "./parts/EDPanel";
+import { useForecast } from "../../../data/forecast/useForecast";
+import type { FetchFn } from "../../../data/history/measurementsApi";
+import { PricePanel } from "./parts/PricePanel";
 
-export function EnergyScreen(): React.ReactElement {
+export function EnergyScreen({ fetchFn }: { fetchFn?: FetchFn }): React.ReactElement {
   const t = useTheme();
+  const prices = useForecast(fetchFn);
   const isSov = t.name === "sovereign";
   return (
     <ScrollView
@@ -59,19 +63,12 @@ export function EnergyScreen(): React.ReactElement {
               },
             ]}
           >
-            Markets · revenue
+            Market prices
           </Text>
         </View>
       </View>
 
-      <View style={{ marginHorizontal: SPACE[4] }}>
-        <EDPanel>
-          <Text style={[resolveTypeStyle(t, "cardHeading"), { color: t.text }]}>No market connected</Text>
-          <Text style={[resolveTypeStyle(t, "bodyDense"), { color: t.textMid, marginTop: SPACE[2] }]}>
-            This site isn&apos;t enrolled in a market. Prices, revenue and planned dispatch show here once it is.
-          </Text>
-        </EDPanel>
-      </View>
+      <PricePanel state={prices} />
     </ScrollView>
   );
 }
